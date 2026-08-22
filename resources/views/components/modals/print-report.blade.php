@@ -53,76 +53,78 @@
             </div>
 
             <div class="space-y-4 text-slate-700" x-show="filterType !== 'since_last_zero'">
-                <p class="text-sm font-medium mb-3 text-slate-500">حدد الفترة التي ترغب في طباعة التقرير لها:</p>
+                <p class="text-xs sm:text-sm font-medium mb-3 text-slate-500">حدد الفترة التي ترغب في طباعة التقرير لها:</p>
                 
-                <!-- Start Date -->
-                <div x-data="{
-                    fpStart: null,
-                    initStart() {
-                        this.$nextTick(() => {
-                            if (window.flatpickr && this.$refs.startDateInput) {
-                                this.fpStart = flatpickr(this.$refs.startDateInput, {
-                                    locale: 'ar',
-                                    dateFormat: 'Y-m-d',
-                                    defaultDate: startDate || '',
-                                    disableMobile: true,
-                                    static: true,
-                                    appendTo: this.$refs.startWrapper,
-                                    onChange: (dates, dateStr) => { startDate = dateStr; }
-                                });
-                                this.$watch('startDate', val => {
-                                    if (this.fpStart) this.fpStart.setDate(val || '', false);
-                                });
-                            }
-                        });
-                    }
-                }" x-init="initStart()">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">من تاريخ</label>
-                    <div class="relative" x-ref="startWrapper">
-                        <input type="text" 
-                               x-ref="startDateInput"
-                               x-model="startDate" 
-                               placeholder="YYYY-MM-DD"
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:border-primary-500 focus:ring-1 text-center font-bold text-xs cursor-pointer text-slate-800" 
-                               readonly>
-                        <div class="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Start Date -->
+                    <div x-data="{
+                        fpStart: null,
+                        initStart() {
+                            this.$nextTick(() => {
+                                if (window.flatpickr && this.$refs.startDateInput) {
+                                    this.fpStart = flatpickr(this.$refs.startDateInput, {
+                                        locale: 'ar',
+                                        dateFormat: 'Y-m-d',
+                                        defaultDate: startDate || '',
+                                        disableMobile: true,
+                                        static: true,
+                                        appendTo: this.$refs.startWrapper,
+                                        onChange: (dates, dateStr) => { startDate = dateStr; }
+                                    });
+                                    this.$watch('startDate', val => {
+                                        if (this.fpStart) this.fpStart.setDate(val || '', false);
+                                    });
+                                }
+                            });
+                        }
+                    }" x-init="initStart()">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">من تاريخ</label>
+                        <div class="relative" x-ref="startWrapper">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <input type="text" 
+                                   x-ref="startDateInput"
+                                   x-model="startDate" 
+                                   placeholder="YYYY-MM-DD"
+                                   class="w-full pr-9 pl-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:border-primary-500 focus:ring-1 text-center font-bold text-xs cursor-pointer text-slate-800 transition-colors hover:border-slate-300" 
+                                   readonly>
                         </div>
                     </div>
-                </div>
-                
-                <!-- End Date -->
-                <div x-data="{
-                    fpEnd: null,
-                    initEnd() {
-                        this.$nextTick(() => {
-                            if (window.flatpickr && this.$refs.endDateInput) {
-                                this.fpEnd = flatpickr(this.$refs.endDateInput, {
-                                    locale: 'ar',
-                                    dateFormat: 'Y-m-d',
-                                    defaultDate: endDate || '',
-                                    disableMobile: true,
-                                    static: true,
-                                    appendTo: this.$refs.endWrapper,
-                                    onChange: (dates, dateStr) => { endDate = dateStr; }
-                                });
-                                this.$watch('endDate', val => {
-                                    if (this.fpEnd) this.fpEnd.setDate(val || '', false);
-                                });
-                            }
-                        });
-                    }
-                }" x-init="initEnd()">
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5">إلى تاريخ</label>
-                    <div class="relative" x-ref="endWrapper">
-                        <input type="text" 
-                               x-ref="endDateInput"
-                               x-model="endDate" 
-                               placeholder="YYYY-MM-DD"
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:border-primary-500 focus:ring-1 text-center font-bold text-xs cursor-pointer text-slate-800" 
-                               readonly>
-                        <div class="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    
+                    <!-- End Date -->
+                    <div x-data="{
+                        fpEnd: null,
+                        initEnd() {
+                            this.$nextTick(() => {
+                                if (window.flatpickr && this.$refs.endDateInput) {
+                                    this.fpEnd = flatpickr(this.$refs.endDateInput, {
+                                        locale: 'ar',
+                                        dateFormat: 'Y-m-d',
+                                        defaultDate: endDate || '',
+                                        disableMobile: true,
+                                        static: true,
+                                        appendTo: this.$refs.endWrapper,
+                                        onChange: (dates, dateStr) => { endDate = dateStr; }
+                                    });
+                                    this.$watch('endDate', val => {
+                                        if (this.fpEnd) this.fpEnd.setDate(val || '', false);
+                                    });
+                                }
+                            });
+                        }
+                    }" x-init="initEnd()">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">إلى تاريخ</label>
+                        <div class="relative" x-ref="endWrapper">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <input type="text" 
+                                   x-ref="endDateInput"
+                                   x-model="endDate" 
+                                   placeholder="YYYY-MM-DD"
+                                   class="w-full pr-9 pl-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:border-primary-500 focus:ring-1 text-center font-bold text-xs cursor-pointer text-slate-800 transition-colors hover:border-slate-300" 
+                                   readonly>
                         </div>
                     </div>
                 </div>

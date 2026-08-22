@@ -63,7 +63,10 @@
                             }" x-init="initS()">
                                 <label class="block text-[0.7rem] font-bold text-slate-500 mb-1">من تاريخ</label>
                                 <div class="relative" x-ref="sWrap">
-                                    <input type="text" x-ref="pStart" x-model="printStartDate" placeholder="YYYY-MM-DD" class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs text-center font-bold cursor-pointer text-slate-800 bg-slate-50 focus:bg-white" readonly>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    </div>
+                                    <input type="text" x-ref="pStart" x-model="printStartDate" placeholder="YYYY-MM-DD" class="w-full pr-8 pl-2 py-1.5 border border-slate-200 rounded-lg text-xs text-center font-bold cursor-pointer text-slate-800 bg-slate-50 focus:bg-white transition-colors hover:border-slate-300" readonly>
                                 </div>
                             </div>
                             
@@ -91,7 +94,10 @@
                             }" x-init="initE()">
                                 <label class="block text-[0.7rem] font-bold text-slate-500 mb-1">إلى تاريخ</label>
                                 <div class="relative" x-ref="eWrap">
-                                    <input type="text" x-ref="pEnd" x-model="printEndDate" placeholder="YYYY-MM-DD" class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs text-center font-bold cursor-pointer text-slate-800 bg-slate-50 focus:bg-white" readonly>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    </div>
+                                    <input type="text" x-ref="pEnd" x-model="printEndDate" placeholder="YYYY-MM-DD" class="w-full pr-8 pl-2 py-1.5 border border-slate-200 rounded-lg text-xs text-center font-bold cursor-pointer text-slate-800 bg-slate-50 focus:bg-white transition-colors hover:border-slate-300" readonly>
                                 </div>
                             </div>
                         </div>
