@@ -92,6 +92,8 @@
                                                     dateFormat: 'Y-m-d',
                                                     defaultDate: date || new Date().toISOString().split('T')[0],
                                                     disableMobile: true,
+                                                    static: true,
+                                                    appendTo: this.$refs.dateWrapper,
                                                     onChange: (dates, dateStr) => { date = dateStr; }
                                                 });
                                                 this.$watch('date', val => {
@@ -102,7 +104,7 @@
                                     }
                                 }" x-init="initFp()">
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5">التاريخ <span class="text-danger-500">*</span></label>
-                                    <div class="relative">
+                                    <div class="relative" x-ref="dateWrapper">
                                         <input type="text" 
                                                x-ref="dateInput"
                                                name="date" 
