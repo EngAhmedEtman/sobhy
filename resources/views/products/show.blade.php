@@ -42,7 +42,9 @@
         @forelse($product->transactions as $transaction)
         <div class="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
             <div class="flex justify-between items-center mb-2">
-                <span class="px-2 py-0.5 rounded text-[0.7rem] font-bold {{ $transaction->quantity > 0 ? 'bg-primary-50 text-primary-700 border border-primary-200' : 'bg-danger-50 text-danger-700 border border-danger-200' }}">{{ $transaction->type }}</span>
+                <span class="px-2 py-0.5 rounded text-[0.7rem] font-bold {{ $transaction->quantity > 0 ? 'bg-primary-50 text-primary-700 border border-primary-200' : 'bg-danger-50 text-danger-700 border border-danger-200' }}">
+                    {{ transaction_type_label($transaction->type, 'product') }}
+                </span>
                 <span class="text-[0.7rem] text-slate-400 font-bold" dir="ltr">{{ $transaction->created_at->format('m/d H:i') }}</span>
             </div>
             <div class="flex justify-between items-center">
@@ -99,7 +101,9 @@
                         <td class="px-4 py-3 text-[0.75rem] text-slate-500 border-b border-slate-100 align-middle text-center font-bold" dir="ltr">{{ $transaction->created_at->format('Y-m-d H:i') }}</td>
                         <td class="px-4 py-3 text-[0.8rem] font-bold text-slate-700 border-b border-slate-100 align-middle text-center">@if($transaction->related){{ $transaction->related->party_name ?? 'فاتورة' }}@else - @endif</td>
                         <td class="px-4 py-3 text-[0.8rem] font-bold text-slate-700 border-b border-slate-100 align-middle text-center">
-                            <span class="px-2 py-1 rounded text-[0.7rem] {{ $transaction->quantity > 0 ? 'bg-primary-50 text-primary-700 border border-primary-200' : 'bg-danger-50 text-danger-700 border border-danger-200' }}">{{ $transaction->type }}</span>
+                            <span class="px-2 py-1 rounded text-[0.7rem] {{ $transaction->quantity > 0 ? 'bg-primary-50 text-primary-700 border border-primary-200' : 'bg-danger-50 text-danger-700 border border-danger-200' }}">
+                                {{ transaction_type_label($transaction->type, 'product') }}
+                            </span>
                         </td>
                         <td class="px-4 py-3 text-[0.85rem] font-bold text-primary-600 border-b border-slate-100 align-middle text-center" dir="ltr">{{ $transaction->quantity > 0 ? format_quantity($transaction->quantity) : '-' }}</td>
                         <td class="px-4 py-3 text-[0.85rem] font-bold text-danger-600 border-b border-slate-100 align-middle text-center" dir="ltr">{{ $transaction->quantity < 0 ? format_quantity(abs($transaction->quantity)) : '-' }}</td>

@@ -173,7 +173,7 @@
                                 @elseif($t->type == 'return_sale')
                                     <span class="text-danger-600">مرتجع مبيعات</span>
                                 @else
-                                    <span class="text-slate-600">{{ $t->type }}</span>
+                                    <span class="text-slate-600">{{ transaction_type_label($t->type) }}</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-[0.8rem] text-slate-600 border-b border-slate-50">{{ $t->notes ?? '-' }}</td>

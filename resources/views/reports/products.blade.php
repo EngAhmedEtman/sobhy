@@ -165,7 +165,7 @@
                                         @elseif($transaction->type == 'adjustment_sub')
                                             <span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[0.7rem] font-bold bg-warning-50 text-warning-600">تسوية بالنقص</span>
                                         @else
-                                            <span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[0.7rem] font-bold bg-slate-50 text-slate-600">{{ $transaction->type }}</span>
+                                            <span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[0.7rem] font-bold bg-slate-50 text-slate-600">{{ transaction_type_label($transaction->type, 'product') }}</span>
                                         @endif
                                     </td>
                                     <td class="px-4 py-2.5 text-[0.8rem] font-bold text-slate-800 border-b border-slate-50 align-middle" dir="ltr">

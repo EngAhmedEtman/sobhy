@@ -54,4 +54,9 @@ class Transaction extends Model
         }
         return null;
     }
+
+    public function getTypeNameAttribute(): string
+    {
+        return transaction_type_label($this->type, 'financial');
+    }
 }

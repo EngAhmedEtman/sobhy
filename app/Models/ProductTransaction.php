@@ -28,4 +28,9 @@ class ProductTransaction extends Model
     {
         return $this->morphTo();
     }
+
+    public function getTypeNameAttribute(): string
+    {
+        return transaction_type_label($this->type, 'product');
+    }
 }

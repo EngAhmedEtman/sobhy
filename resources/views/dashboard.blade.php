@@ -331,7 +331,7 @@
                                     @elseif($t->type === 'return_purchase')
                                         <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded text-[0.7rem] font-bold bg-rose-50 text-rose-700 border border-rose-200/60">مرتجع مشتريات</span>
                                     @else
-                                        <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded text-[0.7rem] font-bold bg-slate-100 text-slate-700">{{ $t->type }}</span>
+                                        <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded text-[0.7rem] font-bold bg-slate-100 text-slate-700">{{ transaction_type_label($t->type) }}</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-2.5 text-[0.8rem] text-slate-800 font-bold border-b border-slate-50 align-middle text-center">

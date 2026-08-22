@@ -133,7 +133,7 @@
                                             @elseif($t->type === 'payment_received') استلام نقدية
                                             @elseif($t->type === 'return_purchase') مرتجع شراء
                                             @elseif($t->type === 'return_sale') مرتجع مبيعات
-                                            @else {{ $t->type }} @endif
+                                            @else {{ transaction_type_label($t->type) }} @endif
                                         </td>
                                         <td>{{ $t->total_amount > 0 ? format_amount($t->total_amount) : '-' }}</td>
                                         <td>{{ $t->paid_amount > 0 ? format_amount($t->paid_amount) : '-' }}</td>

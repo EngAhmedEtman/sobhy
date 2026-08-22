@@ -175,7 +175,7 @@
                     @elseif($transaction->type === 'return_purchase')
                         <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-amber-50 text-amber-600 border border-amber-100">مرتجع</span>
                     @else
-                        <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-slate-100 text-slate-600">{{ $transaction->type }}</span>
+                        <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-slate-100 text-slate-600">{{ transaction_type_label($transaction->type) }}</span>
                     @endif
                     <span class="text-[0.65rem] text-slate-400 font-bold">{{ $transaction->transaction_date->format('d/m/Y') }}</span>
                 </div>
@@ -279,7 +279,7 @@
                                     @elseif($transaction->type === 'return_purchase')
                                         <span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-amber-50 text-amber-600 border border-amber-100">مرتجع شراء</span>
                                     @else
-                                        <span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-slate-100 text-slate-600">{{ $transaction->type }}</span>
+                                        <span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-slate-100 text-slate-600">{{ transaction_type_label($transaction->type) }}</span>
                                     @endif
                                 </td>
                                 <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100">{{ $transaction->notes ?? '-' }}</td>
