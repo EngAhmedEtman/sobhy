@@ -2,105 +2,69 @@
 
 namespace Database\Seeders;
 
-use App\Models\Customer;
-use App\Models\Supplier;
+use App\Models\Role;
+use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
+    /**
+     * Seed the application's database.
+     */
     public function run(): void
     {
-        \App\Models\User::create([
-            'name' => 'مدير النظام',
-            'email' => 'admin@gmail.com',
-            'password' => bcrypt('123456789'),
-        ]);
+        // 1. All Permissions definition
+        $allPermissions = [
+            'dashboard.view',
+            'sales.view', 'sales.create', 'sales.update', 'sales.delete',
+            'purchases.view', 'purchases.create', 'purchases.update', 'purchases.delete',
+            'products.view', 'products.create', 'products.update', 'products.delete',
+            'customers.view', 'customers.create', 'customers.update', 'customers.delete',
+            'suppliers.view', 'suppliers.create', 'suppliers.update', 'suppliers.delete',
+            'debts.view',
+            'reports.view',
+            'settings.manage',
+            'users.view', 'users.create', 'users.update', 'users.delete',
+            'roles.view', 'roles.create', 'roles.update', 'roles.delete',
+        ];
 
-        $customer = Customer::create([
-            'name' => 'أحمد الشامي',
-            'phone' => '01012345678',
-            'balance' => 28750
-        ]);
+        // 2. Roles Seeding
+        $adminRole = Role::updateOrCreate(
+            ['name' => 'المسؤول'],
+            ['permissions' => $allPermissions]
+        );
 
-        $customer->transactions()->createMany([
+        $accountantPermissions = [
+            'dashboard.view',
+            'sales.view', 'sales.create',
+            'purchases.view', 'purchases.create',
+            'products.view',
+            'customers.view', 'customers.create', 'customers.update',
+            'suppliers.view', 'suppliers.create', 'suppliers.update',
+            'debts.view',
+            'reports.view',
+        ];
+
+        Role::updateOrCreate(
+            ['name' => 'محاسب'],
+            ['permissions' => $accountantPermissions]
+        );
+
+        // 3. Admin User Seeding
+        User::updateOrCreate(
+            ['email' => 'admin@admin.com'],
             [
-                'type' => 'sale',
-                'notes' => 'بلاستيك',
-                'total_amount' => 7600,
-                'paid_amount' => 0,
-                'balance_after' => 7600,
-                'transaction_date' => '2024-05-10',
-            ],
-            [
-                'type' => 'payment_received',
-                'notes' => 'تحويل',
-                'total_amount' => 0,
-                'paid_amount' => 3500,
-                'balance_after' => 4100,
-                'transaction_date' => '2024-05-12',
-            ],
-            [
-                'type' => 'sale',
-                'notes' => 'نحاس',
-                'total_amount' => 9450,
-                'paid_amount' => 0,
-                'balance_after' => 13550,
-                'transaction_date' => '2024-05-15',
+                'name' => 'مدير النظام',
+                'password' => Hash::make('password'),
+                'role_id' => $adminRole->id,
             ]
-        ]);
+        );
 
-        // Just recreating exact math
-        $c2 = Customer::create([
-            'name' => 'أحمد الشامي',
-            'phone' => '01012345678',
-            'balance' => 28750
-        ]);
-        
-        $c2->transactions()->createMany([
-            ['type' => 'sale', 'notes' => 'كرتون', 'total_amount' => 12000, 'paid_amount' => 0, 'balance_after' => 28750, 'transaction_date' => '2024-05-28'],
-            ['type' => 'payment_received', 'notes' => 'دفعة نقدية', 'total_amount' => 0, 'paid_amount' => 5000, 'balance_after' => 16750, 'transaction_date' => '2024-05-22'],
-            ['type' => 'sale', 'notes' => 'حديد', 'total_amount' => 17650, 'paid_amount' => 0, 'balance_after' => 21750, 'transaction_date' => '2024-05-18'],
-            ['type' => 'sale', 'notes' => 'نحاس', 'total_amount' => 9450, 'paid_amount' => 0, 'balance_after' => 4100, 'transaction_date' => '2024-05-15'],
-            ['type' => 'payment_received', 'notes' => 'تحويل', 'total_amount' => 0, 'paid_amount' => 3500, 'balance_after' => -5350, 'transaction_date' => '2024-05-12'],
-            ['type' => 'sale', 'notes' => 'بلاستيك', 'total_amount' => 7600, 'paid_amount' => 0, 'balance_after' => -1850, 'transaction_date' => '2024-05-10'],
-        ]);
-        
-        // I will use mathematically correct values.
-        $c2->transactions()->delete();
-        $c2->delete();
-        
-        $c3 = Customer::create([
-            'name' => 'أحمد الشامي',
-            'phone' => '01012345678',
-            'balance' => 28750
-        ]);
-        
-        $c3->transactions()->createMany([
-            ['type' => 'sale', 'notes' => 'بلاستيك', 'total_amount' => 7600, 'paid_amount' => 0, 'balance_after' => 7600, 'transaction_date' => '2024-05-10'],
-            ['type' => 'payment_received', 'notes' => 'تحويل', 'total_amount' => 0, 'paid_amount' => 3500, 'balance_after' => 4100, 'transaction_date' => '2024-05-12'],
-            ['type' => 'sale', 'notes' => 'نحاس', 'total_amount' => 9450, 'paid_amount' => 0, 'balance_after' => 13550, 'transaction_date' => '2024-05-15'],
-            ['type' => 'sale', 'notes' => 'حديد', 'total_amount' => 17650, 'paid_amount' => 0, 'balance_after' => 31200, 'transaction_date' => '2024-05-18'],
-            ['type' => 'payment_received', 'notes' => 'دفعة نقدية', 'total_amount' => 0, 'paid_amount' => 5000, 'balance_after' => 26200, 'transaction_date' => '2024-05-22'],
-            ['type' => 'sale', 'notes' => 'كرتون', 'total_amount' => 2550, 'paid_amount' => 0, 'balance_after' => 28750, 'transaction_date' => '2024-05-28'],
-        ]);
-        
-        $customer->delete();
-        $customer->transactions()->delete();
-
-        // Supplier
-        $supplier = Supplier::create([
-            'name' => 'محمود علي',
-            'phone' => '01123456789',
-            'balance' => 18400
-        ]);
-
-        $supplier->transactions()->createMany([
-            ['type' => 'purchase', 'notes' => 'بلاستيك', 'total_amount' => 8900, 'paid_amount' => 0, 'balance_after' => 8900, 'transaction_date' => '2024-05-05'],
-            ['type' => 'payment_made', 'notes' => 'نقدي', 'total_amount' => 0, 'paid_amount' => 12450, 'balance_after' => -3550, 'transaction_date' => '2024-05-09'],
-            ['type' => 'purchase', 'notes' => 'نحاس', 'total_amount' => 14100, 'paid_amount' => 0, 'balance_after' => 10550, 'transaction_date' => '2024-05-12'],
-            ['type' => 'payment_made', 'notes' => 'تحويل بنكي', 'total_amount' => 0, 'paid_amount' => 9000, 'balance_after' => 1550, 'transaction_date' => '2024-05-16'],
-            ['type' => 'purchase', 'notes' => 'كرتون', 'total_amount' => 13750, 'paid_amount' => 0, 'balance_after' => 15300, 'transaction_date' => '2024-05-20'],
-            ['type' => 'purchase', 'notes' => 'حديد', 'total_amount' => 3100, 'paid_amount' => 0, 'balance_after' => 18400, 'transaction_date' => '2024-05-27'],
-        ]);
+        // 4. Default Settings Seeding
+        Setting::set('company_name', 'مؤسسة صبحي رضا لتجارة الخردة', 'string', 'general');
+        Setting::set('phone', '01070191977', 'string', 'general');
+        Setting::set('currency', 'ج.م', 'string', 'general');
     }
 }
