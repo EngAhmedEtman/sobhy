@@ -8,9 +8,45 @@ use Illuminate\Support\Facades\DB;
 
 class SupplierController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $suppliers = Supplier::orderBy('id', 'desc')->paginate(20);
+        $query = Supplier::query();
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('balance_status')) {
+            if ($request->balance_status === 'debt') {
+                $query->where('balance', '>', 0);
+            } elseif ($request->balance_status === 'credit') {
+                $query->where('balance', '<', 0);
+            } elseif ($request->balance_status === 'zero') {
+                $query->where('balance', 0);
+            }
+        }
+
+        $sortBy = $request->get('sort_by', 'latest');
+        if ($sortBy === 'oldest') {
+            $query->orderBy('id', 'asc');
+        } elseif ($sortBy === 'name_asc') {
+            $query->orderBy('name', 'asc');
+        } elseif ($sortBy === 'balance_desc') {
+            $query->orderBy('balance', 'desc');
+        } else {
+            $query->orderBy('id', 'desc');
+        }
+
+        $suppliers = $query->paginate(20)->withQueryString();
+
+        if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest' || $request->has('ajax')) {
+            return view('suppliers._table', compact('suppliers'))->render();
+        }
+
         return view('suppliers.index', compact('suppliers'));
     }
 

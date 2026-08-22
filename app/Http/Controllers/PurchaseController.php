@@ -14,11 +14,67 @@ class PurchaseController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $purchases = Purchase::with(['supplier', 'items.product'])->orderBy('id', 'desc')->paginate(20);
-        $suppliers = Supplier::all(['id', 'name', 'balance']);
-        $products = Product::all(['id', 'name', 'stock']);
+        $query = Purchase::with(['supplier', 'items.product']);
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('invoice_number', 'like', "%{$search}%")
+                  ->orWhere('notes', 'like', "%{$search}%")
+                  ->orWhereHas('supplier', function ($sq) use ($search) {
+                      $sq->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->filled('supplier_id')) {
+            $query->where('supplier_id', $request->supplier_id);
+        }
+
+        if ($request->filled('product_id')) {
+            $productId = $request->product_id;
+            $query->whereHas('items', function ($iq) use ($productId) {
+                $iq->where('product_id', $productId);
+            });
+        }
+
+        if ($request->filled('start_date')) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+
+        if ($request->filled('end_date')) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        if ($request->filled('min_amount')) {
+            $query->where('total_amount', '>=', $request->min_amount);
+        }
+
+        if ($request->filled('max_amount')) {
+            $query->where('total_amount', '<=', $request->max_amount);
+        }
+
+        $sortBy = $request->get('sort_by', 'latest');
+        if ($sortBy === 'oldest') {
+            $query->orderBy('created_at', 'asc')->orderBy('id', 'asc');
+        } elseif ($sortBy === 'amount_desc') {
+            $query->orderBy('total_amount', 'desc');
+        } elseif ($sortBy === 'amount_asc') {
+            $query->orderBy('total_amount', 'asc');
+        } else {
+            $query->orderBy('created_at', 'desc')->orderBy('id', 'desc');
+        }
+
+        $purchases = $query->paginate(20)->withQueryString();
+
+        if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest' || $request->has('ajax')) {
+            return view('purchases._table', compact('purchases'))->render();
+        }
+
+        $suppliers = Supplier::orderBy('name')->get(['id', 'name', 'balance']);
+        $products = Product::orderBy('name')->get(['id', 'name', 'stock']);
         
         return view('purchases.index', compact('purchases', 'suppliers', 'products'));
     }

@@ -91,4 +91,42 @@ class CustomerSupplierTest extends TestCase
         $response = $this->get('/transactions/' . $supplierTransaction->id . '/print');
         $response->assertStatus(200);
     }
+
+    public function test_ajax_filters_work_across_modules(): void
+    {
+        $user = User::first() ?? User::factory()->create();
+        $this->actingAs($user);
+
+        $customer = Customer::create(['name' => 'أحمد علي حسن', 'phone' => '01011112222', 'balance' => 1500]);
+        $supplier = Supplier::create(['name' => 'شركة الأهرام للصلب', 'phone' => '01233334444', 'balance' => 5000]);
+        $product = Product::create(['name' => 'حديد عز 12 مم', 'stock' => 50]);
+
+        // 1. AJAX search customers
+        $res = $this->get('/customers?search=أحمد&ajax=1', ['X-Requested-With' => 'XMLHttpRequest']);
+        $res->assertStatus(200);
+        $res->assertSee('أحمد علي حسن');
+
+        // 2. AJAX filter customers by debt
+        $res = $this->get('/customers?balance_status=debt&ajax=1', ['X-Requested-With' => 'XMLHttpRequest']);
+        $res->assertStatus(200);
+        $res->assertSee('1,500');
+
+        // 3. AJAX search suppliers
+        $res = $this->get('/suppliers?search=الأهرام&ajax=1', ['X-Requested-With' => 'XMLHttpRequest']);
+        $res->assertStatus(200);
+        $res->assertSee('شركة الأهرام للصلب');
+
+        // 4. AJAX filter suppliers by debt
+        $res = $this->get('/suppliers?balance_status=debt&ajax=1', ['X-Requested-With' => 'XMLHttpRequest']);
+        $res->assertStatus(200);
+        $res->assertSee('5,000');
+
+        // 5. AJAX search sales
+        $res = $this->get('/sales?ajax=1', ['X-Requested-With' => 'XMLHttpRequest']);
+        $res->assertStatus(200);
+
+        // 6. AJAX search purchases
+        $res = $this->get('/purchases?ajax=1', ['X-Requested-With' => 'XMLHttpRequest']);
+        $res->assertStatus(200);
+    }
 }

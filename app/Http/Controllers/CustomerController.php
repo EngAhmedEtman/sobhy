@@ -9,9 +9,45 @@ use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $customers = Customer::orderBy('id', 'desc')->paginate(20);
+        $query = Customer::query();
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('balance_status')) {
+            if ($request->balance_status === 'debt') {
+                $query->where('balance', '>', 0);
+            } elseif ($request->balance_status === 'credit') {
+                $query->where('balance', '<', 0);
+            } elseif ($request->balance_status === 'zero') {
+                $query->where('balance', 0);
+            }
+        }
+
+        $sortBy = $request->get('sort_by', 'latest');
+        if ($sortBy === 'oldest') {
+            $query->orderBy('id', 'asc');
+        } elseif ($sortBy === 'name_asc') {
+            $query->orderBy('name', 'asc');
+        } elseif ($sortBy === 'balance_desc') {
+            $query->orderBy('balance', 'desc');
+        } else {
+            $query->orderBy('id', 'desc');
+        }
+
+        $customers = $query->paginate(20)->withQueryString();
+
+        if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest' || $request->has('ajax')) {
+            return view('customers._table', compact('customers'))->render();
+        }
+
         return view('customers.index', compact('customers'));
     }
 
@@ -25,7 +61,7 @@ class CustomerController extends Controller
 
         Customer::create($request->all());
 
-        return back()->with('success', 'ØªÙ… Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø¨Ù†Ø¬Ø§Ø­');
+        return back()->with('success', 'تم إضافة العميل بنجاح');
     }
 
     public function update(Request $request, $id)
@@ -38,7 +74,7 @@ class CustomerController extends Controller
         $customer = Customer::findOrFail($id);
         $customer->update($request->only(['name', 'phone']));
 
-        return back()->with('success', 'ØªÙ… ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø¨Ù†Ø¬Ø§Ø­');
+        return back()->with('success', 'تم تعديل بيانات العميل بنجاح');
     }
 
     public function destroy($id)
@@ -49,12 +85,12 @@ class CustomerController extends Controller
         $hasTransactions = $customer->transactions()->exists();
 
         if ($hasSales || $hasTransactions) {
-            return back()->with('error', 'Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø­Ø°Ù Ø§Ù„Ø¹Ù…ÙŠÙ„ Ù„ÙˆØ¬ÙˆØ¯ Ù…Ø¨ÙŠØ¹Ø§Øª Ø£Ùˆ ØªØ¹Ø§Ù…Ù„Ø§Øª Ù…Ø§Ù„ÙŠØ© Ù…Ø±ØªØ¨Ø·Ø© Ø¨Ù‡.');
+            return back()->with('error', 'لا يمكن حذف العميل لوجود مبيعات أو تعاملات مالية مرتبطة به.');
         }
 
         $customer->delete();
 
-        return back()->with('success', 'ØªÙ… Ø­Ø°Ù Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø¨Ù†Ø¬Ø§Ø­');
+        return back()->with('success', 'تم حذف العميل بنجاح');
     }
 
     public function show($id)
