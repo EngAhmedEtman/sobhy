@@ -55,10 +55,15 @@
                                 <div>
                                     <p class="text-xs text-slate-500 mb-1">نوع العملية</p>
                                     <p class="font-bold text-primary-700" x-text="
-                                        transactionDetails.type === 'payment_received' ? 'سداد دفعة من عميل' :
-                                        transactionDetails.type === 'payment_made' ? 'سداد دفعة لمورد' :
-                                        transactionDetails.type === 'return_sale' ? 'مرتجع مبيعات' :
-                                        transactionDetails.type === 'return_purchase' ? 'مرتجع مشتريات' : transactionDetails.type
+                                        transactionDetails.type_label || (
+                                            transactionDetails.type === 'purchase' ? 'فاتورة مشتريات' :
+                                            transactionDetails.type === 'sale' ? 'فاتورة مبيعات' :
+                                            transactionDetails.type === 'payment_received' ? 'سداد دفعة من عميل' :
+                                            transactionDetails.type === 'payment_made' || transactionDetails.type === 'payment_sent' ? 'سداد دفعة لمورد' :
+                                            transactionDetails.type === 'return_sale' ? 'مرتجع مبيعات' :
+                                            transactionDetails.type === 'return_purchase' ? 'مرتجع مشتريات' :
+                                            transactionDetails.type === 'initial_balance' ? 'رصيد افتتاحي' : transactionDetails.type
+                                        )
                                     "></p>
                                 </div>
                                 <div>
@@ -104,7 +109,10 @@
                                 </h4>
                                 <div class="space-y-3">
                                     <div class="flex justify-between items-center pb-2 border-b border-emerald-100">
-                                        <span class="text-xs font-bold text-slate-600" x-text="['return_sale', 'return_purchase'].includes(transactionDetails.type) ? 'إجمالي المرتجع' : 'المبلغ المسدد'"></span>
+                                        <span class="text-xs font-bold text-slate-600" x-text="
+                                            ['return_sale', 'return_purchase'].includes(transactionDetails.type) ? 'إجمالي المرتجع' :
+                                            (['sale', 'purchase'].includes(transactionDetails.type) ? 'إجمالي الفاتورة' : 'المبلغ المسدد')
+                                        "></span>
                                         <span class="text-sm font-bold text-emerald-700" dir="ltr" x-text="Number(transactionDetails.amount).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م'"></span>
                                     </div>
                                     <div class="flex justify-between items-center">

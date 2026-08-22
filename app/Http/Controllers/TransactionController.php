@@ -16,10 +16,22 @@ class TransactionController extends Controller
         $transaction->load(['product']);
         $transactionable = $transaction->transactionable;
         
+        $typeLabels = [
+            'purchase' => 'فاتورة مشتريات',
+            'sale' => 'فاتورة مبيعات',
+            'payment_received' => 'سداد دفعة من عميل',
+            'payment_made' => 'سداد دفعة لمورد',
+            'payment_sent' => 'سداد دفعة لمورد',
+            'return_sale' => 'مرتجع مبيعات',
+            'return_purchase' => 'مرتجع مشتريات',
+            'initial_balance' => 'رصيد افتتاحي',
+        ];
+
         return response()->json([
             'id' => $transaction->id,
             'type' => $transaction->type,
-            'transaction_date' => $transaction->transaction_date->format('Y-m-d'),
+            'type_label' => $typeLabels[$transaction->type] ?? $transaction->type,
+            'transaction_date' => $transaction->transaction_date ? $transaction->transaction_date->format('Y-m-d') : '',
             'amount' => in_array($transaction->type, ['payment_received', 'payment_made', 'payment_sent']) ? $transaction->paid_amount : $transaction->total_amount,
             'quantity' => $transaction->quantity,
             'unit_price' => $transaction->unit_price,
