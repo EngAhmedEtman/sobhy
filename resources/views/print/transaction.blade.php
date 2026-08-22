@@ -85,102 +85,132 @@
         }
     </style>
 </head>
-<body>
+<body style="overflow-x: hidden; margin: 0; padding: 0;">
 
-    <div class="page-container">
-        <!-- Header -->
-        <x-print.header :title="$typeLabel" :subtitle="$subLabel" :referenceCode="$referenceCode" />
+    <div id="print-wrapper" style="width: 100%; transform-origin: top right; transition: transform 0.1s ease-out;">
+        <div class="page-container">
+            <!-- Header -->
+            <x-print.header :title="$typeLabel" :subtitle="$subLabel" :referenceCode="$referenceCode" />
 
-        <!-- Meta Details Box -->
-        <div class="invoice-details-box">
-            <div class="invoice-info-col">
-                <h3>معلومات {{ $partyType }}</h3>
-                <p><strong>الاسم:</strong> {{ $transactionable->name ?? '---' }}</p>
-                <p><strong>الهاتف:</strong> {{ $transactionable->phone ?? '---' }}</p>
+            <!-- Meta Details Box -->
+            <div class="invoice-details-box">
+                <div class="invoice-info-col">
+                    <h3>معلومات {{ $partyType }}</h3>
+                    <p><strong>الاسم:</strong> {{ $transactionable->name ?? '---' }}</p>
+                    <p><strong>الهاتف:</strong> {{ $transactionable->phone ?? '---' }}</p>
+                </div>
+                <div class="invoice-info-col" style="text-align: left;">
+                    <h3>تفاصيل الإيصال</h3>
+                    <p><strong>رقم العملية:</strong> #{{ str_pad($transaction->id, 5, '0', STR_PAD_LEFT) }}</p>
+                    <p><strong>تاريخ العملية:</strong> {{ $transaction->transaction_date->format('Y-m-d') }}</p>
+                </div>
             </div>
-            <div class="invoice-info-col" style="text-align: left;">
-                <h3>تفاصيل الإيصال</h3>
-                <p><strong>رقم العملية:</strong> #{{ str_pad($transaction->id, 5, '0', STR_PAD_LEFT) }}</p>
-                <p><strong>تاريخ العملية:</strong> {{ $transaction->transaction_date->format('Y-m-d') }}</p>
-            </div>
-        </div>
 
-        <!-- Items Table if Return -->
-        @if(in_array($transaction->type, ['return_sale', 'return_purchase']) && ($transaction->product || $transaction->quantity > 0))
-        <table class="print-data-table">
-            <thead>
-                <tr>
-                    <th style="width: 8%;">#</th>
-                    <th style="width: 42%;">المنتج المسترجع</th>
-                    <th style="width: 15%;">الكمية</th>
-                    <th style="width: 15%;">سعر الكيلو / الوحدة</th>
-                    <th style="width: 20%;">الإجمالي</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>1</td>
-                    <td style="font-weight: 700;">{{ $transaction->product->name ?? 'بضاعة مسترجعة' }}</td>
-                    <td style="direction: ltr;">{{ number_format($transaction->quantity, 2) }} ك</td>
-                    <td style="direction: ltr;">{{ number_format($transaction->unit_price, 2) }} ج.م</td>
-                    <td style="direction: ltr; font-weight: bold;">{{ number_format($amount, 2) }} ج.م</td>
-                </tr>
-            </tbody>
-        </table>
-        @endif
-
-        <!-- Financial Totals Box -->
-        <div class="totals-section">
-            @if(in_array($transaction->type, ['payment_received', 'payment_made', 'payment_sent']))
-                <div class="totals-row" style="color: #15803d; font-weight: 800; font-size: 13px;">
-                    <span class="totals-label">المبلغ المسدد:</span>
-                    <span class="totals-value">{{ (float)$amount == (int)$amount ? number_format($amount, 0) : number_format($amount, 2) }} ج.م</span>
-                </div>
-            @else
-                <div class="totals-row">
-                    <span class="totals-label">إجمالي قيمة المرتجع:</span>
-                    <span class="totals-value">{{ (float)$amount == (int)$amount ? number_format($amount, 0) : number_format($amount, 2) }} ج.م</span>
-                </div>
-                @if($transaction->paid_amount > 0)
-                <div class="totals-row" style="color: #15803d;">
-                    <span class="totals-label">المبلغ المسترد / المدفوع نقداً:</span>
-                    <span class="totals-value">{{ (float)$transaction->paid_amount == (int)$transaction->paid_amount ? number_format($transaction->paid_amount, 0) : number_format($transaction->paid_amount, 2) }} ج.م</span>
-                </div>
-                @endif
+            <!-- Items Table if Return -->
+            @if(in_array($transaction->type, ['return_sale', 'return_purchase']) && ($transaction->product || $transaction->quantity > 0))
+            <table class="print-data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">#</th>
+                        <th style="width: 42%;">المنتج المسترجع</th>
+                        <th style="width: 15%;">الكمية</th>
+                        <th style="width: 15%;">سعر الكيلو / الوحدة</th>
+                        <th style="width: 20%;">الإجمالي</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td style="font-weight: 700;">{{ $transaction->product->name ?? 'بضاعة مسترجعة' }}</td>
+                        <td style="direction: ltr;">{{ number_format($transaction->quantity, 2) }} ك</td>
+                        <td style="direction: ltr;">{{ number_format($transaction->unit_price, 2) }} ج.م</td>
+                        <td style="direction: ltr; font-weight: bold;">{{ number_format($amount, 2) }} ج.م</td>
+                    </tr>
+                </tbody>
+            </table>
             @endif
 
-            <div class="totals-row" style="background: #f8fafc;">
-                <span class="totals-label">الرصيد بعد هذه العملية:</span>
-                <span class="totals-value" style="{{ $transaction->balance_after > 0 ? 'color: #b91c1c;' : ($transaction->balance_after < 0 ? 'color: #15803d;' : 'color: #334155;') }}">
-                    @php
-                        $isCustomer = $transaction->transactionable_type === 'App\Models\Customer' || str_contains($transaction->type, 'sale') || $transaction->type === 'payment_received';
-                        $absBal = abs($transaction->balance_after);
-                        $formattedBal = (float)$absBal == (int)$absBal ? number_format($absBal, 0) : number_format($absBal, 2);
-                    @endphp
-                    @if($transaction->balance_after < 0)
-                        {{ $formattedBal }} ج.م {{ $isCustomer ? '(رصيد للعميل / له عندنا)' : '(لنا عند المورد / زيادة)' }}
-                    @elseif($transaction->balance_after > 0)
-                        {{ $formattedBal }} ج.م {{ $isCustomer ? '(مطلوب من العميل / لنا عنده)' : '(مستحق للمورد / علينا له)' }}
-                    @else
-                        0 ج.م (خالص)
+            <!-- Financial Totals Box -->
+            <div class="totals-section">
+                @if(in_array($transaction->type, ['payment_received', 'payment_made', 'payment_sent']))
+                    <div class="totals-row" style="color: #15803d; font-weight: 800; font-size: 13px;">
+                        <span class="totals-label">المبلغ المسدد:</span>
+                        <span class="totals-value">{{ (float)$amount == (int)$amount ? number_format($amount, 0) : number_format($amount, 2) }} ج.م</span>
+                    </div>
+                @else
+                    <div class="totals-row">
+                        <span class="totals-label">إجمالي قيمة المرتجع:</span>
+                        <span class="totals-value">{{ (float)$amount == (int)$amount ? number_format($amount, 0) : number_format($amount, 2) }} ج.م</span>
+                    </div>
+                    @if($transaction->paid_amount > 0)
+                    <div class="totals-row" style="color: #15803d;">
+                        <span class="totals-label">المبلغ المسترد / المدفوع نقداً:</span>
+                        <span class="totals-value">{{ (float)$transaction->paid_amount == (int)$transaction->paid_amount ? number_format($transaction->paid_amount, 0) : number_format($transaction->paid_amount, 2) }} ج.م</span>
+                    </div>
                     @endif
-                </span>
+                @endif
+
+                <div class="totals-row" style="background: #f8fafc;">
+                    <span class="totals-label">الرصيد بعد هذه العملية:</span>
+                    <span class="totals-value" style="{{ $transaction->balance_after > 0 ? 'color: #b91c1c;' : ($transaction->balance_after < 0 ? 'color: #15803d;' : 'color: #334155;') }}">
+                        @php
+                            $isCustomer = $transaction->transactionable_type === 'App\Models\Customer' || str_contains($transaction->type, 'sale') || $transaction->type === 'payment_received';
+                            $absBal = abs($transaction->balance_after);
+                            $formattedBal = (float)$absBal == (int)$absBal ? number_format($absBal, 0) : number_format($absBal, 2);
+                        @endphp
+                        @if($transaction->balance_after < 0)
+                            {{ $formattedBal }} ج.م {{ $isCustomer ? '(رصيد للعميل / له عندنا)' : '(لنا عند المورد / زيادة)' }}
+                        @elseif($transaction->balance_after > 0)
+                            {{ $formattedBal }} ج.م {{ $isCustomer ? '(مطلوب من العميل / لنا عنده)' : '(مستحق للمورد / علينا له)' }}
+                        @else
+                            0 ج.م (خالص)
+                        @endif
+                    </span>
+                </div>
             </div>
+
+            @if($transaction->notes)
+            <div class="notes-box">
+                <strong>ملاحظات وبيان:</strong> {{ $transaction->notes }}
+            </div>
+            @endif
+
+            <div style="flex-grow: 1;"></div>
+
+            <!-- Footer -->
+            <x-print.footer />
         </div>
-
-        @if($transaction->notes)
-        <div class="notes-box">
-            <strong>ملاحظات وبيان:</strong> {{ $transaction->notes }}
-        </div>
-        @endif
-
-        <div style="flex-grow: 1;"></div>
-
-        <!-- Footer -->
-        <x-print.footer />
     </div>
 
     <script>
+        function autoFitPrintSheet() {
+            if (window.matchMedia('print').matches) return;
+            const w = window.innerWidth;
+            const wrapper = document.getElementById('print-wrapper');
+            if (!wrapper) return;
+            
+            const targetWidth = 794;
+            if (w > 0 && w < targetWidth) {
+                const scale = (w - 4) / targetWidth;
+                wrapper.style.width = targetWidth + 'px';
+                wrapper.style.minWidth = targetWidth + 'px';
+                wrapper.style.zoom = scale;
+                if (!('zoom' in wrapper.style) || navigator.userAgent.includes('Firefox')) {
+                    wrapper.style.transform = `scale(${scale})`;
+                    wrapper.style.transformOrigin = 'top right';
+                }
+            } else {
+                wrapper.style.width = '100%';
+                wrapper.style.minWidth = 'unset';
+                wrapper.style.zoom = '1';
+                wrapper.style.transform = 'none';
+            }
+        }
+        window.addEventListener('DOMContentLoaded', autoFitPrintSheet);
+        window.addEventListener('resize', autoFitPrintSheet);
+        window.addEventListener('load', autoFitPrintSheet);
+        setTimeout(autoFitPrintSheet, 200);
+
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('autoprint')) {

@@ -393,7 +393,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5">تاريخ السداد <span class="text-danger-500">*</span></label>
-                                    <input type="date" name="date" required x-model="date" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-left bg-slate-50 text-xs font-bold" dir="ltr">
+                                    <input type="date" name="date" required x-model="date" lang="en" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-left bg-slate-50 text-xs font-bold" dir="ltr">
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5">البيان / ملاحظات (اختياري)</label>
@@ -661,7 +661,7 @@
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
                                         <label class="block text-xs font-bold text-slate-700 mb-1.5">تاريخ المرتجع <span class="text-danger-500">*</span></label>
-                                        <input type="date" name="date" required x-model="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-xs font-bold" dir="ltr">
+                                        <input type="date" name="date" required x-model="date" lang="en" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-xs font-bold" dir="ltr">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-700 mb-1.5">البيان / ملاحظات (اختياري)</label>
@@ -703,7 +703,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1">تاريخ العملية</label>
-                                <input type="date" name="date" x-model="editDate" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr">
+                                <input type="date" name="date" x-model="editDate" lang="en" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1">ملاحظات (اختياري)</label>

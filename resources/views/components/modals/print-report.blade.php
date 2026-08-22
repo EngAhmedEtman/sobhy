@@ -57,12 +57,12 @@
                 
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1">من تاريخ</label>
-                    <input type="date" x-model="startDate" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all text-sm">
+                    <input type="date" x-model="startDate" lang="en" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all text-sm" dir="ltr">
                 </div>
                 
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1">إلى تاريخ</label>
-                    <input type="date" x-model="endDate" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all text-sm">
+                    <input type="date" x-model="endDate" lang="en" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all text-sm" dir="ltr">
                 </div>
             </div>
             

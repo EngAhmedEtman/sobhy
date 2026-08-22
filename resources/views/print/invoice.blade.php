@@ -49,81 +49,111 @@
         }
     </style>
 </head>
-<body>
+<body style="overflow-x: hidden; margin: 0; padding: 0;">
 
-    <div class="page-container">
-        <!-- Header -->
-        <x-print.header :title="$title" :subtitle="$type === 'purchase' ? 'فاتورة مورد' : 'فاتورة عميل'" :referenceCode="'INV-' . str_pad($invoice->id, 5, '0', STR_PAD_LEFT)" />
+    <div id="print-wrapper" style="width: 100%; transform-origin: top right; transition: transform 0.1s ease-out;">
+        <div class="page-container">
+            <!-- Header -->
+            <x-print.header :title="$title" :subtitle="$type === 'purchase' ? 'فاتورة مورد' : 'فاتورة عميل'" :referenceCode="'INV-' . str_pad($invoice->id, 5, '0', STR_PAD_LEFT)" />
 
-        <!-- Invoice Meta -->
-        <div class="invoice-details-box">
-            <div class="invoice-info-col">
-                <h3>معلومات {{ $type === 'purchase' ? 'المورد' : 'العميل' }}</h3>
-                @php $party = $type === 'purchase' ? $invoice->supplier : $invoice->customer; @endphp
-                <p><strong>الاسم:</strong> {{ $party->name }}</p>
-                <p><strong>الهاتف:</strong> {{ $party->phone ?? '---' }}</p>
+            <!-- Invoice Meta -->
+            <div class="invoice-details-box">
+                <div class="invoice-info-col">
+                    <h3>معلومات {{ $type === 'purchase' ? 'المورد' : 'العميل' }}</h3>
+                    @php $party = $type === 'purchase' ? $invoice->supplier : $invoice->customer; @endphp
+                    <p><strong>الاسم:</strong> {{ $party->name }}</p>
+                    <p><strong>الهاتف:</strong> {{ $party->phone ?? '---' }}</p>
+                </div>
+                <div class="invoice-info-col" style="text-align: left;">
+                    <h3>تفاصيل الفاتورة</h3>
+                    <p><strong>رقم الفاتورة:</strong> #{{ $invoice->invoice_number ?? $invoice->id }}</p>
+                    <p><strong>التاريخ:</strong> {{ $invoice->created_at->format('Y-m-d') }}</p>
+                </div>
             </div>
-            <div class="invoice-info-col" style="text-align: left;">
-                <h3>تفاصيل الفاتورة</h3>
-                <p><strong>رقم الفاتورة:</strong> #{{ $invoice->invoice_number ?? $invoice->id }}</p>
-                <p><strong>التاريخ:</strong> {{ $invoice->created_at->format('Y-m-d') }}</p>
+
+            <!-- Items Table -->
+            <table class="print-data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">#</th>
+                        <th style="width: 45%;">المنتج</th>
+                        <th style="width: 15%;">الكمية</th>
+                        <th style="width: 15%;">سعر الوحدة</th>
+                        <th style="width: 20%;">الإجمالي</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($invoice->items as $index => $item)
+                    <tr>
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ $item->product->name }}</td>
+                        <td style="direction: ltr;">{{ $item->quantity }} {{ $item->product->unit ?? 'ك' }}</td>
+                        <td style="direction: ltr;">{{ number_format($item->unit_price, 2) }} ج.م</td>
+                        <td style="direction: ltr; font-weight: bold;">{{ number_format($item->total, 2) }} ج.م</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+
+            <!-- Totals -->
+            <div class="totals-section">
+                <div class="totals-row">
+                    <span class="totals-label">إجمالي الفاتورة:</span>
+                    <span class="totals-value">{{ (float)$invoice->total_amount == (int)$invoice->total_amount ? number_format($invoice->total_amount, 0) : number_format($invoice->total_amount, 2) }} ج.م</span>
+                </div>
+                
+                @php
+                    $paidCash = $invoice->transaction ? $invoice->transaction->paid_amount : 0;
+                    $remaining = $invoice->total_amount - $paidCash;
+                @endphp
+                <div class="totals-row" style="color: #15803d;">
+                    <span class="totals-label">المدفوع نقداً:</span>
+                    <span class="totals-value">{{ (float)$paidCash == (int)$paidCash ? number_format($paidCash, 0) : number_format($paidCash, 2) }} ج.م</span>
+                </div>
+                @if($remaining > 0)
+                <div class="totals-row" style="color: #b91c1c;">
+                    <span class="totals-label">المتبقي (آجل):</span>
+                    <span class="totals-value">{{ (float)$remaining == (int)$remaining ? number_format($remaining, 0) : number_format($remaining, 2) }} ج.م</span>
+                </div>
+                @endif
             </div>
+
+            <div style="flex-grow: 1;"></div>
+
+            <!-- Footer -->
+            <x-print.footer />
         </div>
-
-        <!-- Items Table -->
-        <table class="print-data-table">
-            <thead>
-                <tr>
-                    <th style="width: 5%;">#</th>
-                    <th style="width: 45%;">المنتج</th>
-                    <th style="width: 15%;">الكمية</th>
-                    <th style="width: 15%;">سعر الوحدة</th>
-                    <th style="width: 20%;">الإجمالي</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($invoice->items as $index => $item)
-                <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ $item->product->name }}</td>
-                    <td style="direction: ltr;">{{ $item->quantity }} {{ $item->product->unit ?? 'ك' }}</td>
-                    <td style="direction: ltr;">{{ number_format($item->unit_price, 2) }} ج.م</td>
-                    <td style="direction: ltr; font-weight: bold;">{{ number_format($item->total, 2) }} ج.م</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-
-        <!-- Totals -->
-        <div class="totals-section">
-            <div class="totals-row">
-                <span class="totals-label">إجمالي الفاتورة:</span>
-                <span class="totals-value">{{ (float)$invoice->total_amount == (int)$invoice->total_amount ? number_format($invoice->total_amount, 0) : number_format($invoice->total_amount, 2) }} ج.م</span>
-            </div>
-            
-            @php
-                $paidCash = $invoice->transaction ? $invoice->transaction->paid_amount : 0;
-                $remaining = $invoice->total_amount - $paidCash;
-            @endphp
-            <div class="totals-row" style="color: #15803d;">
-                <span class="totals-label">المدفوع نقداً:</span>
-                <span class="totals-value">{{ (float)$paidCash == (int)$paidCash ? number_format($paidCash, 0) : number_format($paidCash, 2) }} ج.م</span>
-            </div>
-            @if($remaining > 0)
-            <div class="totals-row" style="color: #b91c1c;">
-                <span class="totals-label">المتبقي (آجل):</span>
-                <span class="totals-value">{{ (float)$remaining == (int)$remaining ? number_format($remaining, 0) : number_format($remaining, 2) }} ج.م</span>
-            </div>
-            @endif
-        </div>
-
-        <div style="flex-grow: 1;"></div>
-
-        <!-- Footer -->
-        <x-print.footer />
     </div>
 
     <script>
+        function autoFitPrintSheet() {
+            if (window.matchMedia('print').matches) return;
+            const w = window.innerWidth;
+            const wrapper = document.getElementById('print-wrapper');
+            if (!wrapper) return;
+            
+            const targetWidth = 794;
+            if (w > 0 && w < targetWidth) {
+                const scale = (w - 4) / targetWidth;
+                wrapper.style.width = targetWidth + 'px';
+                wrapper.style.minWidth = targetWidth + 'px';
+                wrapper.style.zoom = scale;
+                if (!('zoom' in wrapper.style) || navigator.userAgent.includes('Firefox')) {
+                    wrapper.style.transform = `scale(${scale})`;
+                    wrapper.style.transformOrigin = 'top right';
+                }
+            } else {
+                wrapper.style.width = '100%';
+                wrapper.style.minWidth = 'unset';
+                wrapper.style.zoom = '1';
+                wrapper.style.transform = 'none';
+            }
+        }
+        window.addEventListener('DOMContentLoaded', autoFitPrintSheet);
+        window.addEventListener('resize', autoFitPrintSheet);
+        window.addEventListener('load', autoFitPrintSheet);
+        setTimeout(autoFitPrintSheet, 200);
+
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('autoprint')) {

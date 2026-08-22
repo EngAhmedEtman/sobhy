@@ -126,52 +126,62 @@
         }
     </style>
 </head>
-<body class="font-sans antialiased bg-white text-slate-800">
+<body class="font-sans antialiased bg-white text-slate-800" style="overflow-x: hidden; margin: 0; padding: 0;">
 
-    <!-- The main layout table used to reserve space for the footer -->
-    <table style="width: 100%; border: none !important;" class="!border-none !m-0 layout-table">
-        <thead class="!border-none"><tr class="!border-none"><td class="!border-none !p-0">
-            <div class="h-4"></div>
-        </td></tr></thead>
-        <tbody class="!border-none"><tr class="!border-none"><td class="!border-none !p-0">
-            <div class="page-container w-full max-w-5xl mx-auto p-4 sm:p-8 table-container">
-                <?php echo e($slot); ?>
+    <div id="print-wrapper" style="width: 100%; transform-origin: top right; transition: transform 0.1s ease-out;">
+        <!-- The main layout table used to reserve space for the footer -->
+        <table style="width: 100%; border: none !important;" class="!border-none !m-0 layout-table">
+            <thead class="!border-none"><tr class="!border-none"><td class="!border-none !p-0">
+                <div class="h-4"></div>
+            </td></tr></thead>
+            <tbody class="!border-none"><tr class="!border-none"><td class="!border-none !p-0">
+                <div class="page-container w-full max-w-5xl mx-auto p-4 sm:p-8 table-container">
+                    {{ $slot }}
+                </div>
+            </td></tr></tbody>
+            <tfoot class="!border-none"><tr class="!border-none"><td class="!border-none !p-0">
+                <!-- This empty div reserves space at the bottom of the table on every page in print, preventing overlap with the fixed footer -->
+                <div class="footer-space"></div>
+            </td></tr></tfoot>
+        </table>
 
+        <!-- The repeating footer element (Flows normally on screen, fixed to bottom on print) -->
+        <div class="fixed-footer px-4 sm:px-8 mt-6">
+            <div class="max-w-5xl mx-auto">
+                <x-print.footer />
             </div>
-        </td></tr></tbody>
-        <tfoot class="!border-none"><tr class="!border-none"><td class="!border-none !p-0">
-            <!-- This empty div reserves space at the bottom of the table on every page in print, preventing overlap with the fixed footer -->
-            <div class="footer-space"></div>
-        </td></tr></tfoot>
-    </table>
-
-    <!-- The repeating footer element (Flows normally on screen, fixed to bottom on print) -->
-    <div class="fixed-footer px-4 sm:px-8 mt-6">
-        <div class="max-w-5xl mx-auto">
-            <?php if (isset($component)) { $__componentOriginal5f46920fa4699efb6971e3542070016d = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginal5f46920fa4699efb6971e3542070016d = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.print.footer','data' => []] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('print.footer'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes([]); ?>
-<?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginal5f46920fa4699efb6971e3542070016d)): ?>
-<?php $attributes = $__attributesOriginal5f46920fa4699efb6971e3542070016d; ?>
-<?php unset($__attributesOriginal5f46920fa4699efb6971e3542070016d); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginal5f46920fa4699efb6971e3542070016d)): ?>
-<?php $component = $__componentOriginal5f46920fa4699efb6971e3542070016d; ?>
-<?php unset($__componentOriginal5f46920fa4699efb6971e3542070016d); ?>
-<?php endif; ?>
         </div>
     </div>
 
     <script>
+        function autoFitPrintSheet() {
+            if (window.matchMedia('print').matches) return;
+            const w = window.innerWidth;
+            const wrapper = document.getElementById('print-wrapper');
+            if (!wrapper) return;
+            
+            const targetWidth = 794;
+            if (w > 0 && w < targetWidth) {
+                const scale = (w - 4) / targetWidth;
+                wrapper.style.width = targetWidth + 'px';
+                wrapper.style.minWidth = targetWidth + 'px';
+                wrapper.style.zoom = scale;
+                if (!('zoom' in wrapper.style) || navigator.userAgent.includes('Firefox')) {
+                    wrapper.style.transform = `scale(${scale})`;
+                    wrapper.style.transformOrigin = 'top right';
+                }
+            } else {
+                wrapper.style.width = '100%';
+                wrapper.style.minWidth = 'unset';
+                wrapper.style.zoom = '1';
+                wrapper.style.transform = 'none';
+            }
+        }
+        window.addEventListener('DOMContentLoaded', autoFitPrintSheet);
+        window.addEventListener('resize', autoFitPrintSheet);
+        window.addEventListener('load', autoFitPrintSheet);
+        setTimeout(autoFitPrintSheet, 200);
+
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('autoprint')) {

@@ -8,11 +8,25 @@ body {
     font-family: 'Cairo', sans-serif;
 }
 
-/* Fix native date input on WebKit/Mobile */
+/* Fix native date input on WebKit/Mobile (Prevent Arabic BiDi slash scrambling) */
 input[type="date"] {
     min-height: 38px;
     font-family: inherit;
+    direction: ltr !important;
+    text-align: right !important;
+    unicode-bidi: isolate !important;
 }
 input[type="date"]::-webkit-date-and-time-value {
-    text-align: right;
+    text-align: right !important;
+    direction: ltr !important;
+    unicode-bidi: isolate !important;
+}
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+    direction: ltr !important;
+    unicode-bidi: isolate !important;
 }
