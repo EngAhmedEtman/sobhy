@@ -14,21 +14,29 @@ class Setting extends Model
 
     public static function get($key, $default = null)
     {
-        return Cache::rememberForever('setting_' . $key, function () use ($key, $default) {
-            $setting = self::where('key', $key)->first();
-            return $setting ? $setting->value : $default;
-        });
+        try {
+            return Cache::rememberForever('setting_' . $key, function () use ($key, $default) {
+                $setting = self::where('key', $key)->first();
+                return $setting ? $setting->value : $default;
+            });
+        } catch (\Throwable $e) {
+            return $default;
+        }
     }
 
     public static function set($key, $value, $type = 'string', $group = 'general')
     {
-        $setting = self::updateOrCreate(
-            ['key' => $key],
-            ['value' => $value, 'type' => $type, 'group' => $group]
-        );
+        try {
+            $setting = self::updateOrCreate(
+                ['key' => $key],
+                ['value' => $value, 'type' => $type, 'group' => $group]
+            );
 
-        Cache::forget('setting_' . $key);
+            Cache::forget('setting_' . $key);
 
-        return $setting;
+            return $setting;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 }
