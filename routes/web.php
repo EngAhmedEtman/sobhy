@@ -52,14 +52,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/purchases/{purchase}/print', [\App\Http\Controllers\PrintController::class, 'purchase'])->name('print.purchase');
     Route::get('/customers/{customer}/print', [\App\Http\Controllers\PrintController::class, 'customerStatement'])->name('print.customer');
     Route::get('/suppliers/{supplier}/print', [\App\Http\Controllers\PrintController::class, 'supplierStatement'])->name('print.supplier');
-    Route::get('/transactions/{transaction}/print', [\App\Http\Controllers\TransactionController::class, 'print'])->name('transactions.print');
 
-    // Detailed pages
-    Route::get('/customers/{id}', [CustomerController::class, 'show'])->name('customers.show');
+    // Customer & Supplier Payments and Returns
     Route::post('/customers/{id}/payment', [CustomerController::class, 'storePayment'])->name('customers.payment');
     Route::post('/customers/{id}/return', [CustomerController::class, 'storeReturn'])->name('customers.return');
     
-    Route::get('/suppliers/{id}', [SupplierController::class, 'show'])->name('suppliers.show');
     Route::post('/suppliers/{id}/payment', [SupplierController::class, 'storePayment'])->name('suppliers.payment');
     Route::post('/suppliers/{id}/return', [SupplierController::class, 'storeReturn'])->name('suppliers.return');
 

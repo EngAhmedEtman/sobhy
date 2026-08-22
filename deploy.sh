@@ -6,7 +6,7 @@ echo "🚀 Starting Deployment for Sobhy Reda Project..."
 echo "=========================================="
 
 # 1. Put Application in Maintenance Mode (Fail-safe)
-(php artisan down --message="جاري تحديث وتطوير النظام، سنعود خلال لحظات..." --retry=60) || true
+(php artisan down --retry=60) 2>/dev/null || php artisan down 2>/dev/null || true
 
 # 2. Fetch and Pull latest code from Git repository
 echo "📥 Pulling latest changes from Git (branch: main)..."
