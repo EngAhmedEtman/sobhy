@@ -32,8 +32,8 @@
                        @input="handleInput()"
                        @focus="if(query.trim().length > 0) isOpen = true"
                        @keydown.escape="closeSearch()"
-                       placeholder="بحث شامل (عميل، مورد، فاتورة، صنف)..." 
-                       class="w-56 lg:w-72 pl-8 pr-10 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 bg-slate-50 focus:bg-white transition-all text-slate-800">
+                       placeholder="بحث سريع في النظام..." 
+                       class="w-64 lg:w-80 pl-14 pr-10 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 bg-slate-50 focus:bg-white transition-all text-slate-800">
                 
                 <!-- Search Icon -->
                 <div class="absolute right-3 text-slate-400 pointer-events-none">
@@ -51,7 +51,7 @@
                     <button type="button" x-show="query.length > 0" @click="clearSearch()" class="text-slate-400 hover:text-slate-600 p-0.5 rounded">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
-                    <span x-show="query.length === 0" class="hidden lg:inline-block text-[0.65rem] font-bold text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded border border-slate-200">Ctrl+K</span>
+                    <span x-show="query.length === 0" class="hidden lg:inline-block text-[0.65rem] font-bold text-slate-400 bg-slate-200/70 px-1.5 py-0.5 rounded border border-slate-200 select-none pointer-events-none">Ctrl+K</span>
                 </div>
             </div>
 
