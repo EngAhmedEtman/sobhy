@@ -1,27 +1,27 @@
-<header class="h-14 lg:h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30"
+<header class="h-14 lg:h-16 bg-white border-b border-slate-200 flex items-center justify-between px-3 sm:px-4 lg:px-8 sticky top-0 z-30 shrink-0"
         x-data="globalSearchComponent()">
     
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 pl-2">
         <!-- Mobile menu button -->
-        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 -mr-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg focus:outline-none transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 -mr-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg focus:outline-none transition-colors shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
         </button>
         
-        <div class="flex flex-col">
-            <h2 class="text-base lg:text-xl font-bold text-slate-800 leading-tight">
+        <div class="flex flex-col min-w-0">
+            <h2 class="text-xs sm:text-base lg:text-xl font-bold text-slate-800 leading-tight truncate">
                 {{ $title ?? 'لوحة التحكم' }}
             </h2>
             @if(isset($breadcrumb))
-                <div class="text-xs text-slate-500 hidden sm:flex items-center mt-1 font-medium gap-1">
+                <div class="text-[0.7rem] text-slate-500 hidden md:flex items-center mt-0.5 font-medium gap-1 truncate">
                     {!! str_replace('/', '<span class="text-slate-300 mx-1">/</span>', $breadcrumb) !!}
                 </div>
             @endif
         </div>
     </div>
 
-    <div class="flex items-center gap-2 sm:gap-3 lg:gap-4">
+    <div class="flex items-center gap-1.5 sm:gap-3 lg:gap-4 shrink-0">
         
         <!-- Desktop Search Bar -->
         <div class="hidden md:block relative" @click.away="isOpen = false">
