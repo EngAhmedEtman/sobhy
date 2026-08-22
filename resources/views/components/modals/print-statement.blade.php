@@ -39,13 +39,60 @@
                         <div class="text-xs text-slate-500 mt-0.5 mb-2">حدد تاريخ البداية والنهاية لكشف الحساب.</div>
                         
                         <div x-show="printFilter === 'custom'" class="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-slate-100">
-                            <div>
+                            <!-- Start Date -->
+                            <div x-data="{
+                                fpS: null,
+                                initS() {
+                                    this.$nextTick(() => {
+                                        if (window.flatpickr && this.$refs.pStart) {
+                                            this.fpS = flatpickr(this.$refs.pStart, {
+                                                locale: 'ar',
+                                                dateFormat: 'Y-m-d',
+                                                defaultDate: printStartDate || '',
+                                                disableMobile: true,
+                                                static: true,
+                                                appendTo: this.$refs.sWrap,
+                                                onChange: (dates, dateStr) => { printStartDate = dateStr; }
+                                            });
+                                            this.$watch('printStartDate', val => {
+                                                if (this.fpS) this.fpS.setDate(val || '', false);
+                                            });
+                                        }
+                                    });
+                                }
+                            }" x-init="initS()">
                                 <label class="block text-[0.7rem] font-bold text-slate-500 mb-1">من تاريخ</label>
-                                <input type="date" x-model="printStartDate" class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs">
+                                <div class="relative" x-ref="sWrap">
+                                    <input type="text" x-ref="pStart" x-model="printStartDate" placeholder="YYYY-MM-DD" class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs text-center font-bold cursor-pointer text-slate-800 bg-slate-50 focus:bg-white" readonly>
+                                </div>
                             </div>
-                            <div>
+                            
+                            <!-- End Date -->
+                            <div x-data="{
+                                fpE: null,
+                                initE() {
+                                    this.$nextTick(() => {
+                                        if (window.flatpickr && this.$refs.pEnd) {
+                                            this.fpE = flatpickr(this.$refs.pEnd, {
+                                                locale: 'ar',
+                                                dateFormat: 'Y-m-d',
+                                                defaultDate: printEndDate || '',
+                                                disableMobile: true,
+                                                static: true,
+                                                appendTo: this.$refs.eWrap,
+                                                onChange: (dates, dateStr) => { printEndDate = dateStr; }
+                                            });
+                                            this.$watch('printEndDate', val => {
+                                                if (this.fpE) this.fpE.setDate(val || '', false);
+                                            });
+                                        }
+                                    });
+                                }
+                            }" x-init="initE()">
                                 <label class="block text-[0.7rem] font-bold text-slate-500 mb-1">إلى تاريخ</label>
-                                <input type="date" x-model="printEndDate" class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs">
+                                <div class="relative" x-ref="eWrap">
+                                    <input type="text" x-ref="pEnd" x-model="printEndDate" placeholder="YYYY-MM-DD" class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs text-center font-bold cursor-pointer text-slate-800 bg-slate-50 focus:bg-white" readonly>
+                                </div>
                             </div>
                         </div>
                     </div>
