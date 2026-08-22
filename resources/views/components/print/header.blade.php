@@ -28,7 +28,7 @@
                 @endif
 
                 @if($phone && $phone !== '---' && trim($phone) !== '')
-                    <div class="company-sub" style="font-size: 10px; color: #475569; margin-top: 1px;" dir="ltr">هاتف: {{ $phone }}</div>
+                    <div class="company-sub" style="font-size: 10px; color: #475569; margin-top: 1px;" dir="rtl">هاتف: {{ $phone }}</div>
                 @endif
             </div>
         </div>
