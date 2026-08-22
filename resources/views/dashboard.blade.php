@@ -1,16 +1,7 @@
 <x-layouts.app title="لوحة المعلومات">
     <x-slot:breadcrumb>الرئيسية</x-slot:breadcrumb>
 
-    <div x-data="{
-        showSaleModal: false,
-        showPurchaseModal: false,
-        showTransactionModal: false,
-        transactionDetails: {},
-        viewTransaction(t) {
-            this.transactionDetails = t;
-            this.showTransactionModal = true;
-        }
-    }" class="space-y-6">
+    <div class="space-y-6">
 
         <!-- Top Header & Quick Actions -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-100 shadow-sm">
@@ -28,11 +19,11 @@
 
             <!-- Quick Action Buttons -->
             <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                <button type="button" @click="showSaleModal = true" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-primary-600 rounded-xl hover:bg-primary-700 shadow-sm shadow-primary-600/20 transition-all">
+                <button type="button" @click="$dispatch('create-sale')" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-primary-600 rounded-xl hover:bg-primary-700 shadow-sm shadow-primary-600/20 transition-all cursor-pointer">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                     <span>فاتورة بيع</span>
                 </button>
-                <button type="button" @click="showPurchaseModal = true" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl border border-slate-200 transition-all">
+                <button type="button" @click="$dispatch('create-purchase')" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl border border-slate-200 transition-all cursor-pointer">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                     <span>فاتورة شراء</span>
                 </button>
@@ -373,19 +364,7 @@
                                 </td>
                                 <td class="px-4 py-2.5 text-[0.8rem] border-b border-slate-50 align-middle text-center">
                                     <div class="flex items-center justify-center gap-1.5">
-                                        <button type="button" @click="viewTransaction({
-                                            id: '{{ $t->id }}',
-                                            type: '{{ $t->type }}',
-                                            date: '{{ $t->transaction_date ? $t->transaction_date->format('Y-m-d') : $t->created_at->format('Y-m-d') }}',
-                                            party_name: '{{ $t->transactionable->name ?? '---' }}',
-                                            amount: {{ $t->total_amount > 0 ? $t->total_amount : $t->paid_amount }},
-                                            paid_amount: {{ (float)$t->paid_amount }},
-                                            balance_after: {{ (float)$t->balance_after }},
-                                            product_name: '{{ $t->product->name ?? '' }}',
-                                            quantity: '{{ $t->quantity }}',
-                                            unit_price: '{{ $t->unit_price }}',
-                                            notes: '{{ addslashes($t->notes) }}'
-                                        })" class="p-1 rounded border border-slate-200 bg-white text-slate-400 hover:text-primary-600 hover:border-primary-500 hover:bg-primary-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض التفاصيل">
+                                        <button type="button" @click="$dispatch('view-transaction', {{ $t->id }})" class="p-1 rounded border border-slate-200 bg-white text-slate-400 hover:text-primary-600 hover:border-primary-500 hover:bg-primary-50 shadow-sm transition-all inline-flex items-center justify-center cursor-pointer" title="عرض التفاصيل">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                         </button>
                                         <a href="{{ route('transactions.print', $t->id) }}" target="_blank" class="p-1 rounded border border-slate-200 bg-white text-slate-400 hover:text-slate-700 hover:border-slate-400 hover:bg-slate-50 shadow-sm transition-all inline-flex items-center justify-center" title="طباعة الإيصال">
