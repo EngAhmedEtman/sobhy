@@ -35,27 +35,27 @@
                     <div class="lg:col-span-4 space-y-4">
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-4">
                             
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <!-- Customer Selection -->
                                 <div class="relative">
-                                    <template x-if="!fixedCustomer">
-                                        <div x-data="{ open: false, search: '' }">
-                                            <label class="block text-xs font-bold text-slate-700 mb-1.5">العميل <span class="text-danger-500">*</span></label>
-                                            <input type="hidden" name="customer_id" :value="selectedCustomerId" required>
-                                            
-                                            <button type="button" 
-                                                    @click="open = !open" 
-                                                    class="w-full flex items-center justify-between px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 transition-all text-right">
-                                                <span class="text-xs font-bold truncate" :class="selectedCustomerId ? 'text-slate-800' : 'text-slate-400'" x-text="selectedCustomerId ? selectedName : 'اختر العميل...'"></span>
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 mr-1" :class="open ? 'rotate-180 text-primary-600' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </button>
+                                     <template x-if="!fixedCustomer">
+                                         <div x-data="{ open: false, search: '' }">
+                                             <label class="block text-xs font-bold text-slate-700 mb-1.5">العميل <span class="text-danger-500">*</span></label>
+                                             <input type="hidden" name="customer_id" :value="selectedCustomerId" required>
+                                             
+                                             <button type="button" 
+                                                     @click="open = !open" 
+                                                     class="w-full flex items-center justify-between px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 transition-all text-right">
+                                                 <span class="text-xs font-bold truncate" :class="selectedCustomerId ? 'text-slate-800' : 'text-slate-400'" x-text="selectedCustomerId ? selectedName : 'اختر العميل...'"></span>
+                                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 mr-1" :class="open ? 'rotate-180 text-primary-600' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                                 </svg>
+                                             </button>
 
-                                            <div x-show="open" 
-                                                 @click.outside="open = false" 
-                                                 class="absolute z-[60] left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden" 
-                                                 style="display: none;">
+                                             <div x-show="open" 
+                                                  @click.outside="open = false" 
+                                                  class="absolute z-[60] left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden" 
+                                                  style="display: none;">
                                                 <div class="p-1.5 border-b border-slate-100 bg-slate-50/70">
                                                     <input type="text" x-model="search" placeholder="ابحث..." class="w-full pl-2 pr-6 py-1 bg-white border border-slate-200 rounded text-xs" @keydown.escape="open = false">
                                                 </div>
@@ -84,11 +84,11 @@
                                 <!-- Date -->
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5">التاريخ <span class="text-danger-500">*</span></label>
-                                    <input type="date" name="date" required x-model="date" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left text-xs font-bold" dir="ltr">
+                                    <input type="date" name="date" required x-model="date" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-center sm:text-left text-xs font-bold" dir="ltr">
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <!-- Paid Amount -->
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5" x-text="isEdit ? 'المدفوع نقداً' : 'المدفوع (اختياري)'"></label>

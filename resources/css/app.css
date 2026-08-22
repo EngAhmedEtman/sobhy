@@ -7,3 +7,12 @@
 body {
     font-family: 'Cairo', sans-serif;
 }
+
+/* Fix native date input on WebKit/Mobile */
+input[type="date"] {
+    min-height: 38px;
+    font-family: inherit;
+}
+input[type="date"]::-webkit-date-and-time-value {
+    text-align: right;
+}

@@ -35,7 +35,7 @@
                     <div class="lg:col-span-4 space-y-4">
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-4">
                             
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <!-- Supplier Selection -->
                                 <div class="relative">
                                     <template x-if="!fixedSupplier">
@@ -84,11 +84,11 @@
                                 <!-- Date -->
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5">التاريخ <span class="text-danger-500">*</span></label>
-                                    <input type="date" name="date" required x-model="date" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left text-xs font-bold" dir="ltr">
+                                    <input type="date" name="date" required x-model="date" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-center sm:text-left text-xs font-bold" dir="ltr">
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <!-- Paid Amount -->
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5" x-text="isEdit ? 'المدفوع نقداً' : 'المدفوع (اختياري)'"></label>
