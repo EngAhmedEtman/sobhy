@@ -1,14 +1,5 @@
-<?php if (isset($component)) { $__componentOriginal511d4862ff04963c3c16115c05a86a9d = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginal511d4862ff04963c3c16115c05a86a9d = $attributes; } ?>
-<?php $component = Illuminate\View\DynamicComponent::resolve(['component' => request('print_mode') ? 'layouts.print' : 'layouts.app'] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('dynamic-component'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\DynamicComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['title' => 'تقرير المديونيات العامة']); ?>
-     <?php $__env->slot('breadcrumb', null, []); ?> التقارير والإحصائيات / تقرير المديونيات العامة <?php $__env->endSlot(); ?>
+<x-dynamic-component :component="request('print_mode') ? 'layouts.print' : 'layouts.app'" title="تقرير المديونيات العامة">
+    <x-slot name="breadcrumb">التقارير والإحصائيات / تقرير المديونيات العامة</x-slot>
 
     <!-- Page Header & Action Buttons -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full print:hidden mb-6">
@@ -29,7 +20,7 @@
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                 <span>طباعة التقرير</span>
             </button>
-            <a href="<?php echo e(route('reports.index')); ?>" class="px-3.5 py-1.5 bg-white text-slate-700 border border-slate-200 font-bold rounded-lg text-xs hover:bg-slate-50 transition-colors shadow-sm inline-flex items-center gap-1.5">
+            <a href="{{ route('reports.index') }}" class="px-3.5 py-1.5 bg-white text-slate-700 border border-slate-200 font-bold rounded-lg text-xs hover:bg-slate-50 transition-colors shadow-sm inline-flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path></svg>
                 <span>العودة للتقارير</span>
             </a>
@@ -38,14 +29,14 @@
 
     <!-- Filter Form -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-6 print:hidden">
-        <form id="filterForm" action="<?php echo e(route('reports.debts')); ?>" method="GET" class="flex flex-wrap items-end gap-3">
+        <form id="filterForm" action="{{ route('reports.debts') }}" method="GET" class="flex flex-wrap items-end gap-3">
             <div class="flex-1 min-w-[200px]">
                 <label class="block text-xs font-bold text-slate-700 mb-1">نوع التقرير</label>
                 <select name="report_type" class="w-full px-3 py-1.5 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all text-xs">
-                    <option value="all" <?php echo e(request('report_type') == 'all' ? 'selected' : ''); ?>>التقرير الشامل (إجمالي + عملاء + موردين)</option>
-                    <option value="summary_only" <?php echo e(request('report_type') == 'summary_only' ? 'selected' : ''); ?>>إجمالي الأموال والديون فقط</option>
-                    <option value="customers_only" <?php echo e(request('report_type') == 'customers_only' ? 'selected' : ''); ?>>ديون العملاء فقط (الأموال التي لك)</option>
-                    <option value="suppliers_only" <?php echo e(request('report_type') == 'suppliers_only' ? 'selected' : ''); ?>>ديون الموردين فقط (الالتزامات التي عليك)</option>
+                    <option value="all" {{ request('report_type') == 'all' ? 'selected' : '' }}>التقرير الشامل (إجمالي + عملاء + موردين)</option>
+                    <option value="summary_only" {{ request('report_type') == 'summary_only' ? 'selected' : '' }}>إجمالي الأموال والديون فقط</option>
+                    <option value="customers_only" {{ request('report_type') == 'customers_only' ? 'selected' : '' }}>ديون العملاء فقط (الأموال التي لك)</option>
+                    <option value="suppliers_only" {{ request('report_type') == 'suppliers_only' ? 'selected' : '' }}>ديون الموردين فقط (الالتزامات التي عليك)</option>
                 </select>
             </div>
             <div class="w-full sm:w-auto mt-2 sm:mt-0">
@@ -58,7 +49,7 @@
 
     <!-- Printable Header Branding -->
     <div class="hidden print:block mb-6">
-        <?php
+        @php
             $reportTitle = 'تقرير المديونيات العامة';
             $reportSubtitle = 'يشمل ديون العملاء وديون الموردين';
             
@@ -71,40 +62,21 @@
                 $reportTitle = 'تقرير ديون الموردين';
                 $reportSubtitle = 'الالتزامات المستحقة عليك للتجار والموردين';
             }
-        ?>
-        <?php if (isset($component)) { $__componentOriginal290c8099c98cf9fb9f13d9638c125a9c = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginal290c8099c98cf9fb9f13d9638c125a9c = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.print.header','data' => ['title' => $reportTitle,'subtitle' => $reportSubtitle]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('print.header'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['title' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($reportTitle),'subtitle' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($reportSubtitle)]); ?>
-<?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginal290c8099c98cf9fb9f13d9638c125a9c)): ?>
-<?php $attributes = $__attributesOriginal290c8099c98cf9fb9f13d9638c125a9c; ?>
-<?php unset($__attributesOriginal290c8099c98cf9fb9f13d9638c125a9c); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginal290c8099c98cf9fb9f13d9638c125a9c)): ?>
-<?php $component = $__componentOriginal290c8099c98cf9fb9f13d9638c125a9c; ?>
-<?php unset($__componentOriginal290c8099c98cf9fb9f13d9638c125a9c); ?>
-<?php endif; ?>
+        @endphp
+        <x-print.header :title="$reportTitle" :subtitle="$reportSubtitle" />
     </div>
 
     <!-- Report Content -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 p-6 print:border-none print:shadow-none print:bg-transparent print:p-0 print:m-0">
         
-        <?php
+        @php
             $reportType = request('report_type', 'all');
             $showSummary = in_array($reportType, ['all', 'summary_only']);
             $showCustomers = in_array($reportType, ['all', 'customers_only']);
             $showSuppliers = in_array($reportType, ['all', 'suppliers_only']);
-        ?>
+        @endphp
 
-        <?php if($showSummary): ?>
+        @if($showSummary)
         <!-- Summary Dashboard -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <div class="flex items-center gap-4 p-4 rounded-xl border border-success-100 bg-success-50">
@@ -113,7 +85,7 @@
                 </div>
                 <div>
                     <p class="text-xs font-bold text-success-600 mb-1">إجمالي أموالك بالسوق (مديونيات العملاء)</p>
-                    <p class="text-xl font-black text-success-700" dir="ltr"><?php echo e(number_format($totalCustomersDebt, 2)); ?> EGP</p>
+                    <p class="text-xl font-black text-success-700" dir="ltr">{{ number_format($totalCustomersDebt, 2) }} EGP</p>
                 </div>
             </div>
             
@@ -123,23 +95,22 @@
                 </div>
                 <div>
                     <p class="text-xs font-bold text-danger-600 mb-1">إجمالي الالتزامات عليك (ديون الموردين/التجار)</p>
-                    <p class="text-xl font-black text-danger-700" dir="ltr"><?php echo e(number_format($totalSuppliersDebt, 2)); ?> EGP</p>
+                    <p class="text-xl font-black text-danger-700" dir="ltr">{{ number_format($totalSuppliersDebt, 2) }} EGP</p>
                 </div>
             </div>
-            </div>
         </div>
-        <?php endif; ?>
+        @endif
 
-        <?php if($showCustomers || $showSuppliers): ?>
-        <div class="grid grid-cols-1 <?php echo e(($showCustomers && $showSuppliers) ? 'lg:grid-cols-2' : ''); ?> gap-8 lg:gap-6">
-            <?php if($showCustomers): ?>
+        @if($showCustomers || $showSuppliers)
+        <div class="grid grid-cols-1 {{ ($showCustomers && $showSuppliers) ? 'lg:grid-cols-2' : '' }} gap-8 lg:gap-6">
+            @if($showCustomers)
             <!-- Customers Debts List -->
             <div>
                 <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4 text-sm flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-success-500"></span>
                     العملاء المديونين (عليك تحصيلها)
                 </h3>
-                <?php if($customers->count() > 0): ?>
+                @if($customers->count() > 0)
                     <div class="overflow-x-auto relative rounded-xl border border-slate-100 bg-white print:border-none print:shadow-none print:rounded-none print:bg-transparent">
                         <table class="w-full text-center border-collapse whitespace-nowrap">
                             <thead class="bg-slate-50">
@@ -150,41 +121,38 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-50">
-                                <?php $__currentLoopData = $customers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $c): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                @foreach($customers as $c)
                                     <tr class="hover:bg-slate-50/60 transition-colors group">
                                         <td class="px-4 py-2.5 text-[0.8rem] text-slate-800 font-bold border-b border-slate-50 align-middle">
-                                            <?php echo e($c->name); ?>
-
+                                            {{ $c->name }}
                                         </td>
                                         <td class="px-4 py-2.5 text-[0.8rem] text-slate-500 border-b border-slate-50 align-middle" dir="ltr">
-                                            <?php echo e($c->phone ?? '-'); ?>
-
+                                            {{ $c->phone ?? '-' }}
                                         </td>
                                         <td class="px-4 py-2.5 text-[0.8rem] font-black text-success-600 border-b border-slate-50 align-middle" dir="ltr">
-                                            <?php echo e(number_format($c->balance, 2)); ?>
-
+                                            {{ number_format($c->balance, 2) }}
                                         </td>
                                     </tr>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
-                <?php else: ?>
+                @else
                     <div class="p-8 text-center bg-slate-50 rounded-xl border border-slate-100">
                         <p class="text-xs text-slate-500">لا يوجد ديون مستحقة على العملاء حالياً.</p>
                     </div>
-                <?php endif; ?>
+                @endif
             </div>
-            <?php endif; ?>
+            @endif
 
-            <?php if($showSuppliers): ?>
+            @if($showSuppliers)
             <!-- Suppliers Debts List -->
             <div>
                 <h3 class="font-bold text-slate-800 border-b border-slate-100 pb-2 mb-4 text-sm flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-danger-500"></span>
                     الموردين / التجار (عليك سدادها)
                 </h3>
-                <?php if($suppliers->count() > 0): ?>
+                @if($suppliers->count() > 0)
                     <div class="overflow-x-auto relative rounded-xl border border-slate-100 bg-white print:border-none print:shadow-none print:rounded-none print:bg-transparent">
                         <table class="w-full text-center border-collapse whitespace-nowrap">
                             <thead class="bg-slate-50">
@@ -195,86 +163,35 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-50">
-                                <?php $__currentLoopData = $suppliers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $s): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                @foreach($suppliers as $s)
                                     <tr class="hover:bg-slate-50/60 transition-colors group">
                                         <td class="px-4 py-2.5 text-[0.8rem] text-slate-800 font-bold border-b border-slate-50 align-middle">
-                                            <?php echo e($s->name); ?>
-
+                                            {{ $s->name }}
                                         </td>
                                         <td class="px-4 py-2.5 text-[0.8rem] text-slate-500 border-b border-slate-50 align-middle" dir="ltr">
-                                            <?php echo e($s->phone ?? '-'); ?>
-
+                                            {{ $s->phone ?? '-' }}
                                         </td>
                                         <td class="px-4 py-2.5 text-[0.8rem] font-black text-danger-600 border-b border-slate-50 align-middle" dir="ltr">
-                                            <?php echo e(number_format($s->balance, 2)); ?>
-
+                                            {{ number_format($s->balance, 2) }}
                                         </td>
                                     </tr>
-                                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
-                <?php else: ?>
+                @else
                     <div class="p-8 text-center bg-slate-50 rounded-xl border border-slate-100">
                         <p class="text-xs text-slate-500">لا يوجد التزامات عليك للموردين حالياً.</p>
                     </div>
-                <?php endif; ?>
+                @endif
             </div>
-            <?php endif; ?>
+            @endif
         </div>
-        <?php endif; ?>
+        @endif
 
     </div>
     
-    <?php if(!request('print_mode')): ?>
-        <?php if (isset($component)) { $__componentOriginal12fa23a1cf371a30e3d60140e4e460e8 = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginal12fa23a1cf371a30e3d60140e4e460e8 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.modals.print-report','data' => []] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('modals.print-report'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes([]); ?>
-<?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginal12fa23a1cf371a30e3d60140e4e460e8)): ?>
-<?php $attributes = $__attributesOriginal12fa23a1cf371a30e3d60140e4e460e8; ?>
-<?php unset($__attributesOriginal12fa23a1cf371a30e3d60140e4e460e8); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginal12fa23a1cf371a30e3d60140e4e460e8)): ?>
-<?php $component = $__componentOriginal12fa23a1cf371a30e3d60140e4e460e8; ?>
-<?php unset($__componentOriginal12fa23a1cf371a30e3d60140e4e460e8); ?>
-<?php endif; ?>
-        <?php if (isset($component)) { $__componentOriginalba30c15cd74879269c11bdbb21af4a82 = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginalba30c15cd74879269c11bdbb21af4a82 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.print.preview-modal','data' => []] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('print.preview-modal'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes([]); ?>
-<?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginalba30c15cd74879269c11bdbb21af4a82)): ?>
-<?php $attributes = $__attributesOriginalba30c15cd74879269c11bdbb21af4a82; ?>
-<?php unset($__attributesOriginalba30c15cd74879269c11bdbb21af4a82); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginalba30c15cd74879269c11bdbb21af4a82)): ?>
-<?php $component = $__componentOriginalba30c15cd74879269c11bdbb21af4a82; ?>
-<?php unset($__componentOriginalba30c15cd74879269c11bdbb21af4a82); ?>
-<?php endif; ?>
-    <?php endif; ?>
- <?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginal511d4862ff04963c3c16115c05a86a9d)): ?>
-<?php $attributes = $__attributesOriginal511d4862ff04963c3c16115c05a86a9d; ?>
-<?php unset($__attributesOriginal511d4862ff04963c3c16115c05a86a9d); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginal511d4862ff04963c3c16115c05a86a9d)): ?>
-<?php $component = $__componentOriginal511d4862ff04963c3c16115c05a86a9d; ?>
-<?php unset($__componentOriginal511d4862ff04963c3c16115c05a86a9d); ?>
-<?php endif; ?>
+    @if(!request('print_mode'))
+        <x-modals.print-report />
+    @endif
+</x-dynamic-component>
