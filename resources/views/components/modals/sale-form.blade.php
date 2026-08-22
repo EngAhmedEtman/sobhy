@@ -82,9 +82,39 @@
                                 </div>
 
                                 <!-- Date -->
-                                <div>
+                                <div x-data="{
+                                    fp: null,
+                                    initFp() {
+                                        this.$nextTick(() => {
+                                            if (window.flatpickr && this.$refs.dateInput) {
+                                                this.fp = flatpickr(this.$refs.dateInput, {
+                                                    locale: 'ar',
+                                                    dateFormat: 'Y-m-d',
+                                                    defaultDate: date || new Date().toISOString().split('T')[0],
+                                                    disableMobile: true,
+                                                    onChange: (dates, dateStr) => { date = dateStr; }
+                                                });
+                                                this.$watch('date', val => {
+                                                    if (this.fp && val) this.fp.setDate(val, false);
+                                                });
+                                            }
+                                        });
+                                    }
+                                }" x-init="initFp()">
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5">التاريخ <span class="text-danger-500">*</span></label>
-                                    <input type="date" name="date" required x-model="date" lang="en" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-center sm:text-left text-xs font-bold" dir="ltr">
+                                    <div class="relative">
+                                        <input type="text" 
+                                               x-ref="dateInput"
+                                               name="date" 
+                                               required 
+                                               x-model="date" 
+                                               placeholder="YYYY-MM-DD"
+                                               class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-center font-bold text-xs cursor-pointer text-slate-800" 
+                                               readonly>
+                                        <div class="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 

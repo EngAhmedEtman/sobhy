@@ -31,7 +31,29 @@ $maxWidthClass = match ($maxWidth) {
 <div x-data="{ 
         open: false, 
         loaded: false, 
-        currentUrl: '{{ $printUrl }}'
+        currentUrl: '{{ $printUrl }}',
+
+        printDocument() {
+            const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
+            const targetUrl = this.currentUrl + (this.currentUrl.includes('?') ? '&' : '?') + 'autoprint=1';
+            const iframe = document.getElementById('{{ $id }}_iframe');
+
+            if (isMobile) {
+                // Mobile browsers block iframe.contentWindow.print(). Open with autoprint=1
+                window.open(targetUrl, '_blank');
+            } else {
+                try {
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                    } else {
+                        window.open(targetUrl, '_blank');
+                    }
+                } catch (e) {
+                    window.open(targetUrl, '_blank');
+                }
+            }
+        }
      }" 
      @open-print-preview.window="if ($event.detail.id === '{{ $id }}') { open = true; loaded = true; if ($event.detail.url) { currentUrl = $event.detail.url; } }">
     <template x-teleport="body">
@@ -104,7 +126,7 @@ $maxWidthClass = match ($maxWidth) {
                             <span class="sm:hidden">نافذة جديدة</span>
                         </a>
                         <button type="button" 
-                                @click="document.getElementById('{{ $id }}_iframe').contentWindow.print()" 
+                                @click="printDocument()" 
                                 class="px-4 sm:px-5 py-2 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-lg text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                             <span>طباعة الآن</span>
