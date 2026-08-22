@@ -52,6 +52,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/purchases/{purchase}/print', [\App\Http\Controllers\PrintController::class, 'purchase'])->name('print.purchase');
     Route::get('/customers/{customer}/print', [\App\Http\Controllers\PrintController::class, 'customerStatement'])->name('print.customer');
     Route::get('/suppliers/{supplier}/print', [\App\Http\Controllers\PrintController::class, 'supplierStatement'])->name('print.supplier');
+    Route::get('/print/customers-report', [\App\Http\Controllers\PrintController::class, 'customersReport'])->name('print.customers-report');
+    Route::get('/print/suppliers-report', [\App\Http\Controllers\PrintController::class, 'suppliersReport'])->name('print.suppliers-report');
+    Route::get('/print/sales-report', [\App\Http\Controllers\PrintController::class, 'salesReport'])->name('print.sales-report');
+    Route::get('/print/purchases-report', [\App\Http\Controllers\PrintController::class, 'purchasesReport'])->name('print.purchases-report');
 
     // Customer & Supplier Payments and Returns
     Route::post('/customers/{id}/payment', [CustomerController::class, 'storePayment'])->name('customers.payment');
