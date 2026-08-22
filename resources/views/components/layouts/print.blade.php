@@ -112,6 +112,25 @@
 
         /* Repeating Print Footer at Absolute Bottom (ONLY IN PRINT) */
         @media print {
+            #print-wrapper {
+                zoom: 1 !important;
+                transform: none !important;
+                width: 100% !important;
+                min-width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .page-container {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .table-container {
+                max-width: 100% !important;
+                width: 100% !important;
+            }
             .footer-space {
                 height: 120px; /* Space reserved for the footer */
             }
@@ -128,7 +147,7 @@
 </head>
 <body class="font-sans antialiased bg-white text-slate-800" style="overflow-x: hidden; margin: 0; padding: 0;">
 
-    <div id="print-wrapper" style="width: 100%; transform-origin: top right; transition: transform 0.1s ease-out;">
+    <div id="print-wrapper" style="width: 100%; transform-origin: top right;">
         <!-- The main layout table used to reserve space for the footer -->
         <table style="width: 100%; border: none !important;" class="!border-none !m-0 layout-table">
             <thead class="!border-none"><tr class="!border-none"><td class="!border-none !p-0">
@@ -156,6 +175,9 @@
     <script>
         function autoFitPrintSheet() {
             if (window.matchMedia('print').matches) return;
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('autoprint')) return;
+
             const w = window.innerWidth;
             const wrapper = document.getElementById('print-wrapper');
             if (!wrapper) return;
@@ -177,17 +199,38 @@
                 wrapper.style.transform = 'none';
             }
         }
-        window.addEventListener('DOMContentLoaded', autoFitPrintSheet);
-        window.addEventListener('resize', autoFitPrintSheet);
-        window.addEventListener('load', autoFitPrintSheet);
-        setTimeout(autoFitPrintSheet, 200);
+
+        window.addEventListener('beforeprint', () => {
+            const wrapper = document.getElementById('print-wrapper');
+            if (wrapper) {
+                wrapper.style.zoom = '1';
+                wrapper.style.transform = 'none';
+                wrapper.style.width = '100%';
+                wrapper.style.minWidth = '100%';
+            }
+        });
+
+        window.addEventListener('afterprint', () => {
+            autoFitPrintSheet();
+        });
 
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('autoprint')) {
-                setTimeout(() => { window.print(); }, 500);
+                const wrapper = document.getElementById('print-wrapper');
+                if (wrapper) {
+                    wrapper.style.zoom = '1';
+                    wrapper.style.transform = 'none';
+                    wrapper.style.width = '100%';
+                    wrapper.style.minWidth = '100%';
+                }
+                setTimeout(() => { window.print(); }, 400);
+            } else {
+                autoFitPrintSheet();
+                setTimeout(autoFitPrintSheet, 200);
             }
         });
+        window.addEventListener('resize', autoFitPrintSheet);
     </script>
 </body>
 </html>

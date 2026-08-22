@@ -82,12 +82,24 @@
         @media print {
             .no-print { display: none !important; }
             html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+            #print-wrapper {
+                zoom: 1 !important;
+                transform: none !important;
+                width: 100% !important;
+                min-width: 100% !important;
+                max-width: 100% !important;
+            }
+            .page-container {
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
         }
     </style>
 </head>
 <body style="overflow-x: hidden; margin: 0; padding: 0;">
 
-    <div id="print-wrapper" style="width: 100%; transform-origin: top right; transition: transform 0.1s ease-out;">
+    <div id="print-wrapper" style="width: 100%; transform-origin: top right;">
         <div class="page-container">
             <!-- Header -->
             <x-print.header :title="$typeLabel" :subtitle="$subLabel" :referenceCode="$referenceCode" />
@@ -185,6 +197,9 @@
     <script>
         function autoFitPrintSheet() {
             if (window.matchMedia('print').matches) return;
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('autoprint')) return;
+
             const w = window.innerWidth;
             const wrapper = document.getElementById('print-wrapper');
             if (!wrapper) return;
@@ -206,17 +221,38 @@
                 wrapper.style.transform = 'none';
             }
         }
-        window.addEventListener('DOMContentLoaded', autoFitPrintSheet);
-        window.addEventListener('resize', autoFitPrintSheet);
-        window.addEventListener('load', autoFitPrintSheet);
-        setTimeout(autoFitPrintSheet, 200);
+
+        window.addEventListener('beforeprint', () => {
+            const wrapper = document.getElementById('print-wrapper');
+            if (wrapper) {
+                wrapper.style.zoom = '1';
+                wrapper.style.transform = 'none';
+                wrapper.style.width = '100%';
+                wrapper.style.minWidth = '100%';
+            }
+        });
+
+        window.addEventListener('afterprint', () => {
+            autoFitPrintSheet();
+        });
 
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('autoprint')) {
-                setTimeout(() => { window.print(); }, 500);
+                const wrapper = document.getElementById('print-wrapper');
+                if (wrapper) {
+                    wrapper.style.zoom = '1';
+                    wrapper.style.transform = 'none';
+                    wrapper.style.width = '100%';
+                    wrapper.style.minWidth = '100%';
+                }
+                setTimeout(() => { window.print(); }, 400);
+            } else {
+                autoFitPrintSheet();
+                setTimeout(autoFitPrintSheet, 200);
             }
         });
+        window.addEventListener('resize', autoFitPrintSheet);
     </script>
 </body>
 </html>
