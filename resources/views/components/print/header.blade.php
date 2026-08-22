@@ -8,26 +8,27 @@
 <div class="report-header-wrapper" style="padding-bottom: 8px; margin-bottom: 12px; border-bottom: 2px solid #0f172a; font-family: 'Cairo', sans-serif;">
     <div class="report-header-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; gap: 10px;">
         
-        <!-- Right: Company Branding & Dynamic Details from Settings -->
+        <!-- Right: Company Branding & Details -->
         <div class="header-brand-section" style="display: flex; align-items: center; gap: 8px; border-left: 1px solid #e2e8f0; padding-left: 8px;">
             <div class="brand-text-info">
-                <div class="company-name" style="font-size: 14px; font-weight: 900; color: #0f172a;">{{ \App\Models\Setting::get('company_name', 'مؤسسة صبحي رضا') }}</div>
+                <div class="company-name" style="font-size: 14px; font-weight: 800; color: #0f172a;">{{ \App\Models\Setting::get('company_name', 'مؤسسة صبحي رضا') }}</div>
                 
                 @php
-                    $companyAddress = \App\Models\Setting::get('company_address', \App\Models\Setting::get('address', ''));
-                    $companyPhone = \App\Models\Setting::get('company_phone', \App\Models\Setting::get('phone', ''));
+                    $commercialRegister = \App\Models\Setting::get('commercial_register');
+                    $taxNumber = \App\Models\Setting::get('tax_number');
+                    $phone = \App\Models\Setting::get('phone');
                 @endphp
 
-                @if(!empty($companyAddress))
-                    <div class="company-sub" style="font-size: 10.5px; color: #475569; margin-top: 2px;">
-                        <strong>العنوان:</strong> {{ $companyAddress }}
-                    </div>
+                @if($commercialRegister && $commercialRegister !== '---' && trim($commercialRegister) !== '')
+                    <div class="company-sub" style="font-size: 10px; color: #475569; margin-top: 1px;">سجل تجاري: {{ $commercialRegister }}</div>
                 @endif
 
-                @if(!empty($companyPhone))
-                    <div class="company-sub" style="font-size: 10.5px; color: #475569; margin-top: 2px;">
-                        <strong>هاتف:</strong> <span dir="ltr">{{ $companyPhone }}</span>
-                    </div>
+                @if($taxNumber && $taxNumber !== '---' && trim($taxNumber) !== '')
+                    <div class="company-sub" style="font-size: 10px; color: #475569; margin-top: 1px;">رقم ضريبي: {{ $taxNumber }}</div>
+                @endif
+
+                @if($phone && $phone !== '---' && trim($phone) !== '')
+                    <div class="company-sub" style="font-size: 10px; color: #475569; margin-top: 1px;" dir="ltr">هاتف: {{ $phone }}</div>
                 @endif
             </div>
         </div>
