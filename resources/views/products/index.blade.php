@@ -87,9 +87,9 @@
 
         <!-- Add Modal -->
         <div x-show="showAddModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center">
-                <div x-show="showAddModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/50" @click="showAddModal = false"></div>
-                <div x-show="showAddModal" x-transition class="relative w-full max-w-md p-5 sm:p-6 overflow-hidden text-right transition-all transform bg-white shadow-xl rounded-2xl">
+            <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="showAddModal = false">
+                <div x-show="showAddModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showAddModal = false"></div>
+                <div x-show="showAddModal" @click.outside="showAddModal = false" x-transition class="relative w-full max-w-md p-5 sm:p-6 overflow-hidden text-right transition-all transform bg-white shadow-2xl rounded-2xl z-10">
                     <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
                         <h3 class="text-lg font-bold text-slate-800">إضافة منتج جديد</h3>
                         <button @click="showAddModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
@@ -121,9 +121,9 @@
 
         <!-- Edit Modal -->
         <div x-show="showEditModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center">
-                <div x-show="showEditModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/50" @click="showEditModal = false"></div>
-                <div x-show="showEditModal" x-transition class="relative w-full max-w-md p-5 sm:p-6 overflow-hidden text-right transition-all transform bg-white shadow-xl rounded-2xl">
+            <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="showEditModal = false">
+                <div x-show="showEditModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showEditModal = false"></div>
+                <div x-show="showEditModal" @click.outside="showEditModal = false" x-transition class="relative w-full max-w-md p-5 sm:p-6 overflow-hidden text-right transition-all transform bg-white shadow-2xl rounded-2xl z-10">
                     <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
                         <h3 class="text-lg font-bold text-slate-800">تعديل المنتج</h3>
                         <button @click="showEditModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>

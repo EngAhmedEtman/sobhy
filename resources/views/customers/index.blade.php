@@ -138,9 +138,9 @@
 
         <!-- Add Modal -->
         <div x-show="showAddModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="flex items-center justify-center min-h-screen p-4 text-center">
+            <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="showAddModal = false">
                 <div x-show="showAddModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showAddModal = false" aria-hidden="true"></div>
-                <div x-show="showAddModal" x-transition class="relative bg-white rounded-2xl text-right overflow-hidden shadow-2xl transform transition-all max-w-lg w-full z-10">
+                <div x-show="showAddModal" @click.outside="showAddModal = false" x-transition class="relative bg-white rounded-2xl text-right overflow-hidden shadow-2xl transform transition-all max-w-lg w-full z-10">
                     <form action="{{ route('customers.store') }}" method="POST">
                         @csrf
                         <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
@@ -192,9 +192,9 @@
 
         <!-- Edit Modal -->
         <div x-show="showEditModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="flex items-center justify-center min-h-screen p-4 text-center">
+            <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="showEditModal = false">
                 <div x-show="showEditModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showEditModal = false" aria-hidden="true"></div>
-                <div x-show="showEditModal" x-transition class="relative bg-white rounded-2xl text-right overflow-hidden shadow-2xl transform transition-all max-w-lg w-full z-10">
+                <div x-show="showEditModal" @click.outside="showEditModal = false" x-transition class="relative bg-white rounded-2xl text-right overflow-hidden shadow-2xl transform transition-all max-w-lg w-full z-10">
                     <form :action="`/customers/${editData.id}`" method="POST">
                         @csrf
                         @method('PUT')

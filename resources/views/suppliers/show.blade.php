@@ -354,9 +354,10 @@
 
         <!-- Payment Modal (Wide Layout with Live Balance Indicator) -->
         <div x-show="showPaymentModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="flex items-center justify-center min-h-screen p-4 text-center">
+            <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="showPaymentModal = false">
                 <div x-show="showPaymentModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showPaymentModal = false"></div>
                 <div x-show="showPaymentModal" 
+                     @click.outside="showPaymentModal = false"
                      x-data="{
                          amount: '',
                          date: '{{ date('Y-m-d') }}',
@@ -371,7 +372,7 @@
                              return Number(Math.abs(val)).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (لنا عنده)';
                          }
                      }"
-                     x-transition class="relative w-full max-w-2xl p-5 sm:p-6 overflow-hidden text-right transition-all transform bg-white shadow-xl rounded-2xl">
+                     x-transition class="relative w-full max-w-2xl p-5 sm:p-6 overflow-hidden text-right transition-all transform bg-white shadow-xl rounded-2xl z-10">
                     <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
                         <div class="flex items-center gap-2">
                             <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
@@ -439,9 +440,10 @@
 
         <!-- Return Modal (Wide Layout with Stock Check, Price Hints, and Live Balance Projection) -->
         <div x-show="showReturnModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="flex items-center justify-center min-h-screen p-4 text-center">
+            <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="showReturnModal = false">
                 <div x-show="showReturnModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showReturnModal = false"></div>
                 <div x-show="showReturnModal" 
+                     @click.outside="showReturnModal = false"
                      x-data="{
                          openProduct: false,
                          searchProduct: '',
@@ -520,7 +522,7 @@
                              return Number(Math.abs(val)).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (لنا عنده)';
                          }
                      }"
-                     x-transition class="relative w-full max-w-4xl p-5 sm:p-6 text-right transition-all transform bg-white shadow-xl rounded-2xl">
+                     x-transition class="relative w-full max-w-4xl p-5 sm:p-6 text-right transition-all transform bg-white shadow-xl rounded-2xl z-10">
                     <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
                         <div class="flex items-center gap-2">
                             <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
@@ -680,9 +682,9 @@
 
         <!-- Edit Transaction Modal -->
         <div x-show="editTransactionModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center">
-                <div x-show="editTransactionModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/50" @click="editTransactionModal = false"></div>
-                <div x-show="editTransactionModal" x-transition class="relative w-full max-w-md p-5 sm:p-6 text-right transition-all transform bg-white shadow-xl rounded-2xl">
+            <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="editTransactionModal = false">
+                <div x-show="editTransactionModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="editTransactionModal = false"></div>
+                <div x-show="editTransactionModal" @click.outside="editTransactionModal = false" x-transition class="relative w-full max-w-md p-5 sm:p-6 text-right transition-all transform bg-white shadow-2xl rounded-2xl z-10">
                     <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
                         <h3 class="text-lg font-bold text-slate-800">تعديل العملية</h3>
                         <button type="button" @click="editTransactionModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>

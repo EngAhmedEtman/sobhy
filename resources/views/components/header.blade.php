@@ -319,10 +319,11 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
          x-cloak
-         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen"
+         @click.self="showSupportModal = false">
         
-        <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 p-5 sm:p-6 overflow-hidden text-right"
-             @click.away="showSupportModal = false"
+        <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 p-5 sm:p-6 overflow-hidden text-right z-10"
+             @click.outside="showSupportModal = false"
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 scale-95 translate-y-2"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0"

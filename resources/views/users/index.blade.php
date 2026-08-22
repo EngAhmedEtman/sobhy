@@ -87,7 +87,8 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
              x-cloak 
-             class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen">
+             class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen"
+             @click.self="showAddModal = false">
             
             <div x-show="showAddModal" 
                  x-transition:enter="transition ease-out duration-200"
@@ -96,7 +97,7 @@
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                  x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-                 @click.away="showAddModal = false"
+                 @click.outside="showAddModal = false"
                  class="relative w-full max-w-md p-6 overflow-hidden text-right transition-all transform bg-white shadow-2xl rounded-2xl border border-slate-100">
                 
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
@@ -148,7 +149,8 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
              x-cloak 
-             class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen">
+             class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen"
+             @click.self="showEditModal = false">
             
             <div x-show="showEditModal" 
                  x-transition:enter="transition ease-out duration-200"
@@ -157,7 +159,7 @@
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                  x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-                 @click.away="showEditModal = false"
+                 @click.outside="showEditModal = false"
                  class="relative w-full max-w-md p-6 overflow-hidden text-right transition-all transform bg-white shadow-2xl rounded-2xl border border-slate-100">
                 
                 <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
@@ -180,7 +182,7 @@
                             <input type="email" name="email" x-model="editData.email" required class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none text-left" dir="ltr">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5">كلمة المرور (اتركه فارغاً إذا لم ترغب بتغييره)</label>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">كلمة المرور الجديدة (اتركها فارغة إذا لم ترغب في التغيير)</label>
                             <input type="password" name="password" placeholder="••••••••" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none text-left" dir="ltr">
                         </div>
                         <div>
@@ -210,7 +212,8 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
              x-cloak 
-             class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen">
+             class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen"
+             @click.self="showDeleteModal = false">
             
             <div x-show="showDeleteModal" 
                  x-transition:enter="transition ease-out duration-200"
@@ -219,7 +222,7 @@
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                  x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-                 @click.away="showDeleteModal = false"
+                 @click.outside="showDeleteModal = false"
                  class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 text-center overflow-hidden">
                 
                 <form :action="`{{ url('users') }}/${deleteId}`" method="POST">

@@ -156,7 +156,8 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
              x-cloak 
-             class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen">
+             class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen"
+             @click.self="showViewModal = false">
             
             <div x-show="showViewModal" 
                  x-transition:enter="transition ease-out duration-200"
@@ -165,7 +166,7 @@
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                  x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-                 @click.away="showViewModal = false"
+                 @click.outside="showViewModal = false"
                  class="relative w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 overflow-hidden text-right">
                 
                 <div class="flex items-center justify-between pb-4 border-b border-slate-100">
@@ -356,7 +357,8 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
              x-cloak 
-             class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen">
+             class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen"
+             @click.self="showDeleteModal = false">
             
             <div x-show="showDeleteModal" 
                  x-transition:enter="transition ease-out duration-200"
@@ -365,7 +367,7 @@
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                  x-transition:leave-end="opacity-0 scale-95 translate-y-2"
-                 @click.away="showDeleteModal = false"
+                 @click.outside="showDeleteModal = false"
                  class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 text-center overflow-hidden">
                 
                 <form :action="`{{ url('roles') }}/${deleteId}`" method="POST">

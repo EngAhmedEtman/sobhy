@@ -2,9 +2,9 @@
 
 <!-- Print Statement Modal -->
 <div x-show="showPrintModal" x-cloak class="fixed inset-0 z-[60] overflow-y-auto">
-    <div class="flex items-center justify-center min-h-screen p-4 text-center">
+    <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="showPrintModal = false">
         <div x-show="showPrintModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showPrintModal = false"></div>
-        <div x-show="showPrintModal" x-transition class="relative w-full max-w-md p-5 sm:p-6 text-right transition-all transform bg-white shadow-xl rounded-2xl">
+        <div x-show="showPrintModal" @click.outside="showPrintModal = false" x-transition class="relative w-full max-w-md p-5 sm:p-6 text-right transition-all transform bg-white shadow-2xl rounded-2xl z-10">
             <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
                 <h3 class="text-lg font-bold text-slate-800">طباعة كشف الحساب</h3>
                 <button @click="showPrintModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
