@@ -25,12 +25,12 @@
             <div class="bg-slate-50 sm:bg-transparent rounded-lg p-3 sm:p-0 border border-slate-100 sm:border-none flex items-center justify-between sm:justify-end gap-3 shrink-0">
                 <span class="text-xs sm:text-sm text-slate-500 font-bold block">الرصيد المتاح بالمخزن:</span>
                 <div class="flex items-center gap-1.5">
-                    <span class="text-lg sm:text-xl font-black <?php echo e($product->stock < 0 ? 'text-danger-600' : 'text-primary-600'); ?>" dir="ltr"><?php echo e(number_format($product->stock, 2)); ?></span>
+                    <span class="text-lg sm:text-xl font-black {{ $product->stock < 0 ? 'text-danger-600' : 'text-primary-600' }}" dir="ltr">{{ format_quantity($product->stock) }}</span>
                     <span class="text-xs text-slate-400 font-bold">كيلو</span>
                 </div>
             </div>
         </div>
-        <a href="<?php echo e(route('products.index')); ?>" class="px-4 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 hover:text-primary-600 text-sm font-bold flex items-center justify-center gap-2 shrink-0 transition-all shadow-sm w-full sm:w-auto">
+        <a href="{{ route('products.index') }}" class="px-4 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 hover:text-primary-600 text-sm font-bold flex items-center justify-center gap-2 shrink-0 transition-all shadow-sm w-full sm:w-auto">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
             العودة للقائمة
         </a>
@@ -39,34 +39,34 @@
     <!-- Mobile Cards for Transactions -->
     <div class="sm:hidden space-y-3">
         <h3 class="font-bold text-slate-800 text-base">سجل الحركات</h3>
-        <?php $__empty_1 = true; $__currentLoopData = $product->transactions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $transaction): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+        @forelse($product->transactions as $transaction)
         <div class="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
             <div class="flex justify-between items-center mb-2">
-                <span class="px-2 py-0.5 rounded text-[0.7rem] font-bold <?php echo e($transaction->quantity > 0 ? 'bg-primary-50 text-primary-700 border border-primary-200' : 'bg-danger-50 text-danger-700 border border-danger-200'); ?>"><?php echo e($transaction->type); ?></span>
-                <span class="text-[0.7rem] text-slate-400 font-bold" dir="ltr"><?php echo e($transaction->created_at->format('m/d H:i')); ?></span>
+                <span class="px-2 py-0.5 rounded text-[0.7rem] font-bold {{ $transaction->quantity > 0 ? 'bg-primary-50 text-primary-700 border border-primary-200' : 'bg-danger-50 text-danger-700 border border-danger-200' }}">{{ $transaction->type }}</span>
+                <span class="text-[0.7rem] text-slate-400 font-bold" dir="ltr">{{ $transaction->created_at->format('m/d H:i') }}</span>
             </div>
             <div class="flex justify-between items-center">
                 <div>
-                    <?php if($transaction->quantity > 0): ?>
+                    @if($transaction->quantity > 0)
                     <span class="text-sm text-slate-500">وارد:</span>
-                    <span class="text-base font-black text-primary-600" dir="ltr"><?php echo e(number_format($transaction->quantity, 2)); ?></span>
-                    <?php else: ?>
+                    <span class="text-base font-black text-primary-600" dir="ltr">{{ format_quantity($transaction->quantity) }}</span>
+                    @else
                     <span class="text-sm text-slate-500">منصرف:</span>
-                    <span class="text-base font-black text-danger-600" dir="ltr"><?php echo e(number_format(abs($transaction->quantity), 2)); ?></span>
-                    <?php endif; ?>
+                    <span class="text-base font-black text-danger-600" dir="ltr">{{ format_quantity(abs($transaction->quantity)) }}</span>
+                    @endif
                 </div>
                 <div class="text-left">
                     <span class="text-xs text-slate-400">الرصيد بعدها:</span>
-                    <span class="text-sm font-black text-slate-700" dir="ltr"><?php echo e(number_format($transaction->balance_after, 2)); ?></span>
+                    <span class="text-sm font-black text-slate-700" dir="ltr">{{ format_quantity($transaction->balance_after) }}</span>
                 </div>
             </div>
-            <?php if($transaction->notes): ?>
-            <p class="text-xs text-slate-400 mt-2 truncate"><?php echo e($transaction->notes); ?></p>
-            <?php endif; ?>
+            @if($transaction->notes)
+            <p class="text-xs text-slate-400 mt-2 truncate">{{ $transaction->notes }}</p>
+            @endif
         </div>
-        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+        @empty
         <div class="bg-white rounded-xl border border-slate-100 p-8 text-center text-sm text-slate-500">لم يتم تسجيل أي حركات بعد.</div>
-        <?php endif; ?>
+        @endforelse
     </div>
 
     <!-- Desktop Table -->
@@ -94,21 +94,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php $__empty_1 = true; $__currentLoopData = $product->transactions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $transaction): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                    @forelse($product->transactions as $transaction)
                     <tr class="hover:bg-slate-50/60 transition-colors group">
-                        <td class="px-4 py-3 text-[0.75rem] text-slate-500 border-b border-slate-100 align-middle text-center font-bold" dir="ltr"><?php echo e($transaction->created_at->format('Y-m-d H:i')); ?></td>
-                        <td class="px-4 py-3 text-[0.8rem] font-bold text-slate-700 border-b border-slate-100 align-middle text-center"><?php if($transaction->related): ?><?php echo e($transaction->related->party_name ?? 'فاتورة'); ?><?php else: ?> - <?php endif; ?></td>
+                        <td class="px-4 py-3 text-[0.75rem] text-slate-500 border-b border-slate-100 align-middle text-center font-bold" dir="ltr">{{ $transaction->created_at->format('Y-m-d H:i') }}</td>
+                        <td class="px-4 py-3 text-[0.8rem] font-bold text-slate-700 border-b border-slate-100 align-middle text-center">@if($transaction->related){{ $transaction->related->party_name ?? 'فاتورة' }}@else - @endif</td>
                         <td class="px-4 py-3 text-[0.8rem] font-bold text-slate-700 border-b border-slate-100 align-middle text-center">
-                            <span class="px-2 py-1 rounded text-[0.7rem] <?php echo e($transaction->quantity > 0 ? 'bg-primary-50 text-primary-700 border border-primary-200' : 'bg-danger-50 text-danger-700 border border-danger-200'); ?>"><?php echo e($transaction->type); ?></span>
+                            <span class="px-2 py-1 rounded text-[0.7rem] {{ $transaction->quantity > 0 ? 'bg-primary-50 text-primary-700 border border-primary-200' : 'bg-danger-50 text-danger-700 border border-danger-200' }}">{{ $transaction->type }}</span>
                         </td>
-                        <td class="px-4 py-3 text-[0.85rem] font-bold text-primary-600 border-b border-slate-100 align-middle text-center" dir="ltr"><?php echo e($transaction->quantity > 0 ? number_format($transaction->quantity, 2) : '-'); ?></td>
-                        <td class="px-4 py-3 text-[0.85rem] font-bold text-danger-600 border-b border-slate-100 align-middle text-center" dir="ltr"><?php echo e($transaction->quantity < 0 ? number_format(abs($transaction->quantity), 2) : '-'); ?></td>
-                        <td class="px-4 py-3 text-[0.85rem] font-bold text-slate-800 border-b border-slate-100 align-middle text-center" dir="ltr"><?php echo e(number_format($transaction->balance_after, 2)); ?></td>
-                        <td class="px-4 py-3 text-[0.8rem] text-slate-500 border-b border-slate-100 align-middle text-center max-w-xs truncate"><?php echo e($transaction->notes ?? '-'); ?></td>
+                        <td class="px-4 py-3 text-[0.85rem] font-bold text-primary-600 border-b border-slate-100 align-middle text-center" dir="ltr">{{ $transaction->quantity > 0 ? format_quantity($transaction->quantity) : '-' }}</td>
+                        <td class="px-4 py-3 text-[0.85rem] font-bold text-danger-600 border-b border-slate-100 align-middle text-center" dir="ltr">{{ $transaction->quantity < 0 ? format_quantity(abs($transaction->quantity)) : '-' }}</td>
+                        <td class="px-4 py-3 text-[0.85rem] font-bold text-slate-800 border-b border-slate-100 align-middle text-center" dir="ltr">{{ format_quantity($transaction->balance_after) }}</td>
+                        <td class="px-4 py-3 text-[0.8rem] text-slate-500 border-b border-slate-100 align-middle text-center max-w-xs truncate">{{ $transaction->notes ?? '-' }}</td>
                     </tr>
-                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                    @empty
                     <tr><td colspan="7" class="px-4 py-8 text-sm text-slate-500 text-center">لم يتم تسجيل أي حركات لهذا المنتج بعد.</td></tr>
-                    <?php endif; ?>
+                    @endforelse
                 </tbody>
             </table>
         </div>

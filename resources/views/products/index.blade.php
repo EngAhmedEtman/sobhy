@@ -50,7 +50,7 @@
                                 <a href="{{ route('products.show', $product->id) }}" class="hover:underline">{{ $product->name }}</a>
                             </td>
                             <td class="px-4 py-3 text-[0.85rem] font-bold text-slate-700 border-b border-slate-100 align-middle text-center" dir="ltr">
-                                {{ number_format($product->stock, 2) }} <span class="text-xs text-slate-500 font-normal">كيلو</span>
+                                {{ format_quantity($product->stock) }} <span class="text-xs text-slate-500 font-normal">كيلو</span>
                             </td>
                             <td class="px-4 py-3 text-[0.8rem] text-slate-600 border-b border-slate-100 align-middle text-center">{{ $product->notes ?? '-' }}</td>
                             <td class="px-4 py-3 border-b border-slate-100 align-middle text-center">

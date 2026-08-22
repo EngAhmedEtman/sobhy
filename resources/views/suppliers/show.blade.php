@@ -183,13 +183,13 @@
                 <div class="flex justify-between items-center text-xs border-t border-slate-50 pt-2 mb-2">
                     <div>
                         <span class="text-slate-400">الكمية:</span>
-                        <span class="font-bold text-slate-700" dir="ltr">{{ $transaction->quantity ? number_format($transaction->quantity, 2) . ' ك' : '-' }}</span>
+                        <span class="font-bold text-slate-700" dir="ltr">{{ $transaction->quantity ? format_quantity($transaction->quantity) . ' ك' : '-' }}</span>
                     </div>
                     <div>
                         <span class="text-slate-400">سعر الكيلو:</span>
                         <span class="font-bold text-slate-700" dir="ltr">
                             @if($transaction->quantity > 0)
-                                {{ number_format($transaction->total_amount / $transaction->quantity, 2) }}
+                                {{ format_amount($transaction->total_amount / $transaction->quantity) }}
                             @else
                                 -
                             @endif
@@ -199,15 +199,15 @@
                 <div class="flex justify-between items-center text-xs border-t border-slate-50 pt-2">
                     <div>
                         <span class="text-slate-400">المبلغ:</span>
-                        <span class="font-bold text-slate-700" dir="ltr">{{ number_format($transaction->total_amount, 0) }}</span>
+                        <span class="font-bold text-slate-700" dir="ltr">{{ format_amount($transaction->total_amount) }}</span>
                     </div>
                     <div>
                         <span class="text-slate-400">مسدد:</span>
-                        <span class="font-bold text-primary-600" dir="ltr">{{ number_format($transaction->paid_amount, 0) }}</span>
+                        <span class="font-bold text-primary-600" dir="ltr">{{ format_amount($transaction->paid_amount) }}</span>
                     </div>
                     <div>
                         <span class="text-slate-400">المتبقي:</span>
-                        <span class="font-black text-danger-600" dir="ltr">{{ number_format($transaction->balance_after, 0) }}</span>
+                        <span class="font-black text-danger-600" dir="ltr">{{ format_amount($transaction->balance_after) }}</span>
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 mt-2 pt-2 border-t border-slate-50">
@@ -283,17 +283,17 @@
                                     @endif
                                 </td>
                                 <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100">{{ $transaction->notes ?? '-' }}</td>
-                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">{{ $transaction->quantity ? number_format($transaction->quantity, 2) . ' ك' : '-' }}</td>
+                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">{{ $transaction->quantity ? format_quantity($transaction->quantity) . ' ك' : '-' }}</td>
                                 <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">
                                     @if($transaction->quantity > 0)
-                                        {{ number_format($transaction->total_amount / $transaction->quantity, 2) }} <span class="text-[0.65rem] text-slate-400">ج.م</span>
+                                        {{ format_amount($transaction->total_amount / $transaction->quantity) }} <span class="text-[0.65rem] text-slate-400">ج.م</span>
                                     @else
                                         -
                                     @endif
                                 </td>
-                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">{{ $transaction->total_amount > 0 ? number_format($transaction->total_amount, 0) . ' ج.م' : '-' }}</td>
+                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">{{ $transaction->total_amount > 0 ? format_amount($transaction->total_amount) . ' ج.م' : '-' }}</td>
                                 <td class="px-2.5 py-3 text-[0.8rem] text-emerald-600 font-bold border-b border-slate-100" dir="ltr">
-                                    {{ $transaction->paid_amount > 0 ? number_format($transaction->paid_amount, 0) . ' ج.م' : '-' }}
+                                    {{ $transaction->paid_amount > 0 ? format_amount($transaction->paid_amount) . ' ج.م' : '-' }}
                                 </td>
                                 <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">
                                     @if(in_array($transaction->type, ['purchase', 'sale', 'return_purchase', 'return_sale']))
@@ -500,13 +500,15 @@
 
                          calcAmount() {
                              if (this.quantity && this.unitPrice !== '') {
-                                 this.amount = ((parseFloat(this.quantity) || 0) * (parseFloat(this.unitPrice) || 0)).toFixed(2);
+                                 const val = (parseFloat(this.quantity) || 0) * (parseFloat(this.unitPrice) || 0);
+                                 this.amount = Number(val.toFixed(2));
                              }
                          },
 
                          calcUnitPrice() {
                              if (this.quantity && this.amount !== '' && parseFloat(this.quantity) > 0) {
-                                 this.unitPrice = ((parseFloat(this.amount) || 0) / (parseFloat(this.quantity) || 1)).toFixed(2);
+                                 const val = (parseFloat(this.amount) || 0) / (parseFloat(this.quantity) || 1);
+                                 this.unitPrice = Number(val.toFixed(2));
                              }
                          },
 

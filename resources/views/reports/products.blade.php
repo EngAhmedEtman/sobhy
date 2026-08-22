@@ -92,7 +92,7 @@
                             <svg class="w-4 h-4 text-success-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
                             <span class="text-[0.7rem] font-bold">إجمالي السحب (مبيعات)</span>
                         </div>
-                        <span class="text-xl font-black text-slate-800" dir="ltr">{{ number_format($totalOut, 2) }} <span class="text-xs text-slate-400">{{ $product->unit }}</span></span>
+                        <span class="text-xl font-black text-slate-800" dir="ltr">{{ format_quantity($totalOut) }} <span class="text-xs text-slate-400">{{ $product->unit }}</span></span>
                     </div>
                     
                     <div class="p-4 flex flex-col justify-center text-center hover:bg-slate-50 transition-colors">
@@ -100,7 +100,7 @@
                             <svg class="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
                             <span class="text-[0.7rem] font-bold">إجمالي الدخول (مشتريات)</span>
                         </div>
-                        <span class="text-xl font-black text-slate-800" dir="ltr">{{ number_format($totalIn, 2) }} <span class="text-xs text-slate-400">{{ $product->unit }}</span></span>
+                        <span class="text-xl font-black text-slate-800" dir="ltr">{{ format_quantity($totalIn) }} <span class="text-xs text-slate-400">{{ $product->unit }}</span></span>
                     </div>
                     
                     <div class="p-4 flex flex-col justify-center text-center bg-primary-50 hover:bg-primary-100 transition-colors rounded-l-xl">
@@ -109,7 +109,7 @@
                             <span class="text-[0.7rem] font-bold">المخزون الحالي</span>
                         </div>
                         <p class="text-xl font-black text-primary-700" dir="ltr">
-                            {{ number_format($product->stock, 2) }} <span class="text-xs font-normal text-primary-500">{{ $product->unit }}</span>
+                            {{ format_quantity($product->stock) }} <span class="text-xs font-normal text-primary-500">{{ $product->unit }}</span>
                         </p>
                     </div>
                 </div>
@@ -127,9 +127,9 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td dir="ltr">{{ number_format($totalIn, 2) }} {{ $product->unit }}</td>
-                            <td dir="ltr">{{ number_format($totalOut, 2) }} {{ $product->unit }}</td>
-                            <td dir="ltr">{{ number_format($product->stock, 2) }} {{ $product->unit }}</td>
+                            <td dir="ltr">{{ format_quantity($totalIn) }} {{ $product->unit }}</td>
+                            <td dir="ltr">{{ format_quantity($totalOut) }} {{ $product->unit }}</td>
+                            <td dir="ltr">{{ format_quantity($product->stock) }} {{ $product->unit }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -169,10 +169,10 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-2.5 text-[0.8rem] font-bold text-slate-800 border-b border-slate-50 align-middle" dir="ltr">
-                                        {{ number_format($transaction->quantity, 2) }}
+                                        {{ format_quantity($transaction->quantity) }}
                                     </td>
                                     <td class="px-4 py-2.5 text-[0.8rem] font-bold text-slate-800 border-b border-slate-50 align-middle" dir="ltr">
-                                        {{ number_format($transaction->balance_after, 2) }}
+                                        {{ format_quantity($transaction->balance_after) }}
                                     </td>
                                     <td class="px-4 py-2.5 text-[0.8rem] text-slate-600 border-b border-slate-50 align-middle print:hidden">
                                         {{ $transaction->notes ?? '-' }}

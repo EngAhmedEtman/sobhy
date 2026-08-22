@@ -232,10 +232,9 @@
                                                 <div class="flex flex-col justify-end sm:justify-center h-full">
                                                     <span class="block sm:hidden text-[0.65rem] font-bold text-slate-500 mb-1 text-center">الإجمالي</span>
                                                     <div class="text-xs sm:text-sm font-bold text-slate-700 bg-slate-50 sm:bg-transparent py-1.5 rounded-lg text-center h-full flex items-center justify-center border border-slate-100 sm:border-none" dir="ltr">
-                                                        <span x-text="(parseFloat(item.quantity || 0) * parseFloat(item.price || 0)).toFixed(2)"></span>
+                                                        <span x-text="Number((parseFloat(item.quantity || 0) * parseFloat(item.price || 0)).toFixed(2)).toLocaleString('en-US')"></span>
                                                     </div>
                                                 </div>
-                                            </div>
 
                                             <!-- Desktop Delete Button -->
                                             <div class="hidden sm:flex sm:col-span-1 justify-center">

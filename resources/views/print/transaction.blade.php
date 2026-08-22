@@ -134,9 +134,9 @@
                     <tr>
                         <td>1</td>
                         <td style="font-weight: 700;">{{ $transaction->product->name ?? 'بضاعة مسترجعة' }}</td>
-                        <td style="direction: ltr;">{{ number_format($transaction->quantity, 2) }} ك</td>
-                        <td style="direction: ltr;">{{ number_format($transaction->unit_price, 2) }} ج.م</td>
-                        <td style="direction: ltr; font-weight: bold;">{{ number_format($amount, 2) }} ج.م</td>
+                        <td style="direction: ltr;">{{ format_quantity($transaction->quantity) }} ك</td>
+                        <td style="direction: ltr;">{{ format_amount($transaction->unit_price) }} ج.م</td>
+                        <td style="direction: ltr; font-weight: bold;">{{ format_amount($amount) }} ج.م</td>
                     </tr>
                 </tbody>
             </table>
@@ -147,17 +147,17 @@
                 @if(in_array($transaction->type, ['payment_received', 'payment_made', 'payment_sent']))
                     <div class="totals-row" style="color: #15803d; font-weight: 800; font-size: 13px;">
                         <span class="totals-label">المبلغ المسدد:</span>
-                        <span class="totals-value">{{ (float)$amount == (int)$amount ? number_format($amount, 0) : number_format($amount, 2) }} ج.م</span>
+                        <span class="totals-value">{{ format_amount($amount) }} ج.م</span>
                     </div>
                 @else
                     <div class="totals-row">
                         <span class="totals-label">إجمالي قيمة المرتجع:</span>
-                        <span class="totals-value">{{ (float)$amount == (int)$amount ? number_format($amount, 0) : number_format($amount, 2) }} ج.م</span>
+                        <span class="totals-value">{{ format_amount($amount) }} ج.م</span>
                     </div>
                     @if($transaction->paid_amount > 0)
                     <div class="totals-row" style="color: #15803d;">
                         <span class="totals-label">المبلغ المسترد / المدفوع نقداً:</span>
-                        <span class="totals-value">{{ (float)$transaction->paid_amount == (int)$transaction->paid_amount ? number_format($transaction->paid_amount, 0) : number_format($transaction->paid_amount, 2) }} ج.م</span>
+                        <span class="totals-value">{{ format_amount($transaction->paid_amount) }} ج.م</span>
                     </div>
                     @endif
                 @endif
@@ -168,7 +168,7 @@
                         @php
                             $isCustomer = $transaction->transactionable_type === 'App\Models\Customer' || str_contains($transaction->type, 'sale') || $transaction->type === 'payment_received';
                             $absBal = abs($transaction->balance_after);
-                            $formattedBal = (float)$absBal == (int)$absBal ? number_format($absBal, 0) : number_format($absBal, 2);
+                            $formattedBal = format_amount($absBal);
                         @endphp
                         @if($transaction->balance_after < 0)
                             {{ $formattedBal }} ج.م {{ $isCustomer ? '(رصيد للعميل / له عندنا)' : '(لنا عند المورد / زيادة)' }}

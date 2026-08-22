@@ -63,7 +63,7 @@
                                     @endforeach
                                 </div>
                             </td>
-                            <td class="px-4 py-3 text-[0.85rem] font-bold text-slate-700 border-b border-slate-100" dir="ltr">{{ number_format($sale->total_amount, 2) }}</td>
+                            <td class="px-4 py-3 text-[0.85rem] font-bold text-slate-700 border-b border-slate-100" dir="ltr">{{ format_amount($sale->total_amount) }}</td>
                             <td class="px-4 py-3 text-[0.8rem] text-slate-500 border-b border-slate-100 max-w-[150px] truncate">{{ $sale->notes ?? '-' }}</td>
                             <td class="px-4 py-3 border-b border-slate-100">
                                 <div class="flex items-center justify-center gap-2">

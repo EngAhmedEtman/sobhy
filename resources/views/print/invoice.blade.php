@@ -99,9 +99,9 @@
                     <tr>
                         <td>{{ $index + 1 }}</td>
                         <td>{{ $item->product->name }}</td>
-                        <td style="direction: ltr;">{{ $item->quantity }} {{ $item->product->unit ?? 'ك' }}</td>
-                        <td style="direction: ltr;">{{ number_format($item->unit_price, 2) }} ج.م</td>
-                        <td style="direction: ltr; font-weight: bold;">{{ number_format($item->total, 2) }} ج.م</td>
+                        <td style="direction: ltr;">{{ format_quantity($item->quantity) }} {{ $item->product->unit ?? 'ك' }}</td>
+                        <td style="direction: ltr;">{{ format_amount($item->unit_price) }} ج.م</td>
+                        <td style="direction: ltr; font-weight: bold;">{{ format_amount($item->total) }} ج.م</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -111,7 +111,7 @@
             <div class="totals-section">
                 <div class="totals-row">
                     <span class="totals-label">إجمالي الفاتورة:</span>
-                    <span class="totals-value">{{ (float)$invoice->total_amount == (int)$invoice->total_amount ? number_format($invoice->total_amount, 0) : number_format($invoice->total_amount, 2) }} ج.م</span>
+                    <span class="totals-value">{{ format_amount($invoice->total_amount) }} ج.م</span>
                 </div>
                 
                 @php
@@ -120,12 +120,12 @@
                 @endphp
                 <div class="totals-row" style="color: #15803d;">
                     <span class="totals-label">المدفوع نقداً:</span>
-                    <span class="totals-value">{{ (float)$paidCash == (int)$paidCash ? number_format($paidCash, 0) : number_format($paidCash, 2) }} ج.م</span>
+                    <span class="totals-value">{{ format_amount($paidCash) }} ج.م</span>
                 </div>
                 @if($remaining > 0)
                 <div class="totals-row" style="color: #b91c1c;">
                     <span class="totals-label">المتبقي (آجل):</span>
-                    <span class="totals-value">{{ (float)$remaining == (int)$remaining ? number_format($remaining, 0) : number_format($remaining, 2) }} ج.م</span>
+                    <span class="totals-value">{{ format_amount($remaining) }} ج.م</span>
                 </div>
                 @endif
             </div>

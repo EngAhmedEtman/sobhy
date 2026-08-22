@@ -53,7 +53,7 @@
                     <svg class="w-4 h-4 text-success-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span class="text-[0.7rem] font-bold">إجمالي المشتريات</span>
                 </div>
-                <span class="text-xl font-black text-slate-800" dir="ltr">{{ number_format($totalAmount, 0) }} <span class="text-xs text-slate-400">EGP</span></span>
+                <span class="text-xl font-black text-slate-800" dir="ltr">{{ format_amount($totalAmount) }} <span class="text-xs text-slate-400">ج.م</span></span>
             </div>
             
             <div class="p-4 flex flex-col justify-center text-center hover:bg-slate-50 transition-colors">
@@ -61,7 +61,7 @@
                     <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                     <span class="text-[0.7rem] font-bold">إجمالي المدفوع</span>
                 </div>
-                <span class="text-xl font-black text-slate-800" dir="ltr">{{ number_format($totalPaid, 0) }} <span class="text-xs text-slate-400">EGP</span></span>
+                <span class="text-xl font-black text-slate-800" dir="ltr">{{ format_amount($totalPaid) }} <span class="text-xs text-slate-400">ج.م</span></span>
             </div>
             
             <div class="p-4 flex flex-col justify-center text-center hover:bg-slate-50 transition-colors">
@@ -69,7 +69,7 @@
                     <svg class="w-4 h-4 text-danger-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span class="text-[0.7rem] font-bold">إجمالي المتبقي (آجل)</span>
                 </div>
-                <span class="text-xl font-black text-danger-600" dir="ltr">{{ number_format($totalRemaining, 0) }} <span class="text-xs text-danger-400">EGP</span></span>
+                <span class="text-xl font-black text-danger-600" dir="ltr">{{ format_amount($totalRemaining) }} <span class="text-xs text-danger-400">ج.م</span></span>
             </div>
             
             <div class="p-4 flex flex-col justify-center text-center hover:bg-slate-50 transition-colors rounded-l-xl">
@@ -77,7 +77,7 @@
                     <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
                     <span class="text-[0.7rem] font-bold">إجمالي الأوزان</span>
                 </div>
-                <span class="text-xl font-black text-slate-800" dir="ltr">{{ number_format($totalWeight, 0) }} <span class="text-xs text-slate-400">كجم</span></span>
+                <span class="text-xl font-black text-slate-800" dir="ltr">{{ format_quantity($totalWeight) }} <span class="text-xs text-slate-400">كجم</span></span>
             </div>
         </div>
     </div>
@@ -98,10 +98,10 @@
             <tbody>
                 <tr>
                     <td>{{ number_format($purchases->count()) }}</td>
-                    <td dir="ltr">{{ number_format($totalAmount, 0) }} EGP</td>
-                    <td dir="ltr">{{ number_format($totalPaid, 0) }} EGP</td>
-                    <td dir="ltr">{{ number_format($totalRemaining, 0) }} EGP</td>
-                    <td dir="ltr">{{ number_format($totalWeight, 0) }} كجم</td>
+                    <td dir="ltr">{{ format_amount($totalAmount) }} ج.م</td>
+                    <td dir="ltr">{{ format_amount($totalPaid) }} ج.م</td>
+                    <td dir="ltr">{{ format_amount($totalRemaining) }} ج.م</td>
+                    <td dir="ltr">{{ format_quantity($totalWeight) }} كجم</td>
                 </tr>
             </tbody>
         </table>

@@ -135,12 +135,12 @@
                                             @elseif($t->type === 'return_sale') مرتجع مبيعات
                                             @else {{ $t->type }} @endif
                                         </td>
-                                        <td>{{ $t->total_amount > 0 ? ((float)$t->total_amount == (int)$t->total_amount ? number_format($t->total_amount, 0) : number_format($t->total_amount, 2)) : '-' }}</td>
-                                        <td>{{ $t->paid_amount > 0 ? ((float)$t->paid_amount == (int)$t->paid_amount ? number_format($t->paid_amount, 0) : number_format($t->paid_amount, 2)) : '-' }}</td>
+                                        <td>{{ $t->total_amount > 0 ? format_amount($t->total_amount) : '-' }}</td>
+                                        <td>{{ $t->paid_amount > 0 ? format_amount($t->paid_amount) : '-' }}</td>
                                         <td style="font-weight: bold; {{ $t->balance_after > 0 ? 'color:#b91c1c;' : ($t->balance_after < 0 ? 'color:#15803d;' : '') }}">
                                             @php
                                                 $absTBal = abs($t->balance_after);
-                                                $formattedTBal = (float)$absTBal == (int)$absTBal ? number_format($absTBal, 0) : number_format($absTBal, 2);
+                                                $formattedTBal = format_amount($absTBal);
                                             @endphp
                                             @if($t->balance_after == 0)
                                                 0 (خالص)

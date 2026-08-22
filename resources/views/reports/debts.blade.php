@@ -85,7 +85,7 @@
                 </div>
                 <div>
                     <p class="text-xs font-bold text-success-600 mb-1">إجمالي أموالك بالسوق (مديونيات العملاء)</p>
-                    <p class="text-xl font-black text-success-700" dir="ltr">{{ number_format($totalCustomersDebt, 2) }} EGP</p>
+                    <p class="text-xl font-black text-success-700" dir="ltr">{{ format_amount($totalCustomersDebt) }} ج.م</p>
                 </div>
             </div>
             
@@ -95,7 +95,7 @@
                 </div>
                 <div>
                     <p class="text-xs font-bold text-danger-600 mb-1">إجمالي الالتزامات عليك (ديون الموردين/التجار)</p>
-                    <p class="text-xl font-black text-danger-700" dir="ltr">{{ number_format($totalSuppliersDebt, 2) }} EGP</p>
+                    <p class="text-xl font-black text-danger-700" dir="ltr">{{ format_amount($totalSuppliersDebt) }} ج.م</p>
                 </div>
             </div>
         </div>
@@ -130,7 +130,7 @@
                                             {{ $c->phone ?? '-' }}
                                         </td>
                                         <td class="px-4 py-2.5 text-[0.8rem] font-black text-success-600 border-b border-slate-50 align-middle" dir="ltr">
-                                            {{ number_format($c->balance, 2) }}
+                                            {{ format_amount($c->balance) }}
                                         </td>
                                     </tr>
                                 @endforeach
@@ -172,7 +172,7 @@
                                             {{ $s->phone ?? '-' }}
                                         </td>
                                         <td class="px-4 py-2.5 text-[0.8rem] font-black text-danger-600 border-b border-slate-50 align-middle" dir="ltr">
-                                            {{ number_format($s->balance, 2) }}
+                                            {{ format_amount($s->balance) }}
                                         </td>
                                     </tr>
                                 @endforeach

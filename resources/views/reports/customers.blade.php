@@ -99,7 +99,7 @@
                             <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
                             <span class="text-[0.7rem] font-bold">إجمالي المبيعات (خلال الفترة)</span>
                         </div>
-                        <span class="text-xl font-black text-slate-800" dir="ltr">{{ number_format($totalsales, 2) }}</span>
+                        <span class="text-xl font-black text-slate-800" dir="ltr">{{ format_amount($totalsales) }}</span>
                     </div>
                     
                     <div class="p-4 flex flex-col justify-center text-center hover:bg-slate-50 transition-colors">
@@ -107,7 +107,7 @@
                             <svg class="w-4 h-4 text-success-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             <span class="text-[0.7rem] font-bold">المدفوعات المستلمة (خلال الفترة)</span>
                         </div>
-                        <span class="text-xl font-black text-success-600" dir="ltr">{{ number_format($totalPayments, 2) }}</span>
+                        <span class="text-xl font-black text-success-600" dir="ltr">{{ format_amount($totalPayments) }}</span>
                     </div>
                     
                     <div class="p-4 flex flex-col justify-center text-center bg-primary-50 hover:bg-primary-100 transition-colors rounded-l-xl">
@@ -116,7 +116,7 @@
                             <span class="text-[0.7rem] font-bold">الرصيد النهائي الحالي</span>
                         </div>
                         <p class="text-xl font-black {{ $customer->balance < 0 ? 'text-danger-600' : 'text-primary-700' }}" dir="ltr">
-                            {{ number_format(abs($customer->balance), 2) }}
+                            {{ format_amount(abs($customer->balance)) }}
                             <span class="text-xs font-normal {{ $customer->balance < 0 ? 'text-danger-500' : 'text-primary-500' }}">
                                 {{ $customer->balance < 0 ? 'المتبقي له' : 'المتبقي عليه' }}
                             </span>
@@ -137,10 +137,10 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td dir="ltr">{{ number_format($totalsales, 2) }}</td>
-                            <td dir="ltr">{{ number_format($totalPayments, 2) }}</td>
+                            <td dir="ltr">{{ format_amount($totalsales) }}</td>
+                            <td dir="ltr">{{ format_amount($totalPayments) }}</td>
                             <td dir="ltr">
-                                {{ number_format(abs($customer->balance), 2) }}
+                                {{ format_amount(abs($customer->balance)) }}
                                 ({{ $customer->balance < 0 ? 'المتبقي له' : 'المتبقي عليه' }})
                             </td>
                         </tr>
@@ -177,10 +177,10 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-[0.8rem] text-slate-600 border-b border-slate-50">{{ $t->notes ?? '-' }}</td>
-                            <td class="px-4 py-3 text-[0.85rem] font-bold text-slate-700 border-b border-slate-50" dir="ltr">{{ $t->total_amount > 0 ? number_format($t->total_amount, 2) : '-' }}</td>
-                            <td class="px-4 py-3 text-[0.85rem] font-bold text-success-600 border-b border-slate-50" dir="ltr">{{ $t->paid_amount > 0 ? number_format($t->paid_amount, 2) : '-' }}</td>
+                            <td class="px-4 py-3 text-[0.85rem] font-bold text-slate-700 border-b border-slate-50" dir="ltr">{{ $t->total_amount > 0 ? format_amount($t->total_amount) : '-' }}</td>
+                            <td class="px-4 py-3 text-[0.85rem] font-bold text-success-600 border-b border-slate-50" dir="ltr">{{ $t->paid_amount > 0 ? format_amount($t->paid_amount) : '-' }}</td>
                             <td class="px-4 py-3 text-[0.85rem] font-bold text-slate-700 border-b border-slate-50" dir="ltr">
-                                {{ number_format(abs($t->balance_after), 2) }}
+                                {{ format_amount(abs($t->balance_after)) }}
                                 <span class="text-[0.65rem] text-slate-400 font-normal">{{ $t->balance_after < 0 ? '(له)' : '(عليه)' }}</span>
                             </td>
                         </tr>

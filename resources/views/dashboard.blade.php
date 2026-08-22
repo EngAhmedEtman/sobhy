@@ -308,7 +308,7 @@
                             @php
                                 $isCustomer = $t->transactionable_type === 'App\Models\Customer' || str_contains($t->type, 'sale') || $t->type === 'payment_received';
                                 $absBal = abs($t->balance_after);
-                                $formattedBal = (float)$absBal == (int)$absBal ? number_format($absBal, 0) : number_format($absBal, 2);
+                                $formattedBal = format_amount($absBal);
                             @endphp
                             <tr class="hover:bg-slate-50/60 transition-colors group">
                                 <td class="px-4 py-2.5 text-[0.8rem] text-slate-400 border-b border-slate-50 align-middle text-center">
@@ -344,10 +344,10 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-2.5 text-[0.8rem] font-bold text-slate-800 border-b border-slate-50 align-middle text-center" dir="ltr">
-                                    {{ $t->total_amount > 0 ? ((float)$t->total_amount == (int)$t->total_amount ? number_format($t->total_amount, 0) : number_format($t->total_amount, 2)) . ' ج.م' : '-' }}
+                                    {{ $t->total_amount > 0 ? format_amount($t->total_amount) . ' ج.م' : '-' }}
                                 </td>
                                 <td class="px-4 py-2.5 text-[0.8rem] font-bold text-emerald-600 border-b border-slate-50 align-middle text-center" dir="ltr">
-                                    {{ $t->paid_amount > 0 ? ((float)$t->paid_amount == (int)$t->paid_amount ? number_format($t->paid_amount, 0) : number_format($t->paid_amount, 2)) . ' ج.م' : '-' }}
+                                    {{ $t->paid_amount > 0 ? format_amount($t->paid_amount) . ' ج.م' : '-' }}
                                 </td>
                                 <td class="px-4 py-2.5 text-[0.8rem] font-bold border-b border-slate-50 align-middle text-center whitespace-nowrap">
                                     @if($t->balance_after == 0)

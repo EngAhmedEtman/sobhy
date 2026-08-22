@@ -77,16 +77,16 @@
                 <div class="p-5">
                     <div class="flex justify-between items-center py-2 border-b border-slate-100 border-dashed">
                         <span class="text-sm font-medium text-slate-600">إجمالي النقدية المستلمة (من العملاء)</span>
-                        <span class="font-bold text-slate-800" dir="ltr">{{ number_format($totalPaymentsReceived, 2) }} EGP</span>
+                        <span class="font-bold text-slate-800" dir="ltr">{{ format_amount($totalPaymentsReceived) }} ج.م</span>
                     </div>
                     <div class="flex justify-between items-center py-2 border-b border-slate-100 border-dashed">
                         <span class="text-sm font-medium text-slate-600">إجمالي النقدية المسددة (للموردين)</span>
-                        <span class="font-bold text-slate-800" dir="ltr">{{ number_format($totalPaymentsMade, 2) }} EGP</span>
+                        <span class="font-bold text-slate-800" dir="ltr">{{ format_amount($totalPaymentsMade) }} ج.م</span>
                     </div>
                     <div class="flex justify-between items-center mt-4 pt-4 border-t border-slate-200">
                         <span class="text-sm font-black text-slate-800">صافي الربح النقدي</span>
                         <span class="text-xl font-black {{ $cashProfit >= 0 ? 'text-emerald-600' : 'text-danger-600' }}" dir="ltr">
-                            {{ number_format(abs($cashProfit), 2) }} EGP
+                            {{ format_amount(abs($cashProfit)) }} ج.م
                             <span class="text-[0.65rem] {{ $cashProfit >= 0 ? 'text-emerald-500' : 'text-danger-500' }}">
                                 {{ $cashProfit >= 0 ? '(ربح)' : '(خسارة)' }}
                             </span>
@@ -107,16 +107,16 @@
                 <div class="p-5">
                     <div class="flex justify-between items-center py-2 border-b border-slate-100 border-dashed">
                         <span class="text-sm font-medium text-slate-600">إجمالي المبيعات الآجلة والنقدية</span>
-                        <span class="font-bold text-slate-800" dir="ltr">{{ number_format($totalSales, 2) }} EGP</span>
+                        <span class="font-bold text-slate-800" dir="ltr">{{ format_amount($totalSales) }} ج.م</span>
                     </div>
                     <div class="flex justify-between items-center py-2 border-b border-slate-100 border-dashed">
                         <span class="text-sm font-medium text-slate-600">إجمالي المشتريات الآجلة والنقدية</span>
-                        <span class="font-bold text-slate-800" dir="ltr">{{ number_format($totalPurchases, 2) }} EGP</span>
+                        <span class="font-bold text-slate-800" dir="ltr">{{ format_amount($totalPurchases) }} ج.م</span>
                     </div>
                     <div class="flex justify-between items-center mt-4 pt-4 border-t border-slate-200">
                         <span class="text-sm font-black text-slate-800">صافي الربح الشامل</span>
                         <span class="text-xl font-black {{ $accrualProfit >= 0 ? 'text-primary-600' : 'text-danger-600' }}" dir="ltr">
-                            {{ number_format(abs($accrualProfit), 2) }} EGP
+                            {{ format_amount(abs($accrualProfit)) }} ج.م
                             <span class="text-[0.65rem] {{ $accrualProfit >= 0 ? 'text-primary-500' : 'text-danger-500' }}">
                                 {{ $accrualProfit >= 0 ? '(ربح)' : '(خسارة)' }}
                             </span>
@@ -139,11 +139,11 @@
             <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col p-4 bg-slate-50 rounded-lg border border-slate-100 text-center">
                     <span class="text-xs font-bold text-slate-500 mb-2">إجمالي الفلوس اللي لنا (عند العملاء)</span>
-                    <span class="text-xl font-black text-success-600" dir="ltr">{{ number_format($customersDebt, 2) }} EGP</span>
+                    <span class="text-xl font-black text-success-600" dir="ltr">{{ format_amount($customersDebt) }} ج.م</span>
                 </div>
                 <div class="flex flex-col p-4 bg-slate-50 rounded-lg border border-slate-100 text-center">
                     <span class="text-xs font-bold text-slate-500 mb-2">إجمالي الفلوس اللي علينا (للتجار/الموردين)</span>
-                    <span class="text-xl font-black text-danger-600" dir="ltr">{{ number_format($suppliersDebt, 2) }} EGP</span>
+                    <span class="text-xl font-black text-danger-600" dir="ltr">{{ format_amount($suppliersDebt) }} ج.م</span>
                 </div>
             </div>
         </div>
