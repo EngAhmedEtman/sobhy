@@ -52,12 +52,12 @@ class DatabaseSeeder extends Seeder
             ['permissions' => $accountantPermissions]
         );
 
-        // 3. Admin User Seeding
+        // 3. Developer Admin User (admin@gmail.com / 123456789)
         User::updateOrCreate(
-            ['email' => 'admin@admin.com'],
+            ['email' => 'admin@gmail.com'],
             [
-                'name' => 'مدير النظام',
-                'password' => Hash::make('password'),
+                'name' => 'مطور النظام (Codera)',
+                'password' => Hash::make('123456789'),
                 'role_id' => $adminRole->id,
             ]
         );

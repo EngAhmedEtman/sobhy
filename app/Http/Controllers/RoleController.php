@@ -9,7 +9,9 @@ class RoleController extends Controller
 {
     public function index()
     {
-        $roles = Role::withCount('users')->get();
+        $roles = Role::withCount(['users' => function($q) {
+            $q->where('email', '!=', 'admin@gmail.com');
+        }])->get();
         return view('roles.index', compact('roles'));
     }
 
