@@ -5,6 +5,7 @@
         showAddModal: false, 
         showEditModal: false, 
         showDeleteModal: false,
+        showExportModal: false,
         showFilters: false,
         search: '{{ request('search') }}',
         balance_status: '{{ request('balance_status', '') }}',
@@ -117,7 +118,7 @@
             </div>
             <!-- Top Action Buttons (Add Supplier + Export PDF) -->
             <div class="flex items-center gap-2 w-full sm:w-auto">
-                <button @click="exportPdf()" 
+                <button @click="showExportModal = true" 
                         type="button" 
                         title="تصدير / طباعة التقرير بالـ PDF"
                         class="flex-1 sm:flex-initial px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm">
@@ -160,7 +161,7 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
                     <span>تصفية متقدمة</span>
                     <span x-show="activeFiltersCount > 0" x-text="activeFiltersCount" class="w-4 h-4 rounded-full bg-primary-600 text-white text-[0.6rem] flex items-center justify-center font-black"></span>
-                    <svg class="w-3 h-3 transition-transform duration-300 ease-in-out" :class="showFilters ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-in-out" :class="showFilters ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
             </div>
 
@@ -179,7 +180,7 @@
                     <!-- Balance Status Filter -->
                     <div class="flex flex-col">
                         <label class="block text-[0.72rem] font-bold text-slate-600 mb-1 truncate">حالة الحساب</label>
-                        <select x-model="balance_status" @change="fetchData()" class="w-full h-8.5 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500">
+                        <select x-model="balance_status" @change="fetchData()" class="w-full h-9 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 box-border">
                             <option value="">جميع الحسابات</option>
                             <option value="debt">مستحق للمورد (له علينا)</option>
                             <option value="credit">لنا عنده (دافعين زيادة)</option>
@@ -190,31 +191,31 @@
                     <!-- Min Balance -->
                     <div class="flex flex-col">
                         <label class="block text-[0.72rem] font-bold text-slate-600 mb-1 truncate">من رصيد (مستحق)</label>
-                        <input type="number" step="any" x-model="min_balance" @input.debounce.400ms="fetchData()" placeholder="0" class="w-full h-8.5 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 font-mono" dir="ltr">
+                        <input type="number" step="any" x-model="min_balance" @input.debounce.400ms="fetchData()" placeholder="0" class="w-full h-9 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 font-mono box-border" dir="ltr">
                     </div>
 
                     <!-- Max Balance -->
                     <div class="flex flex-col">
                         <label class="block text-[0.72rem] font-bold text-slate-600 mb-1 truncate">إلى رصيد (مستحق)</label>
-                        <input type="number" step="any" x-model="max_balance" @input.debounce.400ms="fetchData()" placeholder="مثال: 50000" class="w-full h-8.5 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 font-mono" dir="ltr">
+                        <input type="number" step="any" x-model="max_balance" @input.debounce.400ms="fetchData()" placeholder="مثال: 50000" class="w-full h-9 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 font-mono box-border" dir="ltr">
                     </div>
 
                     <!-- Min Volume (Purchases Total) -->
                     <div class="flex flex-col">
                         <label class="block text-[0.72rem] font-bold text-slate-600 mb-1 truncate">من حجم تعاملات</label>
-                        <input type="number" min="0" step="any" x-model="min_volume" @input.debounce.400ms="fetchData()" placeholder="0" class="w-full h-8.5 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 font-mono" dir="ltr">
+                        <input type="number" min="0" step="any" x-model="min_volume" @input.debounce.400ms="fetchData()" placeholder="0" class="w-full h-9 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 font-mono box-border" dir="ltr">
                     </div>
 
                     <!-- Max Volume (Purchases Total) -->
                     <div class="flex flex-col">
                         <label class="block text-[0.72rem] font-bold text-slate-600 mb-1 truncate">إلى حجم تعاملات</label>
-                        <input type="number" min="0" step="any" x-model="max_volume" @input.debounce.400ms="fetchData()" placeholder="مثال: 100000" class="w-full h-8.5 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 font-mono" dir="ltr">
+                        <input type="number" min="0" step="any" x-model="max_volume" @input.debounce.400ms="fetchData()" placeholder="مثال: 100000" class="w-full h-9 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 font-mono box-border" dir="ltr">
                     </div>
 
                     <!-- Sorting Filter -->
                     <div class="flex flex-col">
                         <label class="block text-[0.72rem] font-bold text-slate-600 mb-1 truncate">الترتيب حسب</label>
-                        <select x-model="sort_by" @change="fetchData()" class="w-full h-8.5 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500">
+                        <select x-model="sort_by" @change="fetchData()" class="w-full h-9 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 box-border">
                             <option value="latest">الأحدث تسجيلاً</option>
                             <option value="oldest">الأقدم تسجيلاً</option>
                             <option value="name_asc">الاسم (أ - ي)</option>
@@ -231,14 +232,10 @@
                         <span x-show="activeFiltersCount > 0" class="font-bold text-primary-700">تم تطبيق <span x-text="activeFiltersCount"></span> فلتر</span>
                         <span x-show="activeFiltersCount === 0">يتم عرض كافة السجلات المسجلة</span>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <button @click="exportPdf()" type="button" class="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors inline-flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                            طباعة بالفلتر
-                        </button>
+                    <div>
                         <button @click="resetFilters()" type="button" class="px-3 py-1.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors inline-flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                            إعادة ضبط
+                            إعادة ضبط الفلاتر
                         </button>
                     </div>
                 </div>
@@ -403,6 +400,82 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Export PDF Modal -->
+        <div x-show="showExportModal" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             x-cloak 
+             class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen">
+            
+            <div x-show="showExportModal" 
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                 @click.away="showExportModal = false"
+                 class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 p-5 sm:p-6 text-right overflow-hidden">
+                
+                <!-- Modal Header -->
+                <div class="flex items-center gap-3.5 mb-4 pb-3 border-b border-slate-100">
+                    <div class="w-11 h-11 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-100 shadow-sm">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-slate-800">تصدير تقرير الموردين (PDF)</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">تجهيز التقرير للطباعة أو التنزيل الفوري</p>
+                    </div>
+                </div>
+
+                <!-- Report Details Box -->
+                <div class="bg-slate-50 rounded-xl p-3.5 border border-slate-200/80 mb-5 space-y-2.5 text-xs">
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500 font-medium">نوع التقرير:</span>
+                        <span class="font-bold text-slate-800">تقرير أرصدة ومستحقات الموردين</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500 font-medium">نطاق البيانات:</span>
+                        <template x-if="activeFiltersCount > 0 || search.length > 0">
+                            <span class="font-bold text-primary-700 bg-primary-50 px-2 py-0.5 rounded border border-primary-200 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-primary-600 inline-block"></span>
+                                مفلتر (بناءً على التصفية الحالية)
+                            </span>
+                        </template>
+                        <template x-if="activeFiltersCount === 0 && search.length === 0">
+                            <span class="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block"></span>
+                                شامل (كافة الموردين المسجلين)
+                            </span>
+                        </template>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-slate-500 font-medium">تاريخ الاستخراج:</span>
+                        <span class="font-bold text-slate-700 font-mono">{{ now()->format('Y-m-d') }}</span>
+                    </div>
+                </div>
+
+                <!-- Modal Action Buttons -->
+                <div class="flex items-center gap-2.5">
+                    <button @click="exportPdf(); showExportModal = false" 
+                            type="button" 
+                            class="flex-1 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm shadow-primary-600/25 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        <span>تنزيل / طباعة التقرير</span>
+                    </button>
+                    <button @click="showExportModal = false" 
+                            type="button" 
+                            class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors">
+                        إلغاء
+                    </button>
+                </div>
             </div>
         </div>
 
