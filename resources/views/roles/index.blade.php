@@ -295,24 +295,53 @@
         </div>
 
         <!-- Delete Modal -->
-        <div x-show="showDeleteModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center">
-                <div x-show="showDeleteModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/50" @click="showDeleteModal = false"></div>
-                <div x-show="showDeleteModal" x-transition class="relative w-full max-w-sm p-5 overflow-hidden transition-all transform bg-white shadow-xl rounded-2xl text-center">
-                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-danger-100 mb-4">
-                        <svg class="h-6 w-6 text-danger-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        <div x-show="showDeleteModal" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             x-cloak 
+             class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen">
+            
+            <div x-show="showDeleteModal" 
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+                 @click.away="showDeleteModal = false"
+                 class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 text-center overflow-hidden">
+                
+                <form :action="`{{ url('roles') }}/${deleteId}`" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    
+                    <!-- Centered Danger Icon -->
+                    <div class="mx-auto w-12 h-12 rounded-2xl bg-danger-50 text-danger-600 flex items-center justify-center mb-4 border border-danger-100 shadow-sm">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
                     </div>
-                    <h3 class="text-lg font-bold text-slate-800 mb-2">تأكيد الحذف</h3>
-                    <p class="text-sm text-slate-500 mb-6">هل أنت متأكد من حذف هذا الدور نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.</p>
-                    <form :action="'<?php echo e(url('roles')); ?>/' + deleteId" method="POST">
-                        <?php echo csrf_field(); ?>
-                        <?php echo method_field('DELETE'); ?>
-                        <div class="flex gap-3">
-                            <button type="submit" class="w-full px-4 py-2.5 text-sm font-bold text-white bg-danger-600 rounded-lg hover:bg-danger-700">نعم، احذف</button>
-                            <button type="button" @click="showDeleteModal = false" class="w-full px-4 py-2.5 text-sm font-medium text-slate-700 border border-slate-200 rounded-lg">إلغاء</button>
-                        </div>
-                    </form>
-                </div>
+
+                    <!-- Centered Title & Message -->
+                    <h3 class="text-base sm:text-lg font-black text-slate-800 mb-1.5 text-center">تأكيد الحذف</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 leading-relaxed mb-6 text-center px-1">
+                        هل أنت متأكد من رغبتك في حذف هذا الدور؟ لن يمكنك التراجع عن هذا الإجراء.
+                    </p>
+
+                    <!-- Centered Buttons Grid -->
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <button type="button" @click="showDeleteModal = false" class="w-full px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-bold transition-colors">
+                            إلغاء
+                        </button>
+                        <button type="submit" class="w-full px-4 py-2.5 bg-danger-600 hover:bg-danger-700 text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md shadow-danger-500/20">
+                            تأكيد الحذف
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
