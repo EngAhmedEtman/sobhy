@@ -159,10 +159,25 @@
                                     <label class="block text-sm font-bold text-slate-700 mb-1">رقم الهاتف</label>
                                     <input type="text" name="phone" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all text-sm" dir="ltr">
                                 </div>
-                                <div>
+                                <div x-data="{ initialAmount: 0, balanceType: 'credit' }">
+                                    <input type="hidden" name="balance" :value="balanceType === 'debit' ? -Math.abs(parseFloat(initialAmount) || 0) : Math.abs(parseFloat(initialAmount) || 0)">
+                                    
                                     <label class="block text-sm font-bold text-slate-700 mb-1">الرصيد الافتتاحي (اختياري)</label>
-                                    <input type="number" step="0.01" name="balance" value="0" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all text-sm" dir="ltr">
-                                    <p class="text-[0.65rem] text-slate-500 mt-1">رقم موجب = الرصيد المتبقي له، رقم سالب = الرصيد المتبقي عليه.</p>
+                                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                                        <div class="sm:col-span-7">
+                                            <input type="number" step="0.01" min="0" x-model="initialAmount" placeholder="0.00" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all text-sm font-bold" dir="ltr">
+                                        </div>
+                                        <div class="sm:col-span-5">
+                                            <select x-model="balanceType" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all text-xs font-bold text-slate-700">
+                                                <option value="credit">له (مستحق للمورد)</option>
+                                                <option value="debit">عليه (مستحق لنا عنده)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="text-[0.7rem] text-slate-500 mt-1 flex items-center gap-1 font-medium">
+                                        <span>الحالة:</span>
+                                        <span class="font-bold" :class="initialAmount > 0 ? (balanceType === 'credit' ? 'text-amber-700' : 'text-emerald-700') : 'text-slate-500'" x-text="initialAmount > 0 ? (balanceType === 'credit' ? `المورد له عندنا ${Number(initialAmount).toLocaleString()} ج.م` : `لنا عند المورد ${Number(initialAmount).toLocaleString()} ج.م`) : 'الحساب خالص (صفر)'"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
