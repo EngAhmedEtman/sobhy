@@ -11,7 +11,7 @@
         <!-- Right: Company Branding & Details -->
         <div class="header-brand-section" style="display: flex; align-items: center; gap: 8px; border-left: 1px solid #e2e8f0; padding-left: 8px;">
             <div class="brand-text-info">
-                <div class="company-name" style="font-size: 14px; font-weight: 800; color: #0f172a;">{{ \App\Models\Setting::get('company_name', 'مؤسسة صبحي رضا') }}</div>
+                <div class="company-name" style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 4px;">{{ \App\Models\Setting::get('company_name', 'مؤسسة صبحي رضا') }}</div>
                 
                 @php
                     $commercialRegister = \App\Models\Setting::get('commercial_register');
@@ -20,15 +20,15 @@
                 @endphp
 
                 @if($commercialRegister && $commercialRegister !== '---' && trim($commercialRegister) !== '')
-                    <div class="company-sub" style="font-size: 10px; color: #475569; margin-top: 1px;">سجل تجاري: {{ $commercialRegister }}</div>
+                    <div class="company-sub" style="font-size: 10px; color: #475569; margin-top: 2px;">سجل تجاري: {{ $commercialRegister }}</div>
                 @endif
 
                 @if($taxNumber && $taxNumber !== '---' && trim($taxNumber) !== '')
-                    <div class="company-sub" style="font-size: 10px; color: #475569; margin-top: 1px;">رقم ضريبي: {{ $taxNumber }}</div>
+                    <div class="company-sub" style="font-size: 10px; color: #475569; margin-top: 2px;">رقم ضريبي: {{ $taxNumber }}</div>
                 @endif
 
                 @if($phone && $phone !== '---' && trim($phone) !== '')
-                    <div class="company-sub" style="font-size: 10px; color: #475569; margin-top: 1px;" dir="rtl">هاتف: {{ $phone }}</div>
+                    <div class="company-sub" style="font-size: 11px; color: #475569; margin-top: 3px;" dir="rtl">هاتف: {{ $phone }}</div>
                 @endif
             </div>
         </div>
