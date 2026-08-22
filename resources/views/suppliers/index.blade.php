@@ -137,13 +137,10 @@
         @endif
 
         <!-- Add Modal -->
-        <div x-show="showAddModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div x-show="showAddModal" x-transition.opacity class="fixed inset-0 transition-opacity" aria-hidden="true">
-                    <div class="absolute inset-0 bg-slate-900 opacity-75"></div>
-                </div>
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                <div x-show="showAddModal" x-transition.scale class="inline-block align-bottom bg-white rounded-2xl text-right overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+        <div x-show="showAddModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+            <div class="flex items-center justify-center min-h-screen p-4 text-center">
+                <div x-show="showAddModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showAddModal = false" aria-hidden="true"></div>
+                <div x-show="showAddModal" x-transition class="relative bg-white rounded-2xl text-right overflow-hidden shadow-2xl transform transition-all max-w-lg w-full z-10">
                     <form action="{{ route('suppliers.store') }}" method="POST">
                         @csrf
                         <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
@@ -169,7 +166,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-slate-50 px-4 py-3 sm:px-6 flex justify-end gap-2">
+                        <div class="bg-slate-50 px-4 py-3 sm:px-6 flex justify-end gap-2 border-t border-slate-100">
                             <button type="button" @click="showAddModal = false" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 text-sm font-bold transition-colors">إلغاء</button>
                             <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-bold transition-colors shadow-sm">إضافة المورد</button>
                         </div>
@@ -179,13 +176,10 @@
         </div>
 
         <!-- Edit Modal -->
-        <div x-show="showEditModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div x-show="showEditModal" x-transition.opacity class="fixed inset-0 transition-opacity" aria-hidden="true">
-                    <div class="absolute inset-0 bg-slate-900 opacity-75"></div>
-                </div>
-                <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-                <div x-show="showEditModal" x-transition.scale class="inline-block align-bottom bg-white rounded-2xl text-right overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
+        <div x-show="showEditModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+            <div class="flex items-center justify-center min-h-screen p-4 text-center">
+                <div x-show="showEditModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showEditModal = false" aria-hidden="true"></div>
+                <div x-show="showEditModal" x-transition class="relative bg-white rounded-2xl text-right overflow-hidden shadow-2xl transform transition-all max-w-lg w-full z-10">
                     <form :action="`/suppliers/${editData.id}`" method="POST">
                         @csrf
                         @method('PUT')
@@ -207,7 +201,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-slate-50 px-4 py-3 sm:px-6 flex justify-end gap-2">
+                        <div class="bg-slate-50 px-4 py-3 sm:px-6 flex justify-end gap-2 border-t border-slate-100">
                             <button type="button" @click="showEditModal = false" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 text-sm font-bold transition-colors">إلغاء</button>
                             <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm font-bold transition-colors shadow-sm">حفظ التعديلات</button>
                         </div>

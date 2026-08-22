@@ -354,8 +354,8 @@
 
         <!-- Payment Modal (Wide Layout with Live Balance Indicator) -->
         <div x-show="showPaymentModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center sm:p-0">
-                <div x-show="showPaymentModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/50" @click="showPaymentModal = false"></div>
+            <div class="flex items-center justify-center min-h-screen p-4 text-center">
+                <div x-show="showPaymentModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showPaymentModal = false"></div>
                 <div x-show="showPaymentModal" 
                      x-data="{
                          amount: '',
@@ -439,8 +439,8 @@
 
         <!-- Return Modal (Wide Layout with Live Price Hint and Balance Projection) -->
         <div x-show="showReturnModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center sm:p-0">
-                <div x-show="showReturnModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/50" @click="showReturnModal = false"></div>
+            <div class="flex items-center justify-center min-h-screen p-4 text-center">
+                <div x-show="showReturnModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showReturnModal = false"></div>
                 <div x-show="showReturnModal" 
                      x-data="{
                          openProduct: false,

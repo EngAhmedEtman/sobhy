@@ -19,8 +19,8 @@
 @view-transaction.window="viewTransaction($event.detail)">
 
     <div x-show="showTransactionDetailsModal" x-cloak class="fixed inset-0 z-[60] overflow-y-auto">
-        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center sm:p-0">
-            <div x-show="showTransactionDetailsModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/50" @click="showTransactionDetailsModal = false"></div>
+        <div class="flex items-center justify-center min-h-screen p-4 text-center">
+            <div x-show="showTransactionDetailsModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showTransactionDetailsModal = false"></div>
             <div x-show="showTransactionDetailsModal" x-transition class="relative w-full max-w-2xl p-5 sm:p-6 text-right transition-all transform bg-white shadow-xl rounded-2xl">
                 <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
                     <h3 class="text-lg font-bold text-slate-800">تفاصيل العملية</h3>
