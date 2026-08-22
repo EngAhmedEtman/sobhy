@@ -29,25 +29,6 @@
             </button>
         </div>
 
-        @if(session('success'))
-            <div x-data="{ show: true }" x-show="show" class="mb-4 bg-success-50 border border-success-200 text-success-800 rounded-xl p-4 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <svg class="w-5 h-5 text-success-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                    <span class="text-sm font-bold">{{ session('success') }}</span>
-                </div>
-                <button @click="show = false" class="text-success-600 hover:text-success-800"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
-            </div>
-        @endif
-        @if(session('error'))
-            <div x-data="{ show: true }" x-show="show" class="mb-4 bg-danger-50 border border-danger-200 text-danger-800 rounded-xl p-4 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <svg class="w-5 h-5 text-danger-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <span class="text-sm font-bold">{{ session('error') }}</span>
-                </div>
-                <button @click="show = false" class="text-danger-600 hover:text-danger-800"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
-            </div>
-        @endif
-
         <!-- Mobile Cards (visible on small screens only) -->
         <div class="sm:hidden space-y-3 mb-6">
             @forelse($suppliers as $supplier)
