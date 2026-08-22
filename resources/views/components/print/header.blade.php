@@ -1,77 +1,58 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
-
-$__newAttributes = [];
-$__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames(([
+@props([
     'title' => 'تقرير النظام',
     'subtitle' => null,
     'user' => null,
     'referenceCode' => null,
-]));
-
-foreach ($attributes->all() as $__key => $__value) {
-    if (in_array($__key, $__propNames)) {
-        $$__key = $$__key ?? $__value;
-    } else {
-        $__newAttributes[$__key] = $__value;
-    }
-}
-
-$attributes = new \Illuminate\View\ComponentAttributeBag($__newAttributes);
-
-unset($__propNames);
-unset($__newAttributes);
-
-foreach (array_filter(([
-    'title' => 'تقرير النظام',
-    'subtitle' => null,
-    'user' => null,
-    'referenceCode' => null,
-]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
-    $$__key = $$__key ?? $__value;
-}
-
-$__defined_vars = get_defined_vars();
-
-foreach ($attributes->all() as $__key => $__value) {
-    if (array_key_exists($__key, $__defined_vars)) unset($$__key);
-}
-
-unset($__defined_vars, $__key, $__value); ?>
+])
 
 <div class="report-header-wrapper" style="padding-bottom: 8px; margin-bottom: 12px; border-bottom: 2px solid #0f172a; font-family: 'Cairo', sans-serif;">
     <div class="report-header-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; gap: 10px;">
         
-        <!-- Right: Company Branding & Details -->
+        <!-- Right: Company Branding & Dynamic Details from Settings -->
         <div class="header-brand-section" style="display: flex; align-items: center; gap: 8px; border-left: 1px solid #e2e8f0; padding-left: 8px;">
             <div class="brand-text-info">
-                <div class="company-name" style="font-size: 14px; font-weight: 800; color: #0f172a;"><?php echo e(\App\Models\Setting::get('company_name', 'مؤسسة صبحي رضا')); ?></div>
-                <div class="company-sub" style="font-size: 10px; color: #475569; margin-top: 1px;">سجل تجاري: <?php echo e(\App\Models\Setting::get('commercial_register', '---')); ?></div>
-                <div class="company-sub" style="font-size: 10px; color: #475569; margin-top: 1px;">رقم ضريبي: <?php echo e(\App\Models\Setting::get('tax_number', '---')); ?></div>
-                <div class="company-sub" style="font-size: 10px; color: #475569; margin-top: 1px;">هاتف: <?php echo e(\App\Models\Setting::get('phone', '---')); ?></div>
+                <div class="company-name" style="font-size: 14px; font-weight: 900; color: #0f172a;">{{ \App\Models\Setting::get('company_name', 'مؤسسة صبحي رضا') }}</div>
+                
+                @php
+                    $companyAddress = \App\Models\Setting::get('company_address', \App\Models\Setting::get('address', ''));
+                    $companyPhone = \App\Models\Setting::get('company_phone', \App\Models\Setting::get('phone', ''));
+                @endphp
+
+                @if(!empty($companyAddress))
+                    <div class="company-sub" style="font-size: 10.5px; color: #475569; margin-top: 2px;">
+                        <strong>العنوان:</strong> {{ $companyAddress }}
+                    </div>
+                @endif
+
+                @if(!empty($companyPhone))
+                    <div class="company-sub" style="font-size: 10.5px; color: #475569; margin-top: 2px;">
+                        <strong>هاتف:</strong> <span dir="ltr">{{ $companyPhone }}</span>
+                    </div>
+                @endif
             </div>
         </div>
 
         <!-- Center: Report Title & Scope -->
         <div class="header-title-section" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
-            <h1 class="report-main-title" style="font-size: 18px; font-weight: 900; color: #0f172a; margin: 0 auto 3px auto;"><?php echo e($title); ?></h1>
-            <?php if($subtitle): ?>
-                <div class="report-subtitle-badge" style="display: inline-block; padding: 2px 8px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 11px; font-weight: 700; color: #334155; margin: 0 auto;"><?php echo e($subtitle); ?></div>
-            <?php endif; ?>
+            <h1 class="report-main-title" style="font-size: 18px; font-weight: 900; color: #0f172a; margin: 0 auto 3px auto;">{{ $title }}</h1>
+            @if($subtitle)
+                <div class="report-subtitle-badge" style="display: inline-block; padding: 2px 8px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 11px; font-weight: 700; color: #334155; margin: 0 auto;">{{ $subtitle }}</div>
+            @endif
         </div>
 
         <!-- Left: Extraction Metadata -->
         <div class="header-meta-section" style="text-align: left; direction: rtl; font-size: 10px; border-right: 1px solid #e2e8f0; padding-right: 8px;">
             <div class="meta-item" style="display: flex; justify-content: space-between; gap: 6px; margin-bottom: 2px;">
                 <span class="meta-label" style="color: #64748b; font-weight: 600;">تاريخ الاستخراج:</span>
-                <span class="meta-value font-mono dir-ltr" style="color: #0f172a; direction: ltr; display: inline-block;"><?php echo e(now()->format('Y-m-d H:i')); ?></span>
+                <span class="meta-value font-mono dir-ltr" style="color: #0f172a; direction: ltr; display: inline-block;">{{ now()->format('Y-m-d H:i') }}</span>
             </div>
             <div class="meta-item" style="display: flex; justify-content: space-between; gap: 6px; margin-bottom: 2px;">
                 <span class="meta-label" style="color: #64748b; font-weight: 600;">مستخرج التقرير:</span>
-                <span class="meta-value font-bold" style="color: #0f172a;"><?php echo e(auth()->user()?->name ?? 'مدير النظام'); ?></span>
+                <span class="meta-value font-bold" style="color: #0f172a;">{{ auth()->user()?->name ?? 'مدير النظام' }}</span>
             </div>
             <div class="meta-item" style="display: flex; justify-content: space-between; gap: 6px; margin-bottom: 2px;">
                 <span class="meta-label" style="color: #64748b; font-weight: 600;">رقم المرجع:</span>
-                <span class="meta-value font-mono dir-ltr" style="color: #0f172a; direction: ltr; display: inline-block;"><?php echo e($referenceCode ?? ('REP-' . strtoupper(substr(md5(now()->timestamp), 0, 8)))); ?></span>
+                <span class="meta-value font-mono dir-ltr" style="color: #0f172a; direction: ltr; display: inline-block;">{{ $referenceCode ?? ('REP-' . strtoupper(substr(md5(now()->timestamp), 0, 8))) }}</span>
             </div>
         </div>
     </div>

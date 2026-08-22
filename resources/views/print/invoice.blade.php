@@ -117,6 +117,22 @@
             @endif
         </div>
 
+        @php
+            $settingNotes = \App\Models\Setting::get('invoice_notes');
+            $customNotes = $invoice->notes ?? null;
+        @endphp
+
+        @if($customNotes || $settingNotes)
+        <div style="margin-top: 15px; padding: 8px 12px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 4px; font-size: 11px;">
+            @if($customNotes)
+                <p><strong>ملاحظات الفاتورة:</strong> {{ $customNotes }}</p>
+            @endif
+            @if($settingNotes)
+                <p style="color: #475569; margin-top: {{ $customNotes ? '4px' : '0' }};">{{ $settingNotes }}</p>
+            @endif
+        </div>
+        @endif
+
         <div style="flex-grow: 1;"></div>
 
         <!-- Footer -->
