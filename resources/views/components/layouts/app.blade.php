@@ -12,7 +12,8 @@
     <link rel="alternate icon" type="image/png" href="{{ asset('favicon.svg') }}">
     <link rel="shortcut icon" href="{{ asset('favicon.svg') }}">
 
-    <!-- Alpine.js -->
+    <!-- Alpine.js Plugins & Core -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
     <!-- Tailwind CSS (CDN to avoid disk space issues) -->

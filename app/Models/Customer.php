@@ -21,4 +21,9 @@ class Customer extends Model
     {
         return $this->morphMany(Transaction::class, 'transactionable');
     }
+
+    public function sales()
+    {
+        return $this->hasMany(Sale::class);
+    }
 }

@@ -30,6 +30,22 @@ class SupplierController extends Controller
             }
         }
 
+        if ($request->filled('min_balance')) {
+            $query->where('balance', '>=', $request->min_balance);
+        }
+
+        if ($request->filled('max_balance')) {
+            $query->where('balance', '<=', $request->max_balance);
+        }
+
+        if ($request->filled('min_volume')) {
+            $query->where(DB::raw('(SELECT COALESCE(SUM(total_amount), 0) FROM purchases WHERE purchases.supplier_id = suppliers.id)'), '>=', $request->min_volume);
+        }
+
+        if ($request->filled('max_volume')) {
+            $query->where(DB::raw('(SELECT COALESCE(SUM(total_amount), 0) FROM purchases WHERE purchases.supplier_id = suppliers.id)'), '<=', $request->max_volume);
+        }
+
         $sortBy = $request->get('sort_by', 'latest');
         if ($sortBy === 'oldest') {
             $query->orderBy('id', 'asc');
@@ -37,6 +53,10 @@ class SupplierController extends Controller
             $query->orderBy('name', 'asc');
         } elseif ($sortBy === 'balance_desc') {
             $query->orderBy('balance', 'desc');
+        } elseif ($sortBy === 'balance_asc') {
+            $query->orderBy('balance', 'asc');
+        } elseif ($sortBy === 'volume_desc') {
+            $query->orderBy(DB::raw('(SELECT COALESCE(SUM(total_amount), 0) FROM purchases WHERE purchases.supplier_id = suppliers.id)'), 'desc');
         } else {
             $query->orderBy('id', 'desc');
         }

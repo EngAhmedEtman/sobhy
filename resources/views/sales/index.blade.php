@@ -115,29 +115,29 @@
                     <p class="text-slate-500 text-xs sm:text-sm mt-0.5">سجل فواتير المبيعات للعملاء</p>
                 </div>
             </div>
-            <button @click="$dispatch('create-sale')" type="button" class="px-5 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 text-sm font-bold flex items-center transition-colors shadow-sm shadow-primary-600/20 w-full sm:w-auto justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+            <button @click="$dispatch('create-sale')" type="button" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-xs sm:text-sm font-bold flex items-center transition-colors shadow-sm shadow-primary-600/20 w-full sm:w-auto justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                 إضافة فاتورة مبيعات
             </button>
         </div>
 
         <!-- Search & Filter Card -->
-        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-sm mb-5">
-            <div class="flex flex-col sm:flex-row items-center gap-3">
+        <div class="bg-white rounded-xl p-3 sm:p-4 border border-slate-100 shadow-sm mb-4">
+            <div class="flex flex-col sm:flex-row items-center gap-2.5">
                 <!-- Search Bar -->
                 <div class="relative flex-1 w-full">
-                    <div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-slate-400">
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
                     <input type="text" 
                            x-model="search" 
                            @input.debounce.300ms="fetchData()" 
                            placeholder="بحث برقم الفاتورة، اسم العميل، الملاحظات..." 
-                           class="w-full pr-10 pl-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400">
+                           class="w-full pr-9 pl-9 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-400 text-xs sm:text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400">
                     <button x-show="search.length > 0" 
                             @click="search = ''; fetchData()" 
                             type="button" 
-                            class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 hover:text-slate-600">
+                            class="absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400 hover:text-slate-600">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
@@ -145,25 +145,31 @@
                 <!-- Advanced Filters Toggle Button -->
                 <button @click="showFilters = !showFilters" 
                         type="button" 
-                        class="w-full sm:w-auto px-4 py-2.5 border rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shrink-0"
+                        class="w-full sm:w-auto px-3.5 py-2 border rounded-lg font-bold text-xs flex items-center justify-center gap-2 transition-all shrink-0"
                         :class="showFilters || activeFiltersCount > 0 ? 'bg-primary-50 border-primary-300 text-primary-700 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
                     <span>تصفية متقدمة</span>
-                    <span x-show="activeFiltersCount > 0" x-text="activeFiltersCount" class="w-5 h-5 rounded-full bg-primary-600 text-white text-[0.65rem] flex items-center justify-center font-black"></span>
-                    <svg class="w-3.5 h-3.5 transition-transform duration-200" :class="showFilters ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    <span x-show="activeFiltersCount > 0" x-text="activeFiltersCount" class="w-5 h-5 rounded-full bg-primary-600 text-white text-[0.6rem] flex items-center justify-center font-black"></span>
+                    <svg class="w-3 h-3 transition-transform duration-300 ease-in-out" :class="showFilters ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </button>
             </div>
 
-            <!-- Collapsible Advanced Filters Drawer (Accordion) -->
+            <!-- Collapsible Advanced Filters Drawer with Smooth Animation -->
             <div x-show="showFilters" 
-                 x-collapse 
+                 x-collapse.duration.300ms
+                 x-transition:enter="transition ease-out duration-250 transform"
+                 x-transition:enter-start="opacity-0 -translate-y-1"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-200 transform"
+                 x-transition:leave-start="opacity-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 -translate-y-1"
                  x-cloak 
-                 class="pt-4 mt-4 border-t border-slate-100">
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                 class="pt-3 mt-3 border-t border-slate-100">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2.5">
                     <!-- Customer Filter -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">العميل</label>
-                        <select x-model="customer_id" @change="fetchData()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500">
+                        <label class="block text-[0.72rem] font-bold text-slate-600 mb-1">العميل</label>
+                        <select x-model="customer_id" @change="fetchData()" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500">
                             <option value="">جميع العملاء</option>
                             @foreach($customers as $c)
                                 <option value="{{ $c->id }}">{{ $c->name }}</option>
@@ -173,8 +179,8 @@
 
                     <!-- Product Filter -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">الصنف المباع</label>
-                        <select x-model="product_id" @change="fetchData()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500">
+                        <label class="block text-[0.72rem] font-bold text-slate-600 mb-1">الصنف المباع</label>
+                        <select x-model="product_id" @change="fetchData()" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500">
                             <option value="">جميع الأصناف</option>
                             @foreach($products as $p)
                                 <option value="{{ $p->id }}">{{ $p->name }}</option>
@@ -184,46 +190,46 @@
 
                     <!-- Date Range: From Date -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">من تاريخ</label>
-                        <input type="date" x-model="start_date" @change="fetchData()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500">
+                        <label class="block text-[0.72rem] font-bold text-slate-600 mb-1">من تاريخ</label>
+                        <input type="date" x-model="start_date" @change="fetchData()" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500">
                     </div>
 
                     <!-- Date Range: To Date -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">إلى تاريخ</label>
-                        <input type="date" x-model="end_date" @change="fetchData()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500">
+                        <label class="block text-[0.72rem] font-bold text-slate-600 mb-1">إلى تاريخ</label>
+                        <input type="date" x-model="end_date" @change="fetchData()" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500">
                     </div>
 
                     <!-- Min Amount -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">الحد الأدنى للمبلغ</label>
-                        <input type="number" min="0" step="any" x-model="min_amount" @input.debounce.400ms="fetchData()" placeholder="0" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 font-mono" dir="ltr">
+                        <label class="block text-[0.72rem] font-bold text-slate-600 mb-1">من مبلغ</label>
+                        <input type="number" min="0" step="any" x-model="min_amount" @input.debounce.400ms="fetchData()" placeholder="0" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 font-mono" dir="ltr">
                     </div>
 
                     <!-- Max Amount -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">الحد الأقصى للمبلغ</label>
-                        <input type="number" min="0" step="any" x-model="max_amount" @input.debounce.400ms="fetchData()" placeholder="مثال: 50000" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 font-mono" dir="ltr">
+                        <label class="block text-[0.72rem] font-bold text-slate-600 mb-1">إلى مبلغ</label>
+                        <input type="number" min="0" step="any" x-model="max_amount" @input.debounce.400ms="fetchData()" placeholder="مثال: 50000" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 font-mono" dir="ltr">
                     </div>
 
                     <!-- Sorting Filter -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-600 mb-1.5">الترتيب حسب</label>
-                        <select x-model="sort_by" @change="fetchData()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500">
-                            <option value="latest">التاريخ (الأحدث أولاً)</option>
-                            <option value="oldest">التاريخ (الأقدم أولاً)</option>
+                        <label class="block text-[0.72rem] font-bold text-slate-600 mb-1">الترتيب حسب</label>
+                        <select x-model="sort_by" @change="fetchData()" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500">
+                            <option value="latest">التاريخ (الأحدث)</option>
+                            <option value="oldest">التاريخ (الأقدم)</option>
                             <option value="amount_desc">الأعلى قيمة</option>
                             <option value="amount_asc">الأقل قيمة</option>
                         </select>
                     </div>
+                </div>
 
-                    <!-- Actions (Reset) -->
-                    <div class="flex items-end">
-                        <button @click="resetFilters()" type="button" class="w-full px-3 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors flex items-center justify-center gap-1.5">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                            إعادة ضبط الفلاتر
-                        </button>
-                    </div>
+                <!-- Reset Button Row -->
+                <div class="flex justify-end mt-2.5 pt-2 border-t border-slate-100/80">
+                    <button @click="resetFilters()" type="button" class="px-3 py-1.5 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors inline-flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        إعادة ضبط الفلاتر
+                    </button>
                 </div>
             </div>
         </div>
