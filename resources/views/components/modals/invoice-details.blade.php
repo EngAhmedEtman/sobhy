@@ -1,32 +1,4 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
-
-$__newAttributes = [];
-$__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['type' => 'purchase']));
-
-foreach ($attributes->all() as $__key => $__value) {
-    if (in_array($__key, $__propNames)) {
-        $$__key = $$__key ?? $__value;
-    } else {
-        $__newAttributes[$__key] = $__value;
-    }
-}
-
-$attributes = new \Illuminate\View\ComponentAttributeBag($__newAttributes);
-
-unset($__propNames);
-unset($__newAttributes);
-
-foreach (array_filter((['type' => 'purchase']), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
-    $$__key = $$__key ?? $__value;
-}
-
-$__defined_vars = get_defined_vars();
-
-foreach ($attributes->all() as $__key => $__value) {
-    if (array_key_exists($__key, $__defined_vars)) unset($$__key);
-}
-
-unset($__defined_vars, $__key, $__value); ?>
+@props(['type' => 'purchase'])
 
 <!-- View Details Modal -->
 <div x-show="showDetailsModal" x-cloak class="fixed inset-0 z-[60] overflow-y-auto">
@@ -39,14 +11,14 @@ unset($__defined_vars, $__key, $__value); ?>
                     <template x-if="details && details.id">
                         <div class="flex items-center gap-2">
                             <!-- Print Button -->
-                            <button @click="openPrintPreviewModal('printPreviewModal', `/<?php echo e($type === 'purchase' ? 'purchases' : 'sales'); ?>/${details.id}/print`)" class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-xs font-bold flex items-center gap-1 transition-colors" title="طباعة الفاتورة">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                                طباعة
+                            <button @click="openPrintPreviewModal('printPreviewModal', `/{{ $type === 'purchase' ? 'purchases' : 'sales' }}/${details.id}/print`)" class="px-3 py-1.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors" title="طباعة الفاتورة">
+                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                <span>طباعة</span>
                             </button>
                             <!-- Edit Button -->
-                            <button @click="$dispatch('edit-<?php echo e($type); ?>', details.id); showDetailsModal = false" class="px-3 py-1.5 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 text-xs font-bold flex items-center gap-1 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                تعديل
+                            <button @click="$dispatch('edit-{{ $type }}', details.id); showDetailsModal = false" class="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 hover:text-blue-800 text-xs font-bold flex items-center gap-1.5 transition-colors" title="تعديل الفاتورة">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                <span>تعديل الفاتورة</span>
                             </button>
                         </div>
                     </template>
@@ -89,7 +61,7 @@ unset($__defined_vars, $__key, $__value); ?>
                             <!-- Financial details -->
                             <div x-show="details.transaction" class="p-4 bg-blue-50/50 rounded-xl border border-blue-100 space-y-3">
                                 <h4 class="text-sm font-bold text-blue-800 flex items-center gap-1.5">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0-2.08-.402-2.599-1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     الملخص المالي للفاتورة
                                 </h4>
                                 <div class="space-y-3">

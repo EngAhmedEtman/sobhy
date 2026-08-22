@@ -37,11 +37,21 @@
                 this.loading = false;
             });
         },
+        editFromDetails(t) {
+            this.editType = t.type;
+            this.editId = t.id;
+            this.editDate = t.transaction_date;
+            this.editAmount = t.amount;
+            this.editQuantity = t.quantity || '';
+            this.editNotes = t.notes || '';
+            this.editTransactionModal = true;
+        },
         executePrint() {
             openPrintPreviewModal('printPreviewModal', `/customers/{{ $customer->id }}/print?filter=${this.printFilter}&n=${this.printLimit}`);
             this.showPrintModal = false;
         }
-    }">
+    }"
+    @edit-transaction.window="editFromDetails($event.detail)">
         <!-- Header Card -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5 mb-5">
             <!-- Top Section: Customer Profile & Action Buttons -->
@@ -103,7 +113,7 @@
                         </div>
                         <div>
                             <p class="text-[0.7rem] text-slate-400 font-bold">إجمالي المبيعات</p>
-                            <p class="text-sm sm:text-base font-black text-slate-800 mt-0.5" dir="ltr">{{ number_format($totalSales ?? 0, 0) }} <span class="text-[0.65rem] text-slate-400 font-normal">ج.م</span></p>
+                            <p class="text-sm sm:text-base font-black text-slate-800 mt-0.5" dir="ltr">{{ number_format($totalsales ?? ($totalSales ?? 0), 0) }} <span class="text-[0.65rem] text-slate-400 font-normal">ج.م</span></p>
                         </div>
                     </div>
                 </div>
@@ -128,8 +138,8 @@
                     $balanceColor = $isOwed ? 'text-danger-600' : ($isCredit ? 'text-emerald-600' : 'text-slate-700');
                     $cardBg = $isOwed ? 'bg-danger-50/50 border-danger-100/80' : ($isCredit ? 'bg-emerald-50/50 border-emerald-100/80' : 'bg-slate-50/80 border-slate-100');
                     $badgeBg = $isOwed ? 'bg-danger-100 text-danger-700' : ($isCredit ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700');
-                    $balanceLabel = $isOwed ? 'المتبقي عليه' : ($isCredit ? 'له' : 'الرصيد');
-                    $badgeText = $isOwed ? 'مدين' : ($isCredit ? 'دائن' : 'خالص');
+                    $balanceLabel = $isOwed ? 'مطلوب من العميل (لنا عنده)' : ($isCredit ? 'رصيد للعميل (له عندنا)' : 'حالة الحساب');
+                    $badgeText = $isOwed ? 'مطلوب منه' : ($isCredit ? 'رصيد للعميل' : 'خالص');
                     $absBalance = abs($customer->balance);
                 @endphp
                 <div class="{{ $cardBg }} rounded-lg p-3 border flex items-center justify-between">
@@ -161,9 +171,9 @@
                     @if($transaction->type === 'sale')
                         <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-primary-50 text-primary-600 border border-primary-100">بيع</span>
                     @elseif($transaction->type === 'payment_received')
-                        <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-blue-50 text-blue-600 border border-blue-100">تحصيل</span>
+                        <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-blue-50 text-blue-600 border border-blue-100">سداد دفعة</span>
                     @elseif($transaction->type === 'return_sale')
-                        <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-amber-50 text-amber-600 border border-amber-100">مرتجع</span>
+                        <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-amber-50 text-amber-600 border border-amber-100">مرتجع بيع</span>
                     @else
                         <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-slate-100 text-slate-600">{{ $transaction->type }}</span>
                     @endif
@@ -203,29 +213,28 @@
                 <div class="flex justify-end gap-2 mt-2 pt-2 border-t border-slate-50">
                     <div class="flex items-center justify-center gap-1.5">
                         @if($transaction->type === 'sale' && $transaction->invoice_id)
-                            <button type="button" @click="viewSale({{ $transaction->invoice_id }})" class="p-1.5 rounded border border-slate-200 bg-white text-slate-400 hover:text-emerald-600 hover:border-emerald-600 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض التفاصيل">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <button type="button" @click="viewSale({{ $transaction->invoice_id }})" class="p-1.5 rounded border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض الفاتورة">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                             </button>
-                            <button type="button" @click="editSale({{ $transaction->invoice_id }})" class="p-1.5 rounded border border-slate-200 bg-white text-slate-400 hover:text-blue-600 hover:border-blue-600 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                            <button type="button" @click="editSale({{ $transaction->invoice_id }})" class="p-1.5 rounded border border-slate-200 bg-white text-blue-600 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             </button>
                         @else
-                            <button type="button" @click="$dispatch('view-transaction', {{ $transaction->id }})" class="p-1.5 rounded border border-slate-200 bg-white text-slate-400 hover:text-emerald-600 hover:border-emerald-600 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض التفاصيل">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <button type="button" @click="$dispatch('view-transaction', {{ $transaction->id }})" class="p-1.5 rounded border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض التفاصيل / الإيصال">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                             </button>
-                            <button type="button" @click="editTransactionModal = true; editType = '{{ $transaction->type }}'; editId = '{{ $transaction->id }}'; editDate = '{{ $transaction->transaction_date->format('Y-m-d') }}'; editAmount = '{{ in_array($transaction->type, ['payment_received', 'payment_made']) ? $transaction->paid_amount : $transaction->total_amount }}'; editQuantity = '{{ $transaction->quantity ?? '' }}'; editNotes = '{{ $transaction->notes }}'" class="p-1.5 rounded border border-slate-200 bg-white text-slate-400 hover:text-blue-600 hover:border-blue-600 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                            <button type="button" @click="editTransactionModal = true; editType = '{{ $transaction->type }}'; editId = '{{ $transaction->id }}'; editDate = '{{ $transaction->transaction_date->format('Y-m-d') }}'; editAmount = '{{ in_array($transaction->type, ['payment_received', 'payment_made']) ? $transaction->paid_amount : $transaction->total_amount }}'; editQuantity = '{{ $transaction->quantity ?? '' }}'; editNotes = '{{ addslashes($transaction->notes ?? '') }}'" class="p-1.5 rounded border border-slate-200 bg-white text-blue-600 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             </button>
                         @endif
                     </div>
-                    <button type="button" x-on:click="$dispatch('open-modal', 'delete-transaction-{{ $transaction->id }}')" class="p-1.5 rounded border border-slate-200 bg-white text-slate-400 hover:text-danger-600 hover:border-danger-600 hover:bg-danger-50 shadow-sm transition-all inline-flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
                     @php
                         $deleteAction = route('transactions.destroy', $transaction->id);
-                        if ($transaction->type === 'purchase' && $transaction->invoice_id) $deleteAction = route('purchases.destroy', $transaction->invoice_id);
                         if ($transaction->type === 'sale' && $transaction->invoice_id) $deleteAction = route('sales.destroy', $transaction->invoice_id);
                     @endphp
+                    <button type="button" x-on:click="$dispatch('open-modal', 'delete-transaction-{{ $transaction->id }}')" class="p-1.5 rounded border border-slate-200 bg-white text-danger-600 hover:text-danger-700 hover:border-danger-300 hover:bg-danger-50 shadow-sm transition-all inline-flex items-center justify-center" title="حذف">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-danger-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
                     <x-delete-modal name="delete-transaction-{{ $transaction->id }}" action="{{ $deleteAction }}" />
                 </div>
             </div>
@@ -235,361 +244,479 @@
         </div>
 
         <!-- Desktop Transactions Table -->
-        <div class="hidden sm:block overflow-x-auto relative rounded-xl border border-slate-100 bg-white mb-6">
-            <table class="w-full text-center border-collapse whitespace-nowrap">
-                <thead class="bg-slate-50">
-                    <tr>
-                        <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle">الرقم</th>
-                        <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle w-1/4">البيان</th>
-                        <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle">الكمية</th>
-                        <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle">سعر الكيلو</th>
-                        <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle">المبلغ</th>
-                        <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle">مسدد</th>
-                        <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle">المتبقي</th>
-                        <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle w-32">إجراءات</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($transactions as $transaction)
-
+        <div class="hidden sm:block bg-white rounded-2xl shadow-sm border border-slate-100 mb-6">
+            <div class="p-5 border-b border-slate-100">
+                <h4 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                    <svg class="w-5 h-5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    سجل العمليات
+                </h4>
+            </div>
+            <div class="p-5">
+                <div class="overflow-x-auto relative rounded-xl border border-slate-100 bg-white">
+                    <table class="w-full text-center border-collapse whitespace-nowrap">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide text-center">التاريخ</th>
+                                <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide text-center">نوع العملية</th>
+                                <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide text-center">البيان</th>
+                                <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide text-center">الكمية</th>
+                                <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide text-center">سعر الكيلو</th>
+                                <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide text-center">إجمالي العملية</th>
+                                <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide text-center">المدفوع منها</th>
+                                <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide text-center">المتبقي منها</th>
+                                <th class="px-2.5 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide text-center">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($transactions as $transaction)
                             <tr class="hover:bg-slate-50/60 transition-colors">
-
                                 <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100 font-medium">{{ $transaction->transaction_date->format('d/m/Y') }}</td>
-
                                 <td class="px-2.5 py-3 border-b border-slate-100">
-
-                                    @if($transaction->type === 'sale')<span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-primary-50 text-primary-600 border border-primary-100">شراء</span>
-
-                                    @elseif($transaction->type === 'payment_received')<span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-blue-50 text-blue-600 border border-blue-100">سداد دفعة</span>
-
-                                    @elseif($transaction->type === 'return_sale')<span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-amber-50 text-amber-600 border border-amber-100">مرتجع شراء</span>
-
-                                    @else<span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-slate-100 text-slate-600">{{ $transaction->type }}</span>@endif
-
-                                </td>
-
-                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100">{{ $transaction->notes ?? '-' }}</td>
-
-                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">{{ $transaction->quantity ? number_format($transaction->quantity, 2) . ' ك' : '-' }}</td>
-
-                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">
-
-                                    @if($transaction->quantity > 0)
-
-                                        {{ number_format($transaction->total_amount / $transaction->quantity, 2) }} <span class="text-[0.65rem] text-slate-400">ج.م</span>
-
+                                    @if($transaction->type === 'sale')
+                                        <span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-primary-50 text-primary-600 border border-primary-100">بيع</span>
+                                    @elseif($transaction->type === 'payment_received')
+                                        <span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-blue-50 text-blue-600 border border-blue-100">سداد دفعة</span>
+                                    @elseif($transaction->type === 'return_sale')
+                                        <span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-amber-50 text-amber-600 border border-amber-100">مرتجع بيع</span>
                                     @else
-
+                                        <span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-slate-100 text-slate-600">{{ $transaction->type }}</span>
+                                    @endif
+                                </td>
+                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100">{{ $transaction->notes ?? '-' }}</td>
+                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">{{ $transaction->quantity ? number_format($transaction->quantity, 2) . ' ك' : '-' }}</td>
+                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">
+                                    @if($transaction->quantity > 0)
+                                        {{ number_format($transaction->total_amount / $transaction->quantity, 2) }} <span class="text-[0.65rem] text-slate-400">ج.م</span>
+                                    @else
                                         -
+                                    @endif
+                                </td>
+                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">{{ $transaction->total_amount > 0 ? number_format($transaction->total_amount, 0) . ' ج.م' : '-' }}</td>
+                                <td class="px-2.5 py-3 text-[0.8rem] text-emerald-600 font-bold border-b border-slate-100" dir="ltr">
+                                    {{ $transaction->paid_amount > 0 ? number_format($transaction->paid_amount, 0) . ' ج.م' : '-' }}
+                                </td>
+                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">
+                                    @if(in_array($transaction->type, ['sale', 'return_sale', 'purchase', 'return_purchase']))
+                                        @php
+                                            $uncovered = $transaction->total_amount - $transaction->paid_amount;
+                                        @endphp
+                                        @if($uncovered <= 0)
+                                            <span class="text-emerald-500 font-bold text-xs bg-emerald-50 px-2 py-0.5 rounded">خالصة</span>
+                                        @else
+                                            <span class="text-danger-500 font-bold">{{ number_format($uncovered, 0) }} ج.م</span>
+                                        @endif
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="px-2.5 py-3 border-b border-slate-100 text-center">
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        @if($transaction->type === 'sale' && $transaction->invoice_id)
+                                            <button type="button" @click="viewSale({{ $transaction->invoice_id }})" class="p-1 rounded border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض الفاتورة">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                            </button>
+                                            <button type="button" @click="editSale({{ $transaction->invoice_id }})" class="p-1 rounded border border-slate-200 bg-white text-blue-600 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                            </button>
+                                        @else
+                                            <button type="button" @click="$dispatch('view-transaction', {{ $transaction->id }})" class="p-1 rounded border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض التفاصيل / الإيصال">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                            </button>
+                                            <button type="button" @click="editTransactionModal = true; editType = '{{ $transaction->type }}'; editId = '{{ $transaction->id }}'; editDate = '{{ $transaction->transaction_date->format('Y-m-d') }}'; editAmount = '{{ in_array($transaction->type, ['payment_received', 'payment_made']) ? $transaction->paid_amount : $transaction->total_amount }}'; editQuantity = '{{ $transaction->quantity ?? '' }}'; editNotes = '{{ addslashes($transaction->notes ?? '') }}'" class="p-1 rounded border border-slate-200 bg-white text-blue-600 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                            </button>
+                                        @endif
+                                        @php
+                                            $deleteAction = route('transactions.destroy', $transaction->id);
+                                            if ($transaction->type === 'sale' && $transaction->invoice_id) $deleteAction = route('sales.destroy', $transaction->invoice_id);
+                                        @endphp
+                                        <button type="button" x-on:click="$dispatch('open-modal', 'delete-transaction-{{ $transaction->id }}')" class="p-1 rounded border border-slate-200 bg-white text-danger-600 hover:text-danger-700 hover:border-danger-300 hover:bg-danger-50 shadow-sm transition-all inline-flex items-center justify-center" title="حذف">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-danger-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        </button>
+                                        <x-delete-modal name="delete-transaction-{{ $transaction->id }}" action="{{ $deleteAction }}" />
+                                    </div>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="9" class="px-4 py-8 text-sm text-slate-500 text-center">لا توجد عمليات مسجلة.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
+        @if($transactions->hasPages())
+            <div class="mt-4">
+                {{ $transactions->links() }}
+            </div>
+        @endif
 
-
-        <!-- Return Modal -->
-
-        <div x-show="showReturnModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
-
-            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center">
-
-                <div x-show="showReturnModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/50" @click="showReturnModal = false"></div>
-
-                <div x-show="showReturnModal" x-transition class="relative w-full max-w-md p-5 sm:p-6 text-right transition-all transform bg-white shadow-xl rounded-2xl">
-
+        <!-- Payment Modal (Wide Layout with Live Balance Indicator) -->
+        <div x-show="showPaymentModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center sm:p-0">
+                <div x-show="showPaymentModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/50" @click="showPaymentModal = false"></div>
+                <div x-show="showPaymentModal" 
+                     x-data="{
+                         amount: '',
+                         date: '{{ date('Y-m-d') }}',
+                         notes: '',
+                         currentBalance: {{ (float)$customer->balance }},
+                         get newBalance() {
+                             return this.currentBalance - (parseFloat(this.amount) || 0);
+                         },
+                         formatBalance(val) {
+                             if (!val || val == 0) return '0 ج.م (خالص)';
+                             if (val > 0) return Number(val).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (مطلوب منه)';
+                             return Number(Math.abs(val)).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (له عندنا)';
+                         }
+                     }"
+                     x-transition class="relative w-full max-w-2xl p-5 sm:p-6 overflow-hidden text-right transition-all transform bg-white shadow-xl rounded-2xl">
                     <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-800">تسجيل تحصيل من العميل: {{ $customer->name }}</h3>
+                        </div>
+                        <button type="button" @click="showPaymentModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                    </div>
+                    <form action="{{ route('customers.payment', $customer->id) }}" method="POST">
+                        @csrf
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 mb-5">
+                            <!-- Main Inputs (7 cols) -->
+                            <div class="md:col-span-7 space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">المبلغ المحصل (ج.م) <span class="text-danger-500">*</span></label>
+                                    <input type="number" step="0.01" name="amount" x-model="amount" min="0.01" required placeholder="0.00" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-left bg-slate-50 text-base font-bold text-slate-800" dir="ltr">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">تاريخ التحصيل <span class="text-danger-500">*</span></label>
+                                    <input type="date" name="date" required x-model="date" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-left bg-slate-50 text-xs font-bold" dir="ltr">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">البيان / ملاحظات (اختياري)</label>
+                                    <input type="text" name="notes" x-model="notes" placeholder="دفعة نقدية، تحويل بنكي..." class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 bg-slate-50 text-xs">
+                                </div>
+                            </div>
 
-                        <h3 class="text-lg font-bold text-slate-800">تسجيل مرتجع شراء</h3>
+                            <!-- Live Balance Card (5 cols) -->
+                            <div class="md:col-span-5 flex flex-col justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1 mb-3">
+                                        <svg class="w-3.5 h-3.5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                                        مؤشر الحساب المالي
+                                    </h4>
+                                    <div class="space-y-2.5">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="text-slate-500">الرصيد الحالي:</span>
+                                            <span class="font-bold text-slate-800" dir="ltr" x-text="formatBalance(currentBalance)"></span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="text-slate-500">المبلغ المحصل:</span>
+                                            <span class="font-bold text-emerald-600" dir="ltr" x-text="(parseFloat(amount) || 0).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م'"></span>
+                                        </div>
+                                    </div>
+                                </div>
 
-                        <button @click="showReturnModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                                <div class="pt-3 border-t border-slate-200">
+                                    <div class="flex justify-between items-center gap-2">
+                                        <span class="text-xs font-bold text-slate-700 whitespace-nowrap shrink-0">الرصيد بعد التحصيل:</span>
+                                        <span class="text-xs sm:text-sm font-black whitespace-nowrap" :class="newBalance > 0 ? 'text-danger-600' : (newBalance < 0 ? 'text-emerald-600' : 'text-slate-600')" dir="ltr" x-text="formatBalance(newBalance)"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
+                        <div class="flex gap-3 pt-3 border-t border-slate-100">
+                            <button type="submit" class="w-full sm:w-auto px-6 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-sm shadow-emerald-600/20">حفظ التحصيل</button>
+                            <button type="button" @click="showPaymentModal = false" class="w-full sm:w-auto px-6 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">إلغاء</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Return Modal (Wide Layout with Live Price Hint and Balance Projection) -->
+        <div x-show="showReturnModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center sm:p-0">
+                <div x-show="showReturnModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/50" @click="showReturnModal = false"></div>
+                <div x-show="showReturnModal" 
+                     x-data="{
+                         openProduct: false,
+                         searchProduct: '',
+                         products: {{ Js::from($products) }},
+                         selectedId: '',
+                         selectedProduct: null,
+                         quantity: 1,
+                         unitPrice: '',
+                         amount: '',
+                         paidAmount: 0,
+                         date: '{{ date('Y-m-d') }}',
+                         notes: '',
+                         currentBalance: {{ (float)$customer->balance }},
+                         priceInfo: null,
+                         priceInfoLoading: false,
+
+                         get filteredProducts() {
+                             if (!this.searchProduct) return this.products;
+                             return this.products.filter(p => p.name.toLowerCase().includes(this.searchProduct.toLowerCase()));
+                         },
+
+                         selectProduct(p) {
+                             this.selectedId = p.id;
+                             this.selectedProduct = p;
+                             this.openProduct = false;
+                             this.searchProduct = '';
+                             this.fetchPriceInfo(p.id);
+                         },
+
+                         fetchPriceInfo(productId) {
+                             this.priceInfoLoading = true;
+                             this.priceInfo = null;
+                             fetch(`/api/products/${productId}/price-info?type=sale&entity_id={{ $customer->id }}`)
+                                 .then(res => res.json())
+                                 .then(data => {
+                                     this.priceInfo = data;
+                                     this.priceInfoLoading = false;
+                                     if (data.entity && data.entity !== 'لا يوجد' && !this.unitPrice) {
+                                         this.unitPrice = parseFloat(data.entity.replace(/,/g, ''));
+                                         this.calcAmount();
+                                     } else if (data.overall && data.overall !== 'لا يوجد' && !this.unitPrice) {
+                                         this.unitPrice = parseFloat(data.overall.replace(/,/g, ''));
+                                         this.calcAmount();
+                                     }
+                                 }).catch(() => {
+                                     this.priceInfoLoading = false;
+                                 });
+                         },
+
+                         calcAmount() {
+                             if (this.quantity && this.unitPrice !== '') {
+                                 this.amount = ((parseFloat(this.quantity) || 0) * (parseFloat(this.unitPrice) || 0)).toFixed(2);
+                             }
+                         },
+
+                         calcUnitPrice() {
+                             if (this.quantity && this.amount !== '' && parseFloat(this.quantity) > 0) {
+                                 this.unitPrice = ((parseFloat(this.amount) || 0) / (parseFloat(this.quantity) || 1)).toFixed(2);
+                             }
+                         },
+
+                         get newBalance() {
+                             const retVal = parseFloat(this.amount) || 0;
+                             const refunded = parseFloat(this.paidAmount) || 0;
+                             return this.currentBalance - (retVal - refunded);
+                         },
+
+                         formatBalance(val) {
+                             if (!val || val == 0) return '0 ج.م (خالص)';
+                             if (val > 0) return Number(val).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (مطلوب منه)';
+                             return Number(Math.abs(val)).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (له عندنا)';
+                         }
+                     }"
+                     x-transition class="relative w-full max-w-4xl p-5 sm:p-6 text-right transition-all transform bg-white shadow-xl rounded-2xl">
+                    <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-800">تسجيل مرتجع بيع من العميل: {{ $customer->name }}</h3>
+                        </div>
+                        <button type="button" @click="showReturnModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
                     </div>
 
                     <form action="{{ route('customers.return', $customer->id) }}" method="POST">
-
                         @csrf
-
-                        <div class="space-y-4">
-
-                            <!-- Searchable Product Combobox -->
-
-                            <div x-data="{
-
-                                open: false,
-
-                                search: '',
-
-                                selectedId: '',
-
-                                selectedName: '',
-
-                                products: {{ Js::from($products) }},
-
-                                get filteredProducts() {
-
-                                    if (!this.search) return this.products;
-
-                                    return this.products.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase()));
-
-                                },
-
-                                selectProduct(product) {
-
-                                    this.selectedId = product.id;
-
-                                    this.selectedName = product.name + ' (متوفر: ' + Number(product.stock).toLocaleString('en-US') + ' ك)';
-
-                                    this.open = false;
-
-                                    this.search = '';
-
-                                }
-
-                            }" class="relative">
-
-                                <label class="block text-sm font-bold text-slate-700 mb-1.5">المنتج المسترجع للعميل <span class="text-danger-500">*</span></label>
-
-                                <input type="hidden" name="product_id" :value="selectedId" required>
-
-                                
-
-                                <!-- Trigger Button -->
-
-                                <button type="button" 
-
-                                        @click="open = !open" 
-
-                                        class="w-full flex items-center justify-between px-3.5 py-2.5 bg-slate-50 hover:bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all text-right">
-
-                                    <span class="text-sm font-bold truncate" :class="selectedId ? 'text-slate-800' : 'text-slate-400'" x-text="selectedId ? selectedName : 'اختر المنتج المطلوب...'"></span>
-
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 mr-2" :class="open ? 'rotate-180 text-primary-600' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-
-                                    </svg>
-
-                                </button>
-
-
-
-                                <!-- Dropdown Menu -->
-
-                                <div x-show="open" 
-
-                                     @click.outside="open = false" 
-
-                                     x-transition:enter="transition ease-out duration-150"
-
-                                     x-transition:enter-start="opacity-0 translate-y-1"
-
-                                     x-transition:enter-end="opacity-100 translate-y-0"
-
-                                     x-transition:leave="transition ease-in duration-100"
-
-                                     x-transition:leave-start="opacity-100 translate-y-0"
-
-                                     x-transition:leave-end="opacity-0 translate-y-1"
-
-                                     class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden" 
-
-                                     style="display: none;">
-
-                                    
-
-                                    <!-- Search Input -->
-
-                                    <div class="p-2 border-b border-slate-100 bg-slate-50/70">
-
-                                        <div class="relative">
-
-                                            <input type="text" 
-
-                                                   x-model="search" 
-
-                                                   placeholder="ابحث عن الصنف بالاسم..." 
-
-                                                   class="w-full pl-3 pr-8 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-400"
-
-                                                   @keydown.escape="open = false">
-
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 absolute right-2.5 top-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-
-                                            </svg>
-
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-5">
+                            
+                            <!-- Left Info Cards (5 cols) -->
+                            <div class="md:col-span-5 space-y-4">
+                                <!-- Live Projected Balance Card -->
+                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                                    <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                                        تأثير المرتجع على رصيد العميل
+                                    </h4>
+                                    <div class="space-y-2 text-xs border-b border-slate-200 pb-3">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-500">الرصيد الحالي:</span>
+                                            <span class="font-bold text-slate-800" dir="ltr" x-text="formatBalance(currentBalance)"></span>
                                         </div>
-
-                                    </div>
-
-
-
-                                    <!-- Products List -->
-
-                                    <div class="max-h-56 overflow-y-auto divide-y divide-slate-50">
-
-                                        <template x-for="product in filteredProducts" :key="product.id">
-
-                                            <button type="button" 
-
-                                                    @click="selectProduct(product)" 
-
-                                                    class="w-full px-3.5 py-2 text-right flex items-center justify-between hover:bg-primary-50/60 transition-colors group"
-
-                                                    :class="selectedId == product.id ? 'bg-primary-50 font-bold' : ''">
-
-                                                <div class="flex items-center gap-2">
-
-                                                    <div class="w-2 h-2 rounded-full shrink-0" :class="product.stock > 0 ? 'bg-emerald-500' : 'bg-slate-300'"></div>
-
-                                                    <span class="text-xs text-slate-800 group-hover:text-primary-700 font-medium" x-text="product.name"></span>
-
-                                                </div>
-
-                                                <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-slate-100 text-slate-600 group-hover:bg-primary-100 group-hover:text-primary-800 shrink-0" dir="ltr" x-text="'متوفر: ' + Number(product.stock).toLocaleString('en-US') + ' ك'"></span>
-
-                                            </button>
-
-                                        </template>
-
-                                        <div x-show="filteredProducts.length === 0" class="p-4 text-center text-xs text-slate-400">
-
-                                            لا توجد منتجات مطابقة للبحث
-
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-500">قيمة المرتجع (يخصم):</span>
+                                            <span class="font-bold text-amber-600" dir="ltr" x-text="(parseFloat(amount) || 0).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م'"></span>
                                         </div>
-
+                                        <div class="flex justify-between items-center" x-show="parseFloat(paidAmount) > 0">
+                                            <span class="text-slate-500">المسترد نقداً:</span>
+                                            <span class="font-bold text-blue-600" dir="ltr" x-text="(parseFloat(paidAmount) || 0).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م'"></span>
+                                        </div>
                                     </div>
-
+                                    <div class="flex justify-between items-center pt-1 gap-2">
+                                        <span class="text-xs font-bold text-slate-700 whitespace-nowrap shrink-0">الرصيد بعد المرتجع:</span>
+                                        <span class="text-xs sm:text-sm font-black whitespace-nowrap" :class="newBalance > 0 ? 'text-danger-600' : (newBalance < 0 ? 'text-emerald-600' : 'text-slate-600')" dir="ltr" x-text="formatBalance(newBalance)"></span>
+                                    </div>
                                 </div>
 
+                                <!-- Price Reference Card -->
+                                <div class="p-3.5 bg-blue-50/50 border border-blue-100 rounded-xl space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <h5 class="text-xs font-bold text-blue-800 flex items-center gap-1">
+                                            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            أسعار المنتج السابقة
+                                        </h5>
+                                        <span x-show="priceInfoLoading" class="text-[0.65rem] text-blue-500 font-bold">جاري الجلب...</span>
+                                    </div>
+                                    <div class="space-y-1.5 text-xs">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-500 text-[0.7rem]">آخر سعر للعميل:</span>
+                                            <span class="font-bold text-primary-700" dir="ltr" x-text="priceInfo && priceInfo.entity !== 'لا يوجد' ? priceInfo.entity + ' ج.م' : 'لا يوجد'"></span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-500 text-[0.7rem]">آخر سعر بيع عام:</span>
+                                            <span class="font-bold text-slate-700" dir="ltr" x-text="priceInfo && priceInfo.overall !== 'لا يوجد' ? priceInfo.overall + ' ج.م' : 'لا يوجد'"></span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-3">
+                            <!-- Right Main Inputs (7 cols) -->
+                            <div class="md:col-span-7 space-y-4">
+                                <!-- Searchable Product Combobox -->
+                                <div class="relative">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">المنتج المسترجع من العميل <span class="text-danger-500">*</span></label>
+                                    <input type="hidden" name="product_id" :value="selectedId" required>
+                                    
+                                    <button type="button" 
+                                            @click="openProduct = !openProduct" 
+                                            class="w-full flex items-center justify-between px-3.5 py-2.5 bg-slate-50 hover:bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all text-right">
+                                        <span class="text-xs font-bold truncate" :class="selectedId ? 'text-slate-800' : 'text-slate-400'" x-text="selectedProduct ? selectedProduct.name + ' (متوفر: ' + Number(selectedProduct.stock).toLocaleString('en-US') + ' ك)' : 'اختر المنتج المطلوب...'"></span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 mr-2" :class="openProduct ? 'rotate-180 text-primary-600' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
 
-                                <div><label class="block text-sm font-medium text-slate-700 mb-1">الكمية المرتجعة</label><input type="number" step="0.01" name="quantity" min="0.01" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr"></div>
+                                    <!-- Dropdown Menu -->
+                                    <div x-show="openProduct" 
+                                         @click.outside="openProduct = false" 
+                                         class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden" 
+                                         style="display: none;">
+                                        <div class="p-2 border-b border-slate-100 bg-slate-50/70">
+                                            <input type="text" 
+                                                   x-model="searchProduct" 
+                                                   placeholder="ابحث عن الصنف بالاسم..." 
+                                                   class="w-full pl-3 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-primary-500"
+                                                   @keydown.escape="openProduct = false">
+                                        </div>
+                                        <div class="max-h-48 overflow-y-auto divide-y divide-slate-50">
+                                            <template x-for="p in filteredProducts" :key="p.id">
+                                                <button type="button" 
+                                                        @click="selectProduct(p)" 
+                                                        class="w-full px-3.5 py-2 text-right flex items-center justify-between hover:bg-primary-50/60 transition-colors group"
+                                                        :class="selectedId == p.id ? 'bg-primary-50 font-bold' : ''">
+                                                    <span class="text-xs text-slate-800 group-hover:text-primary-700 font-medium" x-text="p.name"></span>
+                                                    <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-slate-100 text-slate-600 group-hover:bg-primary-100 group-hover:text-primary-800 shrink-0" dir="ltr" x-text="'متوفر: ' + Number(p.stock).toLocaleString('en-US') + ' ك'"></span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
 
-                                <div><label class="block text-sm font-medium text-slate-700 mb-1">إجمالي المبلغ (يخصم)</label><input type="number" step="0.01" name="amount" min="1" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr"></div>
+                                <!-- Quantity, Unit Price, and Total Amount -->
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">الكمية (ك) <span class="text-danger-500">*</span></label>
+                                        <input type="number" step="0.01" name="quantity" x-model="quantity" @input="calcAmount()" min="0.01" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-center bg-slate-50 text-sm font-bold" dir="ltr">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">سعر الكيلو</label>
+                                        <input type="number" step="0.01" x-model="unitPrice" @input="calcAmount()" min="0" placeholder="0.00" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-center bg-slate-50 text-sm font-bold" dir="ltr">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">إجمالي المرتجع <span class="text-danger-500">*</span></label>
+                                        <input type="number" step="0.01" name="amount" x-model="amount" @input="calcUnitPrice()" min="0.01" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-center bg-slate-50 text-sm font-bold text-amber-700" dir="ltr">
+                                    </div>
+                                </div>
 
+                                <!-- Paid / Refunded Amount -->
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">المبلغ المسترد نقداً للعميل (اختياري)</label>
+                                    <input type="number" step="0.01" name="paid_amount" x-model="paidAmount" min="0" placeholder="0.00" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-xs font-bold" dir="ltr">
+                                    <p class="text-[0.65rem] text-slate-400 mt-1">اتركه 0 إذا كان المرتجع آجل ويخصم من مديونية العميل فقط دون دفع نقدية له.</p>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">تاريخ المرتجع <span class="text-danger-500">*</span></label>
+                                        <input type="date" name="date" required x-model="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-xs font-bold" dir="ltr">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">البيان / ملاحظات (اختياري)</label>
+                                        <input type="text" name="notes" x-model="notes" placeholder="ملاحظات..." class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-xs">
+                                    </div>
+                                </div>
                             </div>
-
-                            <div><label class="block text-sm font-medium text-slate-700 mb-1">المبلغ المدفوع/المسترد (إن وجد)</label><input type="number" step="0.01" name="paid_amount" min="0" value="0" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr"></div>
-
-                            <div><label class="block text-sm font-medium text-slate-700 mb-1">تاريخ المرتجع</label><input type="date" name="date" required value="{{ date('Y-m-d') }}" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr"></div>
-
-                            <div><label class="block text-sm font-medium text-slate-700 mb-1">ملاحظات (اختياري)</label><input type="text" name="notes" placeholder="ملاحظات إضافية..." class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-base"></div>
-
                         </div>
 
-                        <div class="mt-6 flex gap-3">
-
-                            <button type="submit" class="w-full px-4 py-2.5 text-sm font-bold text-white bg-slate-800 rounded-lg hover:bg-slate-900">حفظ المرتجع</button>
-
-                            <button type="button" @click="showReturnModal = false" class="w-full px-4 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">إلغاء</button>
-
+                        <div class="flex gap-3 pt-3 border-t border-slate-100">
+                            <button type="submit" class="w-full sm:w-auto px-6 py-2.5 text-sm font-bold text-white bg-slate-800 rounded-xl hover:bg-slate-900 shadow-sm">حفظ المرتجع</button>
+                            <button type="button" @click="showReturnModal = false" class="w-full sm:w-auto px-6 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">إلغاء</button>
                         </div>
-
                     </form>
-
                 </div>
-
             </div>
-
         </div>
-
-
 
         <!-- Edit Transaction Modal -->
-
-        <div x-show="editTransactionModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
-
+        <div x-show="editTransactionModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
             <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center">
-
                 <div x-show="editTransactionModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/50" @click="editTransactionModal = false"></div>
-
                 <div x-show="editTransactionModal" x-transition class="relative w-full max-w-md p-5 sm:p-6 text-right transition-all transform bg-white shadow-xl rounded-2xl">
-
                     <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
-
                         <h3 class="text-lg font-bold text-slate-800">تعديل العملية</h3>
-
-                        <button @click="editTransactionModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
-
+                        <button type="button" @click="editTransactionModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
                     </div>
-
                     <form :action="'{{ url('transactions') }}/' + editId" method="POST">
-
                         @csrf
-
                         @method('PUT')
-
                         <div class="space-y-4">
-
-                            <div x-show="editType === 'return_sale' || editType === 'return_sale' || editType === 'sale' || editType === 'sale'">
-
+                            <div x-show="editType === 'return_sale' || editType === 'sale'">
                                 <label class="block text-sm font-medium text-slate-700 mb-1">الكمية</label>
-
                                 <input type="number" step="0.01" name="quantity" x-model="editQuantity" min="0.01" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr">
-
                             </div>
-
                             <div>
-
                                 <label class="block text-sm font-medium text-slate-700 mb-1">المبلغ (ج.م)</label>
-
                                 <input type="number" step="0.01" name="amount" x-model="editAmount" min="0" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr">
-
                             </div>
-
                             <div>
-
                                 <label class="block text-sm font-medium text-slate-700 mb-1">تاريخ العملية</label>
-
                                 <input type="date" name="date" x-model="editDate" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr">
-
                             </div>
-
                             <div>
-
                                 <label class="block text-sm font-medium text-slate-700 mb-1">ملاحظات (اختياري)</label>
-
                                 <input type="text" name="notes" x-model="editNotes" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-base">
-
                             </div>
-
                         </div>
-
                         <div class="mt-6 flex gap-3">
-
                             <button type="submit" class="w-full px-4 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700">حفظ التعديلات</button>
-
                             <button type="button" @click="editTransactionModal = false" class="w-full px-4 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">إلغاء</button>
-
                         </div>
-
                     </form>
-
                 </div>
-
             </div>
-
         </div>
 
-
-
-        <!-- Purchase Modal Component -->
-
+        <!-- Sale Modal Component -->
         <x-modals.sale-form :products="$products" :customers="[]" :fixedCustomer="$customer" />
 
-
-
-        <!-- View Details Modal -->
-
+        <!-- View Sale Invoice Details Modal -->
         <x-modals.invoice-details type="sale" />
 
-        
-
+        <!-- View Transaction Details Modal (for Payments and Returns) -->
         <x-modals.transaction-details />
+
+        <!-- Print Statement Modal -->
         <x-modals.print-statement type="customer" />
 
-
     </div>
-
 </x-layouts.app>

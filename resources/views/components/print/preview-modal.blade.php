@@ -1,44 +1,11 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
-
-$__newAttributes = [];
-$__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames(([
+@props([
     'id' => 'printPreviewModal',
     'title' => 'معاينة الطباعة (A4)',
     'printUrl' => '#',
     'maxWidth' => '3xl',
-]));
+])
 
-foreach ($attributes->all() as $__key => $__value) {
-    if (in_array($__key, $__propNames)) {
-        $$__key = $$__key ?? $__value;
-    } else {
-        $__newAttributes[$__key] = $__value;
-    }
-}
-
-$attributes = new \Illuminate\View\ComponentAttributeBag($__newAttributes);
-
-unset($__propNames);
-unset($__newAttributes);
-
-foreach (array_filter(([
-    'id' => 'printPreviewModal',
-    'title' => 'معاينة الطباعة (A4)',
-    'printUrl' => '#',
-    'maxWidth' => '3xl',
-]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
-    $$__key = $$__key ?? $__value;
-}
-
-$__defined_vars = get_defined_vars();
-
-foreach ($attributes->all() as $__key => $__value) {
-    if (array_key_exists($__key, $__defined_vars)) unset($$__key);
-}
-
-unset($__defined_vars, $__key, $__value); ?>
-
-<?php
+@php
 $maxWidthClass = match ($maxWidth) {
     'sm' => 'max-w-sm',
     'md' => 'max-w-md',
@@ -51,7 +18,7 @@ $maxWidthClass = match ($maxWidth) {
     '6xl' => 'max-w-6xl',
     default => $maxWidth,
 };
-?>
+@endphp
 
 <script>
     if (typeof window.openPrintPreviewModal === 'undefined') {
@@ -61,8 +28,8 @@ $maxWidthClass = match ($maxWidth) {
     }
 </script>
 
-<div x-data="{ open: false, loaded: false, currentUrl: '<?php echo e($printUrl); ?>' }" 
-     @open-print-preview.window="if ($event.detail.id === '<?php echo e($id); ?>') { open = true; loaded = true; if ($event.detail.url) { currentUrl = $event.detail.url; } }">
+<div x-data="{ open: false, loaded: false, currentUrl: '{{ $printUrl }}' }" 
+     @open-print-preview.window="if ($event.detail.id === '{{ $id }}') { open = true; loaded = true; if ($event.detail.url) { currentUrl = $event.detail.url; } }">
     <template x-teleport="body">
         <div x-show="open" 
              x-cloak
@@ -90,7 +57,7 @@ $maxWidthClass = match ($maxWidth) {
                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                  x-transition:leave-end="opacity-0 scale-95 translate-y-4"
                  style="height: 94vh; max-height: 94vh; margin-left: auto; margin-right: auto; z-index: 2;"
-                 class="relative transform overflow-hidden rounded-2xl bg-white text-right shadow-2xl transition-all w-full <?php echo e($maxWidthClass); ?> mx-auto border border-slate-200 flex flex-col font-[Cairo]">
+                 class="relative transform overflow-hidden rounded-2xl bg-white text-right shadow-2xl transition-all w-full {{ $maxWidthClass }} mx-auto border border-slate-200 flex flex-col font-[Cairo]">
                 
                 <!-- Modal Header -->
                 <div class="px-3 sm:px-5 py-3 bg-slate-50 border-b border-slate-200 text-slate-800 flex items-center justify-between gap-2 shrink-0">
@@ -99,7 +66,7 @@ $maxWidthClass = match ($maxWidth) {
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                         </div>
                         <div class="min-w-0">
-                            <h3 class="text-xs sm:text-sm font-black text-slate-800 leading-tight truncate" id="modal-title"><?php echo e($title); ?></h3>
+                            <h3 class="text-xs sm:text-sm font-black text-slate-800 leading-tight truncate" id="modal-title">{{ $title }}</h3>
                             <p class="text-[0.65rem] sm:text-[0.7rem] text-slate-500 font-medium mt-0.5 hidden sm:block">يرجى الانتظار حتى يكتمل تحميل المستند</p>
                         </div>
                     </div>
@@ -115,7 +82,7 @@ $maxWidthClass = match ($maxWidth) {
                 <!-- Modal Body (Live Preview Iframe) -->
                 <div style="flex: 1 1 0%; min-height: 0; display: flex; flex-direction: column;" class="relative bg-slate-100 p-1 sm:p-2 overflow-hidden">
                     <template x-if="loaded">
-                        <iframe id="<?php echo e($id); ?>_iframe" 
+                        <iframe id="{{ $id }}_iframe" 
                                 :src="currentUrl" 
                                 style="width: 100%; height: 100%; min-height: 100%; flex: 1 1 0%; border: 0;"
                                 class="rounded-xl border border-slate-300 bg-white shadow-inner block"
@@ -135,7 +102,7 @@ $maxWidthClass = match ($maxWidth) {
                             <span>حفظ كـ PDF</span>
                         </a>
                         <button type="button" 
-                                @click="document.getElementById('<?php echo e($id); ?>_iframe').contentWindow.print()" 
+                                @click="document.getElementById('{{ $id }}_iframe').contentWindow.print()" 
                                 class="flex-1 sm:flex-none px-4 py-1.5 bg-primary-600 hover:bg-primary-700 text-white font-extrabold rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                             <span>طباعة الآن</span>

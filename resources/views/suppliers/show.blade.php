@@ -1,15 +1,10 @@
-<?php if (isset($component)) { $__componentOriginal5863877a5171c196453bfa0bd807e410 = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginal5863877a5171c196453bfa0bd807e410 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.layouts.app','data' => ['title' => 'حساب المورد']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('layouts.app'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['title' => 'حساب المورد']); ?>
-     <?php $__env->slot('pageTitle', null, []); ?> حساب المورد <span class="text-sm font-normal text-slate-500 mr-2"><?php echo e($supplier->name); ?></span> <?php $__env->endSlot(); ?>
-     <?php $__env->slot('breadcrumb', null, []); ?> الموردين > تفاصيل المورد <?php $__env->endSlot(); ?>
+<x-layouts.app title="حساب المورد">
+    <x-slot name="pageTitle">
+        حساب المورد <span class="text-sm font-normal text-slate-500 mr-2">{{ $supplier->name }}</span>
+    </x-slot>
+    <x-slot name="breadcrumb">
+        الموردين > تفاصيل المورد
+    </x-slot>
 
     <div x-data="{ 
         showPaymentModal: false, 
@@ -42,11 +37,21 @@
                 this.loading = false;
             });
         },
+        editFromDetails(t) {
+            this.editType = t.type;
+            this.editId = t.id;
+            this.editDate = t.transaction_date;
+            this.editAmount = t.amount;
+            this.editQuantity = t.quantity || '';
+            this.editNotes = t.notes || '';
+            this.editTransactionModal = true;
+        },
         executePrint() {
-            openPrintPreviewModal('printPreviewModal', `/suppliers/<?php echo e($supplier->id); ?>/print?filter=${this.printFilter}&n=${this.printLimit}`);
+            openPrintPreviewModal('printPreviewModal', `/suppliers/{{ $supplier->id }}/print?filter=${this.printFilter}&n=${this.printLimit}`);
             this.showPrintModal = false;
         }
-    }">
+    }"
+    @edit-transaction.window="editFromDetails($event.detail)">
         <!-- Header Card -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5 mb-5">
             <!-- Top Section: Supplier Profile & Action Buttons -->
@@ -58,10 +63,10 @@
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <h3 class="text-base sm:text-lg font-bold text-slate-800"><?php echo e($supplier->name); ?></h3>
-                            <?php if($supplier->phone): ?>
-                                <span class="text-xs text-slate-500 font-mono bg-slate-50 px-2 py-0.5 rounded border border-slate-100" dir="ltr"><?php echo e($supplier->phone); ?></span>
-                            <?php endif; ?>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-800">{{ $supplier->name }}</h3>
+                            @if($supplier->phone)
+                                <span class="text-xs text-slate-500 font-mono bg-slate-50 px-2 py-0.5 rounded border border-slate-100" dir="ltr">{{ $supplier->phone }}</span>
+                            @endif
                         </div>
                         <p class="text-xs text-slate-400 mt-0.5">تفاصيل الحساب والعمليات المالية للمورد</p>
                     </div>
@@ -85,7 +90,7 @@
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                         طباعة كشف الحساب
                     </button>
-                    <a href="<?php echo e(route('suppliers.index')); ?>" class="p-2 bg-white border border-slate-200 text-slate-500 rounded-lg hover:bg-slate-50 text-xs font-bold shadow-sm transition-colors" title="العودة للقائمة">
+                    <a href="{{ route('suppliers.index') }}" class="p-2 bg-white border border-slate-200 text-slate-500 rounded-lg hover:bg-slate-50 text-xs font-bold shadow-sm transition-colors" title="العودة للقائمة">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                     </a>
                 </div>
@@ -93,9 +98,9 @@
 
             <!-- Printable Header Branding -->
             <div class="hidden print:block text-center border-b border-slate-200 pb-4 mb-4 mt-4">
-                <h1 class="text-xl font-black text-slate-900"><?php echo e(\App\Models\Setting::get('company_name', 'حديد مصر')); ?> - كشف حساب مورد</h1>
-                <h2 class="text-base font-bold text-slate-700 mt-1"><?php echo e($supplier->name); ?> (<?php echo e($supplier->phone); ?>)</h2>
-                <p class="text-xs text-slate-500 mt-1">تاريخ استخراج الكشف: <?php echo e(now()->format('Y-m-d g:i A')); ?></p>
+                <h1 class="text-xl font-black text-slate-900">{{ \App\Models\Setting::get('company_name', 'حديد مصر') }} - كشف حساب مورد</h1>
+                <h2 class="text-base font-bold text-slate-700 mt-1">{{ $supplier->name }} ({{ $supplier->phone }})</h2>
+                <p class="text-xs text-slate-500 mt-1">تاريخ استخراج الكشف: {{ now()->format('Y-m-d g:i A') }}</p>
             </div>
 
             <!-- Bottom Section: 3 Stats in a clean balanced row -->
@@ -108,7 +113,7 @@
                         </div>
                         <div>
                             <p class="text-[0.7rem] text-slate-400 font-bold">إجمالي المشتريات</p>
-                            <p class="text-sm sm:text-base font-black text-slate-800 mt-0.5" dir="ltr"><?php echo e(number_format($totalPurchases ?? 0, 0)); ?> <span class="text-[0.65rem] text-slate-400 font-normal">ج.م</span></p>
+                            <p class="text-sm sm:text-base font-black text-slate-800 mt-0.5" dir="ltr">{{ number_format($totalPurchases ?? 0, 0) }} <span class="text-[0.65rem] text-slate-400 font-normal">ج.م</span></p>
                         </div>
                     </div>
                 </div>
@@ -121,33 +126,33 @@
                         </div>
                         <div>
                             <p class="text-[0.7rem] text-slate-400 font-bold">إجمالي المسدد</p>
-                            <p class="text-sm sm:text-base font-black text-slate-800 mt-0.5" dir="ltr"><?php echo e(number_format($totalPayments ?? 0, 0)); ?> <span class="text-[0.65rem] text-slate-400 font-normal">ج.م</span></p>
+                            <p class="text-sm sm:text-base font-black text-slate-800 mt-0.5" dir="ltr">{{ number_format($totalPayments ?? 0, 0) }} <span class="text-[0.65rem] text-slate-400 font-normal">ج.م</span></p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Current Balance -->
-                <?php
+                @php
                     $isOwed = $supplier->balance > 0;
                     $isCredit = $supplier->balance < 0;
-                    $balanceColor = $isOwed ? 'text-danger-600' : ($isCredit ? 'text-emerald-600' : 'text-slate-700');
-                    $cardBg = $isOwed ? 'bg-danger-50/50 border-danger-100/80' : ($isCredit ? 'bg-emerald-50/50 border-emerald-100/80' : 'bg-slate-50/80 border-slate-100');
-                    $badgeBg = $isOwed ? 'bg-danger-100 text-danger-700' : ($isCredit ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700');
-                    $balanceLabel = $isOwed ? 'المتبقي له' : ($isCredit ? 'المتبقي عليه' : 'الرصيد');
-                    $badgeText = $isOwed ? 'دائن' : ($isCredit ? 'مدين' : 'خالص');
+                    $balanceColor = $isOwed ? 'text-amber-800' : ($isCredit ? 'text-emerald-600' : 'text-slate-700');
+                    $cardBg = $isOwed ? 'bg-amber-50/60 border-amber-200/80' : ($isCredit ? 'bg-emerald-50/50 border-emerald-100/80' : 'bg-slate-50/80 border-slate-100');
+                    $badgeBg = $isOwed ? 'bg-amber-100 text-amber-800' : ($isCredit ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700');
+                    $balanceLabel = $isOwed ? 'مستحق للمورد (علينا له)' : ($isCredit ? 'لنا عند المورد (دافعين زيادة)' : 'حالة الحساب');
+                    $badgeText = $isOwed ? 'مستحق للمورد' : ($isCredit ? 'لنا عنده' : 'خالص');
                     $absBalance = abs($supplier->balance);
-                ?>
-                <div class="<?php echo e($cardBg); ?> rounded-lg p-3 border flex items-center justify-between">
+                @endphp
+                <div class="{{ $cardBg }} rounded-lg p-3 border flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg <?php echo e($isOwed ? 'bg-danger-100/80 text-danger-600' : ($isCredit ? 'bg-emerald-100/80 text-emerald-600' : 'bg-slate-200 text-slate-600')); ?> flex items-center justify-center shrink-0">
+                        <div class="w-8 h-8 rounded-lg {{ $isOwed ? 'bg-amber-100 text-amber-800' : ($isCredit ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-200 text-slate-600') }} flex items-center justify-center shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
                         <div>
                             <div class="flex items-center gap-1.5">
-                                <p class="text-[0.7rem] font-bold text-slate-600"><?php echo e($balanceLabel); ?></p>
-                                <span class="px-1.5 py-0.2 rounded text-[0.6rem] font-black <?php echo e($badgeBg); ?>"><?php echo e($badgeText); ?></span>
+                                <p class="text-[0.7rem] font-bold text-slate-600">{{ $balanceLabel }}</p>
+                                <span class="px-1.5 py-0.2 rounded text-[0.6rem] font-black {{ $badgeBg }}">{{ $badgeText }}</span>
                             </div>
-                            <p class="text-sm sm:text-base font-black <?php echo e($balanceColor); ?> mt-0.5" dir="ltr"><?php echo e(number_format($absBalance, 0)); ?> <span class="text-[0.65rem] font-bold">ج.م</span></p>
+                            <p class="text-sm sm:text-base font-black {{ $balanceColor }} mt-0.5" dir="ltr">{{ number_format($absBalance, 0) }} <span class="text-[0.65rem] font-bold">ج.م</span></p>
                         </div>
                     </div>
                 </div>
@@ -160,103 +165,82 @@
                 <svg class="w-4 h-4 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 سجل العمليات
             </h4>
-            <?php $__empty_1 = true; $__currentLoopData = $transactions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $transaction): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+            @forelse($transactions as $transaction)
             <div class="bg-white rounded-xl border border-slate-100 shadow-sm p-3">
                 <div class="flex justify-between items-center mb-2">
-                    <?php if($transaction->type === 'purchase'): ?>
+                    @if($transaction->type === 'purchase')
                         <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-primary-50 text-primary-600 border border-primary-100">شراء</span>
-                    <?php elseif($transaction->type === 'payment_made'): ?>
+                    @elseif($transaction->type === 'payment_made')
                         <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-blue-50 text-blue-600 border border-blue-100">سداد</span>
-                    <?php elseif($transaction->type === 'return_purchase'): ?>
+                    @elseif($transaction->type === 'return_purchase')
                         <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-amber-50 text-amber-600 border border-amber-100">مرتجع</span>
-                    <?php else: ?>
-                        <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-slate-100 text-slate-600"><?php echo e($transaction->type); ?></span>
-                    <?php endif; ?>
-                    <span class="text-[0.65rem] text-slate-400 font-bold"><?php echo e($transaction->transaction_date->format('d/m/Y')); ?></span>
+                    @else
+                        <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-slate-100 text-slate-600">{{ $transaction->type }}</span>
+                    @endif
+                    <span class="text-[0.65rem] text-slate-400 font-bold">{{ $transaction->transaction_date->format('d/m/Y') }}</span>
                 </div>
-                <?php if($transaction->notes): ?><p class="text-xs text-slate-500 mb-2 truncate"><?php echo e($transaction->notes); ?></p><?php endif; ?>
+                @if($transaction->notes)<p class="text-xs text-slate-500 mb-2 truncate">{{ $transaction->notes }}</p>@endif
                 <div class="flex justify-between items-center text-xs border-t border-slate-50 pt-2 mb-2">
                     <div>
                         <span class="text-slate-400">الكمية:</span>
-                        <span class="font-bold text-slate-700" dir="ltr"><?php echo e($transaction->quantity ? number_format($transaction->quantity, 2) . ' ك' : '-'); ?></span>
+                        <span class="font-bold text-slate-700" dir="ltr">{{ $transaction->quantity ? number_format($transaction->quantity, 2) . ' ك' : '-' }}</span>
                     </div>
                     <div>
                         <span class="text-slate-400">سعر الكيلو:</span>
                         <span class="font-bold text-slate-700" dir="ltr">
-                            <?php if($transaction->quantity > 0): ?>
-                                <?php echo e(number_format($transaction->total_amount / $transaction->quantity, 2)); ?>
-
-                            <?php else: ?>
+                            @if($transaction->quantity > 0)
+                                {{ number_format($transaction->total_amount / $transaction->quantity, 2) }}
+                            @else
                                 -
-                            <?php endif; ?>
+                            @endif
                         </span>
                     </div>
                 </div>
                 <div class="flex justify-between items-center text-xs border-t border-slate-50 pt-2">
                     <div>
                         <span class="text-slate-400">المبلغ:</span>
-                        <span class="font-bold text-slate-700" dir="ltr"><?php echo e(number_format($transaction->total_amount, 0)); ?></span>
+                        <span class="font-bold text-slate-700" dir="ltr">{{ number_format($transaction->total_amount, 0) }}</span>
                     </div>
                     <div>
                         <span class="text-slate-400">مسدد:</span>
-                        <span class="font-bold text-primary-600" dir="ltr"><?php echo e(number_format($transaction->paid_amount, 0)); ?></span>
+                        <span class="font-bold text-primary-600" dir="ltr">{{ number_format($transaction->paid_amount, 0) }}</span>
                     </div>
                     <div>
                         <span class="text-slate-400">المتبقي:</span>
-                        <span class="font-black text-danger-600" dir="ltr"><?php echo e(number_format($transaction->balance_after, 0)); ?></span>
+                        <span class="font-black text-danger-600" dir="ltr">{{ number_format($transaction->balance_after, 0) }}</span>
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 mt-2 pt-2 border-t border-slate-50">
                     <div class="flex items-center justify-center gap-1.5">
                         @if($transaction->type === 'purchase' && $transaction->invoice_id)
-                            <button type="button" @click="viewPurchase({{ $transaction->invoice_id }})" class="p-1.5 rounded border border-slate-200 bg-white text-slate-400 hover:text-emerald-600 hover:border-emerald-600 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض التفاصيل">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <button type="button" @click="viewPurchase({{ $transaction->invoice_id }})" class="p-1.5 rounded border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض الفاتورة">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                             </button>
-                            <button type="button" @click="editPurchase({{ $transaction->invoice_id }})" class="p-1.5 rounded border border-slate-200 bg-white text-slate-400 hover:text-blue-600 hover:border-blue-600 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                            <button type="button" @click="editPurchase({{ $transaction->invoice_id }})" class="p-1.5 rounded border border-slate-200 bg-white text-blue-600 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             </button>
                         @else
-                            <button type="button" @click="$dispatch('view-transaction', {{ $transaction->id }})" class="p-1.5 rounded border border-slate-200 bg-white text-slate-400 hover:text-emerald-600 hover:border-emerald-600 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض التفاصيل">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <button type="button" @click="$dispatch('view-transaction', {{ $transaction->id }})" class="p-1.5 rounded border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض التفاصيل / الإيصال">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                             </button>
-                            <button type="button" @click="editTransactionModal = true; editType = '{{ $transaction->type }}'; editId = '{{ $transaction->id }}'; editDate = '{{ $transaction->transaction_date->format('Y-m-d') }}'; editAmount = '{{ in_array($transaction->type, ['payment_received', 'payment_made']) ? $transaction->paid_amount : $transaction->total_amount }}'; editQuantity = '{{ $transaction->quantity ?? '' }}'; editNotes = '{{ $transaction->notes }}'" class="p-1.5 rounded border border-slate-200 bg-white text-slate-400 hover:text-blue-600 hover:border-blue-600 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                            <button type="button" @click="editTransactionModal = true; editType = '{{ $transaction->type }}'; editId = '{{ $transaction->id }}'; editDate = '{{ $transaction->transaction_date->format('Y-m-d') }}'; editAmount = '{{ in_array($transaction->type, ['payment_received', 'payment_made']) ? $transaction->paid_amount : $transaction->total_amount }}'; editQuantity = '{{ $transaction->quantity ?? '' }}'; editNotes = '{{ addslashes($transaction->notes ?? '') }}'" class="p-1.5 rounded border border-slate-200 bg-white text-blue-600 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             </button>
                         @endif
                     </div>
-                    <button type="button" x-on:click="$dispatch('open-modal', 'delete-transaction-<?php echo e($transaction->id); ?>')" class="p-1.5 rounded border border-slate-200 bg-white text-slate-400 hover:text-danger-600 hover:border-danger-600 hover:bg-danger-50 shadow-sm transition-all inline-flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
-                    <?php
+                    @php
                         $deleteAction = route('transactions.destroy', $transaction->id);
                         if ($transaction->type === 'purchase' && $transaction->invoice_id) $deleteAction = route('purchases.destroy', $transaction->invoice_id);
-                        if ($transaction->type === 'sale' && $transaction->invoice_id) $deleteAction = route('sales.destroy', $transaction->invoice_id);
-                    ?>
-                    <?php if (isset($component)) { $__componentOriginalb7eac87efb73c0c2c26fe03ec80faafd = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginalb7eac87efb73c0c2c26fe03ec80faafd = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.delete-modal','data' => ['name' => 'delete-transaction-'.e($transaction->id).'','action' => ''.e($deleteAction).'']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('delete-modal'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['name' => 'delete-transaction-'.e($transaction->id).'','action' => ''.e($deleteAction).'']); ?>
-<?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginalb7eac87efb73c0c2c26fe03ec80faafd)): ?>
-<?php $attributes = $__attributesOriginalb7eac87efb73c0c2c26fe03ec80faafd; ?>
-<?php unset($__attributesOriginalb7eac87efb73c0c2c26fe03ec80faafd); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginalb7eac87efb73c0c2c26fe03ec80faafd)): ?>
-<?php $component = $__componentOriginalb7eac87efb73c0c2c26fe03ec80faafd; ?>
-<?php unset($__componentOriginalb7eac87efb73c0c2c26fe03ec80faafd); ?>
-<?php endif; ?>
+                    @endphp
+                    <button type="button" x-on:click="$dispatch('open-modal', 'delete-transaction-{{ $transaction->id }}')" class="p-1.5 rounded border border-slate-200 bg-white text-danger-600 hover:text-danger-700 hover:border-danger-300 hover:bg-danger-50 shadow-sm transition-all inline-flex items-center justify-center" title="حذف">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-danger-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                    <x-delete-modal name="delete-transaction-{{ $transaction->id }}" action="{{ $deleteAction }}" />
                 </div>
             </div>
-            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+            @empty
             <div class="bg-white rounded-xl border border-slate-100 p-8 text-center text-sm text-slate-500">لا توجد عمليات مسجلة.</div>
-            <?php endif; ?>
+            @endforelse
         </div>
 
         <!-- Desktop Transaction Table -->
@@ -284,235 +268,410 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php $__empty_1 = true; $__currentLoopData = $transactions; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $transaction): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                            @forelse($transactions as $transaction)
                             <tr class="hover:bg-slate-50/60 transition-colors">
-                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100 font-medium"><?php echo e($transaction->transaction_date->format('d/m/Y')); ?></td>
+                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100 font-medium">{{ $transaction->transaction_date->format('d/m/Y') }}</td>
                                 <td class="px-2.5 py-3 border-b border-slate-100">
-                                    <?php if($transaction->type === 'purchase'): ?><span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-primary-50 text-primary-600 border border-primary-100">شراء</span>
-                                    <?php elseif($transaction->type === 'payment_made'): ?><span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-blue-50 text-blue-600 border border-blue-100">سداد دفعة</span>
-                                    <?php elseif($transaction->type === 'return_purchase'): ?><span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-amber-50 text-amber-600 border border-amber-100">مرتجع شراء</span>
-                                    <?php else: ?><span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-slate-100 text-slate-600"><?php echo e($transaction->type); ?></span><?php endif; ?>
+                                    @if($transaction->type === 'purchase')
+                                        <span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-primary-50 text-primary-600 border border-primary-100">شراء</span>
+                                    @elseif($transaction->type === 'payment_made')
+                                        <span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-blue-50 text-blue-600 border border-blue-100">سداد دفعة</span>
+                                    @elseif($transaction->type === 'return_purchase')
+                                        <span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-amber-50 text-amber-600 border border-amber-100">مرتجع شراء</span>
+                                    @else
+                                        <span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-slate-100 text-slate-600">{{ $transaction->type }}</span>
+                                    @endif
                                 </td>
-                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100"><?php echo e($transaction->notes ?? '-'); ?></td>
-                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr"><?php echo e($transaction->quantity ? number_format($transaction->quantity, 2) . ' ك' : '-'); ?></td>
+                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100">{{ $transaction->notes ?? '-' }}</td>
+                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">{{ $transaction->quantity ? number_format($transaction->quantity, 2) . ' ك' : '-' }}</td>
                                 <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">
-                                    <?php if($transaction->quantity > 0): ?>
-                                        <?php echo e(number_format($transaction->total_amount / $transaction->quantity, 2)); ?> <span class="text-[0.65rem] text-slate-400">ج.م</span>
-                                    <?php else: ?>
+                                    @if($transaction->quantity > 0)
+                                        {{ number_format($transaction->total_amount / $transaction->quantity, 2) }} <span class="text-[0.65rem] text-slate-400">ج.م</span>
+                                    @else
                                         -
-                                    <?php endif; ?>
+                                    @endif
                                 </td>
-                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr"><?php echo e($transaction->total_amount > 0 ? number_format($transaction->total_amount, 0) . ' ج.م' : '-'); ?></td>
-                                <?php
-                                    $balanceBefore = $transaction->balance_after - ($transaction->total_amount - $transaction->paid_amount);
-                                    $credit = $balanceBefore < 0 ? -$balanceBefore : 0;
-                                    $uncovered = $transaction->total_amount - $transaction->paid_amount;
-                                    $usedCredit = min(max(0, $uncovered), $credit);
-                                    $effectivePaid = $transaction->paid_amount + $usedCredit;
-                                    $effectiveRemaining = $uncovered - $usedCredit;
-                                ?>
+                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">{{ $transaction->total_amount > 0 ? number_format($transaction->total_amount, 0) . ' ج.م' : '-' }}</td>
                                 <td class="px-2.5 py-3 text-[0.8rem] text-emerald-600 font-bold border-b border-slate-100" dir="ltr">
-                                    <?php if($effectivePaid > 0): ?>
-                                        <?php echo e(number_format($effectivePaid, 0)); ?> ج.م
-                                        <?php if($usedCredit > 0): ?>
-                                            <div class="text-[0.6rem] text-slate-400 mt-0.5">(منها <?php echo e(number_format($usedCredit, 0)); ?> رصيد)</div>
-                                        <?php endif; ?>
-                                    <?php else: ?>
-                                        -
-                                    <?php endif; ?>
+                                    {{ $transaction->paid_amount > 0 ? number_format($transaction->paid_amount, 0) . ' ج.م' : '-' }}
                                 </td>
                                 <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">
-                                    <?php if(in_array($transaction->type, ['purchase', 'sale', 'return_purchase', 'return_sale'])): ?>
-                                        <?php if($effectiveRemaining <= 0): ?>
+                                    @if(in_array($transaction->type, ['purchase', 'sale', 'return_purchase', 'return_sale']))
+                                        @php
+                                            $uncovered = $transaction->total_amount - $transaction->paid_amount;
+                                        @endphp
+                                        @if($uncovered <= 0)
                                             <span class="text-emerald-500 font-bold text-xs bg-emerald-50 px-2 py-0.5 rounded">خالصة</span>
-                                        <?php else: ?>
-                                            <span class="text-danger-500 font-bold"><?php echo e(number_format($effectiveRemaining, 0)); ?> ج.م</span>
-                                        <?php endif; ?>
-                                    <?php else: ?>
+                                        @else
+                                            <span class="text-danger-500 font-bold">{{ number_format($uncovered, 0) }} ج.م</span>
+                                        @endif
+                                    @else
                                         -
-                                    <?php endif; ?>
+                                    @endif
                                 </td>
                                 <td class="px-2.5 py-3 border-b border-slate-100 text-center">
                                     <div class="flex items-center justify-center gap-1.5">
-                                        <?php if($transaction->type === 'purchase' && $transaction->invoice_id): ?>
-                                            <button type="button" @click="viewPurchase(<?php echo e($transaction->invoice_id); ?>)" class="p-1 rounded border border-slate-200 bg-white text-slate-400 hover:text-emerald-600 hover:border-emerald-600 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض التفاصيل">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                        @if($transaction->type === 'purchase' && $transaction->invoice_id)
+                                            <button type="button" @click="viewPurchase({{ $transaction->invoice_id }})" class="p-1 rounded border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض الفاتورة">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                             </button>
-                                        <?php endif; ?>
-                                        <?php if($transaction->type === 'purchase' && $transaction->invoice_id): ?>
-                                            <button type="button" @click="editPurchase(<?php echo e($transaction->invoice_id); ?>)" class="p-1 rounded border border-slate-200 bg-white text-slate-400 hover:text-blue-600 hover:border-blue-600 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                            <button type="button" @click="editPurchase({{ $transaction->invoice_id }})" class="p-1 rounded border border-slate-200 bg-white text-blue-600 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                             </button>
-                                        <?php else: ?>
-                                            <button type="button" @click="editTransactionModal = true; editType = '<?php echo e($transaction->type); ?>'; editId = '<?php echo e($transaction->id); ?>'; editDate = '<?php echo e($transaction->transaction_date->format('Y-m-d')); ?>'; editAmount = '<?php echo e(in_array($transaction->type, ['payment_received', 'payment_made', 'payment_made']) ? $transaction->paid_amount : $transaction->total_amount); ?>'; editQuantity = '<?php echo e($transaction->quantity ?? ''); ?>'; editNotes = '<?php echo e($transaction->notes); ?>'" class="p-1 rounded border border-slate-200 bg-white text-slate-400 hover:text-blue-600 hover:border-blue-600 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                        @else
+                                            <button type="button" @click="$dispatch('view-transaction', {{ $transaction->id }})" class="p-1 rounded border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض التفاصيل / الإيصال">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                             </button>
-                                        <?php endif; ?>
-                                        <button type="button" x-on:click="$dispatch('open-modal', 'delete-transaction-<?php echo e($transaction->id); ?>')" class="p-1 rounded border border-slate-200 bg-white text-slate-400 hover:text-danger-600 hover:border-danger-600 hover:bg-danger-50 shadow-sm transition-all inline-flex items-center justify-center" title="حذف">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                        </button>
-                                        <?php
+                                            <button type="button" @click="editTransactionModal = true; editType = '{{ $transaction->type }}'; editId = '{{ $transaction->id }}'; editDate = '{{ $transaction->transaction_date->format('Y-m-d') }}'; editAmount = '{{ in_array($transaction->type, ['payment_received', 'payment_made']) ? $transaction->paid_amount : $transaction->total_amount }}'; editQuantity = '{{ $transaction->quantity ?? '' }}'; editNotes = '{{ addslashes($transaction->notes ?? '') }}'" class="p-1 rounded border border-slate-200 bg-white text-blue-600 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                            </button>
+                                        @endif
+                                        @php
                                             $deleteAction = route('transactions.destroy', $transaction->id);
                                             if ($transaction->type === 'purchase' && $transaction->invoice_id) $deleteAction = route('purchases.destroy', $transaction->invoice_id);
-                                            if ($transaction->type === 'sale' && $transaction->invoice_id) $deleteAction = route('sales.destroy', $transaction->invoice_id);
-                                        ?>
-                                        <?php if (isset($component)) { $__componentOriginalb7eac87efb73c0c2c26fe03ec80faafd = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginalb7eac87efb73c0c2c26fe03ec80faafd = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.delete-modal','data' => ['name' => 'delete-transaction-'.e($transaction->id).'','action' => ''.e($deleteAction).'']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('delete-modal'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['name' => 'delete-transaction-'.e($transaction->id).'','action' => ''.e($deleteAction).'']); ?>
-<?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginalb7eac87efb73c0c2c26fe03ec80faafd)): ?>
-<?php $attributes = $__attributesOriginalb7eac87efb73c0c2c26fe03ec80faafd; ?>
-<?php unset($__attributesOriginalb7eac87efb73c0c2c26fe03ec80faafd); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginalb7eac87efb73c0c2c26fe03ec80faafd)): ?>
-<?php $component = $__componentOriginalb7eac87efb73c0c2c26fe03ec80faafd; ?>
-<?php unset($__componentOriginalb7eac87efb73c0c2c26fe03ec80faafd); ?>
-<?php endif; ?>
+                                        @endphp
+                                        <button type="button" x-on:click="$dispatch('open-modal', 'delete-transaction-{{ $transaction->id }}')" class="p-1 rounded border border-slate-200 bg-white text-danger-600 hover:text-danger-700 hover:border-danger-300 hover:bg-danger-50 shadow-sm transition-all inline-flex items-center justify-center" title="حذف">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-danger-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        </button>
+                                        <x-delete-modal name="delete-transaction-{{ $transaction->id }}" action="{{ $deleteAction }}" />
                                     </div>
                                 </td>
                             </tr>
-                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                            <tr><td colspan="8" class="px-4 py-8 text-sm text-slate-500 text-center">لا توجد عمليات مسجلة.</td></tr>
-                            <?php endif; ?>
+                            @empty
+                            <tr><td colspan="9" class="px-4 py-8 text-sm text-slate-500 text-center">لا توجد عمليات مسجلة.</td></tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Payment Modal -->
-        <div x-show="showPaymentModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center">
+        @if($transactions->hasPages())
+            <div class="mt-4">
+                {{ $transactions->links() }}
+            </div>
+        @endif
+
+        <!-- Payment Modal (Wide Layout with Live Balance Indicator) -->
+        <div x-show="showPaymentModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center sm:p-0">
                 <div x-show="showPaymentModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/50" @click="showPaymentModal = false"></div>
-                <div x-show="showPaymentModal" x-transition class="relative w-full max-w-md p-5 sm:p-6 overflow-hidden text-right transition-all transform bg-white shadow-xl rounded-2xl">
+                <div x-show="showPaymentModal" 
+                     x-data="{
+                         amount: '',
+                         date: '{{ date('Y-m-d') }}',
+                         notes: '',
+                         currentBalance: {{ (float)$supplier->balance }},
+                         get newBalance() {
+                             return this.currentBalance - (parseFloat(this.amount) || 0);
+                         },
+                         formatBalance(val) {
+                             if (!val || val == 0) return '0 ج.م (خالص)';
+                             if (val > 0) return Number(val).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (له علينا)';
+                             return Number(Math.abs(val)).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (لنا عنده)';
+                         }
+                     }"
+                     x-transition class="relative w-full max-w-2xl p-5 sm:p-6 overflow-hidden text-right transition-all transform bg-white shadow-xl rounded-2xl">
                     <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
-                        <h3 class="text-lg font-bold text-slate-800">تسجيل دفعة للمورد</h3>
-                        <button @click="showPaymentModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
-                    </div>
-                    <form action="<?php echo e(route('suppliers.payment', $supplier->id)); ?>" method="POST">
-                        <?php echo csrf_field(); ?>
-                        <div class="space-y-4">
-                            <div><label class="block text-sm font-medium text-slate-700 mb-1">المبلغ المسدد (ج.م)</label><input type="number" name="amount" min="1" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr"></div>
-                            <div><label class="block text-sm font-medium text-slate-700 mb-1">تاريخ الدفعة</label><input type="date" name="date" required value="<?php echo e(date('Y-m-d')); ?>" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr"></div>
-                            <div><label class="block text-sm font-medium text-slate-700 mb-1">البيان</label><input type="text" name="notes" placeholder="دفعة نقدية، تحويل بنكي..." class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-base"></div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-800">تسجيل سداد للمورد: {{ $supplier->name }}</h3>
                         </div>
-                        <div class="mt-6 flex gap-3">
-                            <button type="submit" class="w-full px-4 py-2.5 text-sm font-bold text-white bg-primary-600 rounded-lg hover:bg-primary-700">حفظ الدفعة</button>
-                            <button type="button" @click="showPaymentModal = false" class="w-full px-4 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">إلغاء</button>
+                        <button type="button" @click="showPaymentModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                    </div>
+                    <form action="{{ route('suppliers.payment', $supplier->id) }}" method="POST">
+                        @csrf
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 mb-5">
+                            <!-- Main Inputs (7 cols) -->
+                            <div class="md:col-span-7 space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">المبلغ المسدد (ج.م) <span class="text-danger-500">*</span></label>
+                                    <input type="number" step="0.01" name="amount" x-model="amount" min="0.01" required placeholder="0.00" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-left bg-slate-50 text-base font-bold text-slate-800" dir="ltr">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">تاريخ السداد <span class="text-danger-500">*</span></label>
+                                    <input type="date" name="date" required x-model="date" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-left bg-slate-50 text-xs font-bold" dir="ltr">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">البيان / ملاحظات (اختياري)</label>
+                                    <input type="text" name="notes" x-model="notes" placeholder="سداد نقدي، تحويل بنكي..." class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 bg-slate-50 text-xs">
+                                </div>
+                            </div>
+
+                            <!-- Live Balance Card (5 cols) -->
+                            <div class="md:col-span-5 flex flex-col justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1 mb-3">
+                                        <svg class="w-3.5 h-3.5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                                        مؤشر الحساب المالي
+                                    </h4>
+                                    <div class="space-y-2.5">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="text-slate-500">الرصيد الحالي:</span>
+                                            <span class="font-bold text-slate-800" dir="ltr" x-text="formatBalance(currentBalance)"></span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="text-slate-500">المبلغ المسدد:</span>
+                                            <span class="font-bold text-emerald-600" dir="ltr" x-text="(parseFloat(amount) || 0).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م'"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pt-3 border-t border-slate-200">
+                                    <div class="flex justify-between items-center gap-2">
+                                        <span class="text-xs font-bold text-slate-700 whitespace-nowrap shrink-0">الرصيد بعد السداد:</span>
+                                        <span class="text-xs sm:text-sm font-black whitespace-nowrap" :class="newBalance > 0 ? 'text-emerald-600' : (newBalance < 0 ? 'text-danger-600' : 'text-slate-600')" dir="ltr" x-text="formatBalance(newBalance)"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 pt-3 border-t border-slate-100">
+                            <button type="submit" class="w-full sm:w-auto px-6 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-sm shadow-emerald-600/20">حفظ السداد</button>
+                            <button type="button" @click="showPaymentModal = false" class="w-full sm:w-auto px-6 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">إلغاء</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
 
-        <!-- Return Modal -->
-        <div x-show="showReturnModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center">
+        <!-- Return Modal (Wide Layout with Stock Check, Price Hints, and Live Balance Projection) -->
+        <div x-show="showReturnModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center sm:p-0">
                 <div x-show="showReturnModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/50" @click="showReturnModal = false"></div>
-                <div x-show="showReturnModal" x-transition class="relative w-full max-w-md p-5 sm:p-6 text-right transition-all transform bg-white shadow-xl rounded-2xl">
-                    <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
-                        <h3 class="text-lg font-bold text-slate-800">تسجيل مرتجع شراء</h3>
-                        <button @click="showReturnModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
-                    </div>
-                    <form action="<?php echo e(route('suppliers.return', $supplier->id)); ?>" method="POST">
-                        <?php echo csrf_field(); ?>
-                        <div class="space-y-4">
-                            <!-- Searchable Product Combobox -->
-                            <div x-data="{
-                                open: false,
-                                search: '',
-                                selectedId: '',
-                                selectedName: '',
-                                products: <?php echo e(Js::from($products)); ?>,
-                                get filteredProducts() {
-                                    if (!this.search) return this.products;
-                                    return this.products.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase()));
-                                },
-                                selectProduct(product) {
-                                    this.selectedId = product.id;
-                                    this.selectedName = product.name + ' (متوفر: ' + Number(product.stock).toLocaleString('en-US') + ' ك)';
-                                    this.open = false;
-                                    this.search = '';
-                                }
-                            }" class="relative">
-                                <label class="block text-sm font-bold text-slate-700 mb-1.5">المنتج المسترجع للمورد <span class="text-danger-500">*</span></label>
-                                <input type="hidden" name="product_id" :value="selectedId" required>
-                                
-                                <!-- Trigger Button -->
-                                <button type="button" 
-                                        @click="open = !open" 
-                                        class="w-full flex items-center justify-between px-3.5 py-2.5 bg-slate-50 hover:bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all text-right">
-                                    <span class="text-sm font-bold truncate" :class="selectedId ? 'text-slate-800' : 'text-slate-400'" x-text="selectedId ? selectedName : 'اختر المنتج المطلوب...'"></span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 mr-2" :class="open ? 'rotate-180 text-primary-600' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
+                <div x-show="showReturnModal" 
+                     x-data="{
+                         openProduct: false,
+                         searchProduct: '',
+                         products: {{ Js::from($products) }},
+                         selectedId: '',
+                         selectedProduct: null,
+                         quantity: 1,
+                         unitPrice: '',
+                         amount: '',
+                         paidAmount: 0,
+                         date: '{{ date('Y-m-d') }}',
+                         notes: '',
+                         currentBalance: {{ (float)$supplier->balance }},
+                         priceInfo: null,
+                         priceInfoLoading: false,
 
-                                <!-- Dropdown Menu -->
-                                <div x-show="open" 
-                                     @click.outside="open = false" 
-                                     x-transition:enter="transition ease-out duration-150"
-                                     x-transition:enter-start="opacity-0 translate-y-1"
-                                     x-transition:enter-end="opacity-100 translate-y-0"
-                                     x-transition:leave="transition ease-in duration-100"
-                                     x-transition:leave-start="opacity-100 translate-y-0"
-                                     x-transition:leave-end="opacity-0 translate-y-1"
-                                     class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden" 
-                                     style="display: none;">
-                                    
-                                    <!-- Search Input -->
-                                    <div class="p-2 border-b border-slate-100 bg-slate-50/70">
-                                        <div class="relative">
-                                            <input type="text" 
-                                                   x-model="search" 
-                                                   placeholder="ابحث عن الصنف بالاسم..." 
-                                                   class="w-full pl-3 pr-8 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-400"
-                                                   @keydown.escape="open = false">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 absolute right-2.5 top-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                            </svg>
+                         get filteredProducts() {
+                             if (!this.searchProduct) return this.products;
+                             return this.products.filter(p => p.name.toLowerCase().includes(this.searchProduct.toLowerCase()));
+                         },
+
+                         selectProduct(p) {
+                             this.selectedId = p.id;
+                             this.selectedProduct = p;
+                             this.openProduct = false;
+                             this.searchProduct = '';
+                             this.fetchPriceInfo(p.id);
+                         },
+
+                         get stockExceeded() {
+                             if (!this.selectedProduct) return false;
+                             return (parseFloat(this.quantity) || 0) > parseFloat(this.selectedProduct.stock);
+                         },
+
+                         fetchPriceInfo(productId) {
+                             this.priceInfoLoading = true;
+                             this.priceInfo = null;
+                             fetch(`/api/products/${productId}/price-info?type=purchase&entity_id={{ $supplier->id }}`)
+                                 .then(res => res.json())
+                                 .then(data => {
+                                     this.priceInfo = data;
+                                     this.priceInfoLoading = false;
+                                     if (data.entity && data.entity !== 'لا يوجد' && !this.unitPrice) {
+                                         this.unitPrice = parseFloat(data.entity.replace(/,/g, ''));
+                                         this.calcAmount();
+                                     } else if (data.overall && data.overall !== 'لا يوجد' && !this.unitPrice) {
+                                         this.unitPrice = parseFloat(data.overall.replace(/,/g, ''));
+                                         this.calcAmount();
+                                     }
+                                 }).catch(() => {
+                                     this.priceInfoLoading = false;
+                                 });
+                         },
+
+                         calcAmount() {
+                             if (this.quantity && this.unitPrice !== '') {
+                                 this.amount = ((parseFloat(this.quantity) || 0) * (parseFloat(this.unitPrice) || 0)).toFixed(2);
+                             }
+                         },
+
+                         calcUnitPrice() {
+                             if (this.quantity && this.amount !== '' && parseFloat(this.quantity) > 0) {
+                                 this.unitPrice = ((parseFloat(this.amount) || 0) / (parseFloat(this.quantity) || 1)).toFixed(2);
+                             }
+                         },
+
+                         get newBalance() {
+                             const retVal = parseFloat(this.amount) || 0;
+                             const refunded = parseFloat(this.paidAmount) || 0;
+                             return this.currentBalance - (retVal - refunded);
+                         },
+
+                         formatBalance(val) {
+                             if (!val || val == 0) return '0 ج.م (خالص)';
+                             if (val > 0) return Number(val).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (له علينا)';
+                             return Number(Math.abs(val)).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (لنا عنده)';
+                         }
+                     }"
+                     x-transition class="relative w-full max-w-4xl p-5 sm:p-6 text-right transition-all transform bg-white shadow-xl rounded-2xl">
+                    <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-800">تسجيل مرتجع شراء للمورد: {{ $supplier->name }}</h3>
+                        </div>
+                        <button type="button" @click="showReturnModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                    </div>
+
+                    <form action="{{ route('suppliers.return', $supplier->id) }}" method="POST">
+                        @csrf
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mb-5">
+                            
+                            <!-- Left Info Cards (5 cols) -->
+                            <div class="md:col-span-5 space-y-4">
+                                <!-- Live Projected Balance Card -->
+                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                                    <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                                        تأثير المرتجع على رصيد المورد
+                                    </h4>
+                                    <div class="space-y-2 text-xs border-b border-slate-200 pb-3">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-500">الرصيد الحالي:</span>
+                                            <span class="font-bold text-slate-800" dir="ltr" x-text="formatBalance(currentBalance)"></span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-500">قيمة المرتجع (يخصم):</span>
+                                            <span class="font-bold text-amber-600" dir="ltr" x-text="(parseFloat(amount) || 0).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م'"></span>
+                                        </div>
+                                        <div class="flex justify-between items-center" x-show="parseFloat(paidAmount) > 0">
+                                            <span class="text-slate-500">المسترد نقداً:</span>
+                                            <span class="font-bold text-blue-600" dir="ltr" x-text="(parseFloat(paidAmount) || 0).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م'"></span>
                                         </div>
                                     </div>
+                                    <div class="flex justify-between items-center pt-1 gap-2">
+                                        <span class="text-xs font-bold text-slate-700 whitespace-nowrap shrink-0">الرصيد بعد المرتجع:</span>
+                                        <span class="text-xs sm:text-sm font-black whitespace-nowrap" :class="newBalance > 0 ? 'text-emerald-600' : (newBalance < 0 ? 'text-danger-600' : 'text-slate-600')" dir="ltr" x-text="formatBalance(newBalance)"></span>
+                                    </div>
+                                </div>
 
-                                    <!-- Products List -->
-                                    <div class="max-h-56 overflow-y-auto divide-y divide-slate-50">
-                                        <template x-for="product in filteredProducts" :key="product.id">
-                                            <button type="button" 
-                                                    @click="selectProduct(product)" 
-                                                    class="w-full px-3.5 py-2 text-right flex items-center justify-between hover:bg-primary-50/60 transition-colors group"
-                                                    :class="selectedId == product.id ? 'bg-primary-50 font-bold' : ''">
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-2 h-2 rounded-full shrink-0" :class="product.stock > 0 ? 'bg-emerald-500' : 'bg-slate-300'"></div>
-                                                    <span class="text-xs text-slate-800 group-hover:text-primary-700 font-medium" x-text="product.name"></span>
-                                                </div>
-                                                <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-slate-100 text-slate-600 group-hover:bg-primary-100 group-hover:text-primary-800 shrink-0" dir="ltr" x-text="'متوفر: ' + Number(product.stock).toLocaleString('en-US') + ' ك'"></span>
-                                            </button>
-                                        </template>
-                                        <div x-show="filteredProducts.length === 0" class="p-4 text-center text-xs text-slate-400">
-                                            لا توجد منتجات مطابقة للبحث
+                                <!-- Price Reference Card -->
+                                <div class="p-3.5 bg-blue-50/50 border border-blue-100 rounded-xl space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <h5 class="text-xs font-bold text-blue-800 flex items-center gap-1">
+                                            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            أسعار الشراء السابقة
+                                        </h5>
+                                        <span x-show="priceInfoLoading" class="text-[0.65rem] text-blue-500 font-bold">جاري الجلب...</span>
+                                    </div>
+                                    <div class="space-y-1.5 text-xs">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-500 text-[0.7rem]">آخر سعر من المورد:</span>
+                                            <span class="font-bold text-primary-700" dir="ltr" x-text="priceInfo && priceInfo.entity !== 'لا يوجد' ? priceInfo.entity + ' ج.م' : 'لا يوجد'"></span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-500 text-[0.7rem]">آخر سعر شراء عام:</span>
+                                            <span class="font-bold text-slate-700" dir="ltr" x-text="priceInfo && priceInfo.overall !== 'لا يوجد' ? priceInfo.overall + ' ج.م' : 'لا يوجد'"></span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div><label class="block text-sm font-medium text-slate-700 mb-1">الكمية المرتجعة</label><input type="number" step="0.01" name="quantity" min="0.01" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr"></div>
-                                <div><label class="block text-sm font-medium text-slate-700 mb-1">إجمالي المبلغ (يخصم)</label><input type="number" step="0.01" name="amount" min="1" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr"></div>
+
+                            <!-- Right Main Inputs (7 cols) -->
+                            <div class="md:col-span-7 space-y-4">
+                                <!-- Searchable Product Combobox -->
+                                <div class="relative">
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">المنتج المراد إرجاعه للمورد <span class="text-danger-500">*</span></label>
+                                    <input type="hidden" name="product_id" :value="selectedId" required>
+                                    
+                                    <button type="button" 
+                                            @click="openProduct = !openProduct" 
+                                            class="w-full flex items-center justify-between px-3.5 py-2.5 bg-slate-50 hover:bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all text-right">
+                                        <span class="text-xs font-bold truncate" :class="selectedId ? 'text-slate-800' : 'text-slate-400'" x-text="selectedProduct ? selectedProduct.name + ' (متوفر بالمخزن: ' + Number(selectedProduct.stock).toLocaleString('en-US') + ' ك)' : 'اختر المنتج المطلوب...'"></span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 mr-2" :class="openProduct ? 'rotate-180 text-primary-600' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+
+                                    <!-- Dropdown Menu -->
+                                    <div x-show="openProduct" 
+                                         @click.outside="openProduct = false" 
+                                         class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden" 
+                                         style="display: none;">
+                                        <div class="p-2 border-b border-slate-100 bg-slate-50/70">
+                                            <input type="text" 
+                                                   x-model="searchProduct" 
+                                                   placeholder="ابحث عن الصنف بالاسم..." 
+                                                   class="w-full pl-3 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-primary-500"
+                                                   @keydown.escape="openProduct = false">
+                                        </div>
+                                        <div class="max-h-48 overflow-y-auto divide-y divide-slate-50">
+                                            <template x-for="p in filteredProducts" :key="p.id">
+                                                <button type="button" 
+                                                        @click="selectProduct(p)" 
+                                                        class="w-full px-3.5 py-2 text-right flex items-center justify-between hover:bg-primary-50/60 transition-colors group"
+                                                        :class="selectedId == p.id ? 'bg-primary-50 font-bold' : ''">
+                                                    <span class="text-xs text-slate-800 group-hover:text-primary-700 font-medium" x-text="p.name"></span>
+                                                    <span class="px-2 py-0.5 rounded text-[0.65rem] font-bold bg-slate-100 text-slate-600 group-hover:bg-primary-100 group-hover:text-primary-800 shrink-0" dir="ltr" x-text="'متوفر: ' + Number(p.stock).toLocaleString('en-US') + ' ك'"></span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Quantity, Unit Price, and Total Amount -->
+                                <div class="grid grid-cols-3 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">الكمية المرتجعة (ك) <span class="text-danger-500">*</span></label>
+                                        <input type="number" step="0.01" name="quantity" x-model="quantity" @input="calcAmount()" min="0.01" :max="selectedProduct ? selectedProduct.stock : null" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 text-center text-sm font-bold" :class="stockExceeded ? 'border-danger-500 bg-danger-50 text-danger-700 focus:border-danger-500 focus:ring-danger-500' : 'border-slate-200 bg-slate-50 focus:border-primary-500 focus:ring-primary-500'" dir="ltr">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">سعر الكيلو</label>
+                                        <input type="number" step="0.01" x-model="unitPrice" @input="calcAmount()" min="0" placeholder="0.00" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-center bg-slate-50 text-sm font-bold" dir="ltr">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">إجمالي المرتجع <span class="text-danger-500">*</span></label>
+                                        <input type="number" step="0.01" name="amount" x-model="amount" @input="calcUnitPrice()" min="0.01" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-center bg-slate-50 text-sm font-bold text-amber-700" dir="ltr">
+                                    </div>
+                                </div>
+
+                                <!-- Stock Exceeded Warning -->
+                                <div x-show="stockExceeded" class="p-2.5 bg-danger-50 border border-danger-200 rounded-xl flex items-center gap-2 text-danger-700 text-xs font-bold" style="display: none;">
+                                    <svg class="w-4 h-4 text-danger-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                    <span>تنبيه: الكمية المرتجعة أكبر من الرصيد المتوفر في المخزن (<span x-text="selectedProduct ? Number(selectedProduct.stock).toLocaleString('en-US') : 0"></span> ك)!</span>
+                                </div>
+
+                                <!-- Paid / Refunded Amount -->
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">المبلغ المسترد نقداً من المورد (اختياري)</label>
+                                    <input type="number" step="0.01" name="paid_amount" x-model="paidAmount" min="0" placeholder="0.00" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-xs font-bold" dir="ltr">
+                                    <p class="text-[0.65rem] text-slate-400 mt-1">اتركه 0 إذا كان المرتجع آجل ويخصم من رصيد المورد فقط دون استلام نقدية منه.</p>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">تاريخ المرتجع <span class="text-danger-500">*</span></label>
+                                        <input type="date" name="date" required x-model="date" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-xs font-bold" dir="ltr">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1.5">البيان / ملاحظات (اختياري)</label>
+                                        <input type="text" name="notes" x-model="notes" placeholder="ملاحظات..." class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-xs">
+                                    </div>
+                                </div>
                             </div>
-                            <div><label class="block text-sm font-medium text-slate-700 mb-1">المبلغ المدفوع/المسترد (إن وجد)</label><input type="number" step="0.01" name="paid_amount" min="0" value="0" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr"></div>
-                            <div><label class="block text-sm font-medium text-slate-700 mb-1">تاريخ المرتجع</label><input type="date" name="date" required value="<?php echo e(date('Y-m-d')); ?>" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr"></div>
-                            <div><label class="block text-sm font-medium text-slate-700 mb-1">ملاحظات (اختياري)</label><input type="text" name="notes" placeholder="ملاحظات إضافية..." class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-base"></div>
                         </div>
-                        <div class="mt-6 flex gap-3">
-                            <button type="submit" class="w-full px-4 py-2.5 text-sm font-bold text-white bg-slate-800 rounded-lg hover:bg-slate-900">حفظ المرتجع</button>
-                            <button type="button" @click="showReturnModal = false" class="w-full px-4 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50">إلغاء</button>
+
+                        <div class="flex gap-3 pt-3 border-t border-slate-100">
+                            <button type="submit" :disabled="stockExceeded" class="w-full sm:w-auto px-6 py-2.5 text-sm font-bold text-white bg-slate-800 rounded-xl hover:bg-slate-900 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">حفظ المرتجع</button>
+                            <button type="button" @click="showReturnModal = false" class="w-full sm:w-auto px-6 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">إلغاء</button>
                         </div>
                     </form>
                 </div>
@@ -520,19 +679,19 @@
         </div>
 
         <!-- Edit Transaction Modal -->
-        <div x-show="editTransactionModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto">
+        <div x-show="editTransactionModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
             <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center">
                 <div x-show="editTransactionModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/50" @click="editTransactionModal = false"></div>
                 <div x-show="editTransactionModal" x-transition class="relative w-full max-w-md p-5 sm:p-6 text-right transition-all transform bg-white shadow-xl rounded-2xl">
                     <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
                         <h3 class="text-lg font-bold text-slate-800">تعديل العملية</h3>
-                        <button @click="editTransactionModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                        <button type="button" @click="editTransactionModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
                     </div>
-                    <form :action="'<?php echo e(url('transactions')); ?>/' + editId" method="POST">
-                        <?php echo csrf_field(); ?>
-                        <?php echo method_field('PUT'); ?>
+                    <form :action="'{{ url('transactions') }}/' + editId" method="POST">
+                        @csrf
+                        @method('PUT')
                         <div class="space-y-4">
-                            <div x-show="editType === 'return_sale' || editType === 'return_purchase' || editType === 'sale' || editType === 'purchase'">
+                            <div x-show="editType === 'return_purchase' || editType === 'purchase'">
                                 <label class="block text-sm font-medium text-slate-700 mb-1">الكمية</label>
                                 <input type="number" step="0.01" name="quantity" x-model="editQuantity" min="0.01" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr">
                             </div>
@@ -559,78 +718,16 @@
         </div>
 
         <!-- Purchase Modal Component -->
-        <?php if (isset($component)) { $__componentOriginal208c4afe2593979ecab9bc88d7c63822 = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginal208c4afe2593979ecab9bc88d7c63822 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.modals.purchase-form','data' => ['products' => $products,'suppliers' => [],'fixedSupplier' => $supplier]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('modals.purchase-form'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['products' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($products),'suppliers' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute([]),'fixedSupplier' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($supplier)]); ?>
-<?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginal208c4afe2593979ecab9bc88d7c63822)): ?>
-<?php $attributes = $__attributesOriginal208c4afe2593979ecab9bc88d7c63822; ?>
-<?php unset($__attributesOriginal208c4afe2593979ecab9bc88d7c63822); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginal208c4afe2593979ecab9bc88d7c63822)): ?>
-<?php $component = $__componentOriginal208c4afe2593979ecab9bc88d7c63822; ?>
-<?php unset($__componentOriginal208c4afe2593979ecab9bc88d7c63822); ?>
-<?php endif; ?>
+        <x-modals.purchase-form :products="$products" :suppliers="[]" :fixedSupplier="$supplier" />
 
-        <!-- View Details Modal -->
-        <?php if (isset($component)) { $__componentOriginaldf21a5bd86b57b961f547a9ac815f4d9 = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginaldf21a5bd86b57b961f547a9ac815f4d9 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.modals.invoice-details','data' => ['type' => 'purchase']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('modals.invoice-details'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['type' => 'purchase']); ?>
-<?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginaldf21a5bd86b57b961f547a9ac815f4d9)): ?>
-<?php $attributes = $__attributesOriginaldf21a5bd86b57b961f547a9ac815f4d9; ?>
-<?php unset($__attributesOriginaldf21a5bd86b57b961f547a9ac815f4d9); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginaldf21a5bd86b57b961f547a9ac815f4d9)): ?>
-<?php $component = $__componentOriginaldf21a5bd86b57b961f547a9ac815f4d9; ?>
-<?php unset($__componentOriginaldf21a5bd86b57b961f547a9ac815f4d9); ?>
-<?php endif; ?>
-        
-        <?php if (isset($component)) { $__componentOriginald68fb3450a7c80cb07d6288c4a5d3578 = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginald68fb3450a7c80cb07d6288c4a5d3578 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.modals.print-statement','data' => ['type' => 'supplier']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('modals.print-statement'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['type' => 'supplier']); ?>
-<?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginald68fb3450a7c80cb07d6288c4a5d3578)): ?>
-<?php $attributes = $__attributesOriginald68fb3450a7c80cb07d6288c4a5d3578; ?>
-<?php unset($__attributesOriginald68fb3450a7c80cb07d6288c4a5d3578); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginald68fb3450a7c80cb07d6288c4a5d3578)): ?>
-<?php $component = $__componentOriginald68fb3450a7c80cb07d6288c4a5d3578; ?>
-<?php unset($__componentOriginald68fb3450a7c80cb07d6288c4a5d3578); ?>
-<?php endif; ?>
-    <x-modals.transaction-details />
+        <!-- View Purchase Invoice Details Modal -->
+        <x-modals.invoice-details type="purchase" />
+
+        <!-- View Transaction Details Modal (for Payments and Returns) -->
+        <x-modals.transaction-details />
+
+        <!-- Print Statement Modal -->
+        <x-modals.print-statement type="supplier" />
+
     </div>
- <?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginal5863877a5171c196453bfa0bd807e410)): ?>
-<?php $attributes = $__attributesOriginal5863877a5171c196453bfa0bd807e410; ?>
-<?php unset($__attributesOriginal5863877a5171c196453bfa0bd807e410); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginal5863877a5171c196453bfa0bd807e410)): ?>
-<?php $component = $__componentOriginal5863877a5171c196453bfa0bd807e410; ?>
-<?php unset($__componentOriginal5863877a5171c196453bfa0bd807e410); ?>
-<?php endif; ?>
+</x-layouts.app>

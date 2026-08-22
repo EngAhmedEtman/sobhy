@@ -13,7 +13,7 @@ Route::get('/', function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', [App\Http\Controllers\DebtController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('products', ProductController::class)->except(['create', 'edit']);
     
@@ -38,18 +38,21 @@ Route::middleware('auth')->group(function () {
     Route::resource('users', App\Http\Controllers\UserController::class)->except(['create', 'edit', 'show']);
     Route::resource('roles', App\Http\Controllers\RoleController::class)->except(['create', 'edit', 'show']);
 
-    Route::resource('transactions', TransactionController::class)->only(['update', 'destroy']);
+    Route::resource('transactions', TransactionController::class)->only(['show', 'update', 'destroy']);
+    Route::get('/transactions/{transaction}/print', [TransactionController::class, 'print'])->name('transactions.print');
 
     Route::resource('purchases', PurchaseController::class);
     Route::resource('sales', SaleController::class);
 
     Route::get('/api/products/{product}/price-info', [ProductController::class, 'priceInfo'])->name('api.products.price-info');
+    Route::get('/api/global-search', [\App\Http\Controllers\SearchController::class, 'globalSearch'])->name('api.global-search');
 
     // Print Routes
     Route::get('/sales/{sale}/print', [\App\Http\Controllers\PrintController::class, 'sale'])->name('print.sale');
     Route::get('/purchases/{purchase}/print', [\App\Http\Controllers\PrintController::class, 'purchase'])->name('print.purchase');
     Route::get('/customers/{customer}/print', [\App\Http\Controllers\PrintController::class, 'customerStatement'])->name('print.customer');
     Route::get('/suppliers/{supplier}/print', [\App\Http\Controllers\PrintController::class, 'supplierStatement'])->name('print.supplier');
+    Route::get('/transactions/{transaction}/print', [\App\Http\Controllers\TransactionController::class, 'print'])->name('transactions.print');
 
     // Detailed pages
     Route::get('/customers/{id}', [CustomerController::class, 'show'])->name('customers.show');

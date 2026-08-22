@@ -1,50 +1,22 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
-
-$__newAttributes = [];
-$__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['products' => [], 'customers' => [], 'fixedCustomer' => null]));
-
-foreach ($attributes->all() as $__key => $__value) {
-    if (in_array($__key, $__propNames)) {
-        $$__key = $$__key ?? $__value;
-    } else {
-        $__newAttributes[$__key] = $__value;
-    }
-}
-
-$attributes = new \Illuminate\View\ComponentAttributeBag($__newAttributes);
-
-unset($__propNames);
-unset($__newAttributes);
-
-foreach (array_filter((['products' => [], 'customers' => [], 'fixedCustomer' => null]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
-    $$__key = $$__key ?? $__value;
-}
-
-$__defined_vars = get_defined_vars();
-
-foreach ($attributes->all() as $__key => $__value) {
-    if (array_key_exists($__key, $__defined_vars)) unset($$__key);
-}
-
-unset($__defined_vars, $__key, $__value); ?>
+@props(['products' => [], 'customers' => [], 'fixedCustomer' => null])
 
 <div x-data="saleFormComponent({
-        products: <?php echo e(Js::from($products)); ?>,
-        customers: <?php echo e(Js::from($customers)); ?>,
-        fixedCustomer: <?php echo e($fixedCustomer ? Js::from($fixedCustomer) : 'null'); ?>
-
+        products: {{ Js::from($products) }},
+        customers: {{ Js::from($customers) }},
+        fixedCustomer: {{ $fixedCustomer ? Js::from($fixedCustomer) : 'null' }}
     })" 
     x-show="showSaleModal" 
     @edit-sale.window="editInvoice($event.detail)"
     @create-sale.window="createInvoice()"
     x-cloak 
-    class="fixed inset-0 z-[70] overflow-y-auto">
+    class="fixed inset-0 z-[70] overflow-y-auto"
+    style="display: none;">
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center sm:p-0">
         <div x-show="showSaleModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/50" @click="showSaleModal = false"></div>
         <div x-show="showSaleModal" x-transition class="relative w-full max-w-6xl p-5 sm:p-6 text-right transition-all transform bg-white shadow-xl rounded-2xl">
             <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
                 <h3 class="text-lg font-bold text-slate-800" x-text="isEdit ? 'تعديل فاتورة مبيعات رقم ' + invoiceNumber : 'فاتورة مبيعات جديدة'"></h3>
-                <button @click="showSaleModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                <button type="button" @click="showSaleModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
 
             <div x-show="loading" class="py-12 flex justify-center">
@@ -52,7 +24,7 @@ unset($__defined_vars, $__key, $__value); ?>
             </div>
 
             <form x-show="!loading" :action="actionUrl" method="POST">
-                <?php echo csrf_field(); ?>
+                @csrf
                 <template x-if="isEdit">
                     <input type="hidden" name="_method" value="PUT">
                 </template>
@@ -67,35 +39,7 @@ unset($__defined_vars, $__key, $__value); ?>
                                 <!-- Customer Selection -->
                                 <div class="relative">
                                     <template x-if="!fixedCustomer">
-                                        <div x-data="{
-                                            open: false,
-                                            search: '',
-                                            get filteredEntities() {
-                                                if (!this.search) return customers;
-                                                return customers.filter(e => e.name.toLowerCase().includes(this.search.toLowerCase()));
-                                            },
-                                            selectEntity(entity) {
-                                                selectedCustomerId = entity.id;
-                                                selectedName = entity.name;
-                                                this.open = false;
-                                                this.search = '';
-                                                
-                                                // Update price info for all items with the new customer context
-                                                items.forEach(item => {
-                                                    if (item.product_id) {
-                                                        item.priceInfoLoading = true;
-                                                        fetch(`/api/products/${item.product_id}/price-info?type=sale&entity_id=${entity.id}`)
-                                                            .then(res => res.json())
-                                                            .then(data => {
-                                                                item.priceInfo = data;
-                                                                item.priceInfoLoading = false;
-                                                            }).catch(() => {
-                                                                item.priceInfoLoading = false;
-                                                            });
-                                                    }
-                                                });
-                                            }
-                                        }">
+                                        <div x-data="{ open: false, search: '' }">
                                             <label class="block text-xs font-bold text-slate-700 mb-1.5">العميل <span class="text-danger-500">*</span></label>
                                             <input type="hidden" name="customer_id" :value="selectedCustomerId" required>
                                             
@@ -116,8 +60,8 @@ unset($__defined_vars, $__key, $__value); ?>
                                                     <input type="text" x-model="search" placeholder="ابحث..." class="w-full pl-2 pr-6 py-1 bg-white border border-slate-200 rounded text-xs" @keydown.escape="open = false">
                                                 </div>
                                                 <div class="max-h-48 overflow-y-auto divide-y divide-slate-50">
-                                                    <template x-for="entity in filteredEntities" :key="entity.id">
-                                                        <button type="button" @click="selectEntity(entity)" class="w-full px-3 py-1.5 text-right hover:bg-primary-50/60" :class="selectedCustomerId == entity.id ? 'bg-primary-50 font-bold' : ''">
+                                                    <template x-for="entity in filterCustomers(search)" :key="entity.id">
+                                                        <button type="button" @click="onSelectCustomer(entity); open = false; search = ''" class="w-full px-3 py-1.5 text-right hover:bg-primary-50/60" :class="selectedCustomerId == entity.id ? 'bg-primary-50 font-bold' : ''">
                                                             <span class="text-[0.75rem] text-slate-800" x-text="entity.name"></span>
                                                         </button>
                                                     </template>
@@ -158,19 +102,17 @@ unset($__defined_vars, $__key, $__value); ?>
                                 </div>
                             </div>
 
-
-
                             <!-- Balance Indicator -->
                             <div class="mt-2 p-3 bg-slate-100/50 border border-slate-200 rounded-lg space-y-2 transition-colors duration-300"
-                                 :class="selectedCustomer ? 'bg-blue-50/50 border-blue-100' : ''">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-[0.7rem] font-bold" :class="selectedCustomer ? 'text-slate-500' : 'text-slate-400'">حساب العميل الحالي:</span>
-                                    <span class="text-sm font-bold" :class="selectedCustomer ? 'text-slate-800' : 'text-slate-400'" dir="ltr" x-text="selectedCustomer ? formatBalance(selectedCustomer.balance) : '-'"></span>
+                                 :class="selectedCustomer ? 'bg-emerald-50/50 border-emerald-100' : ''">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-[0.7rem] font-bold whitespace-nowrap shrink-0" :class="selectedCustomer ? 'text-slate-500' : 'text-slate-400'">حساب العميل الحالي:</span>
+                                    <span class="text-xs sm:text-sm font-bold whitespace-nowrap" :class="selectedCustomer ? 'text-slate-800' : 'text-slate-400'" dir="ltr" x-text="selectedCustomer ? formatBalance(selectedCustomer.balance) : '-'"></span>
                                 </div>
-                                <div class="flex items-center justify-between border-t pt-2 transition-colors duration-300"
-                                     :class="selectedCustomer ? 'border-blue-100' : 'border-slate-200'">
-                                    <span class="text-[0.7rem] font-bold" :class="selectedCustomer ? 'text-slate-500' : 'text-slate-400'">الحساب بعد الفاتورة:</span>
-                                    <span class="text-sm font-black" :class="!selectedCustomer ? 'text-slate-400' : (newCustomerBalance > 0 ? 'text-emerald-600' : (newCustomerBalance < 0 ? 'text-danger-600' : 'text-slate-600'))" dir="ltr" x-text="selectedCustomer ? formatBalance(newCustomerBalance) : '-'"></span>
+                                <div class="flex items-center justify-between gap-2 border-t pt-2 transition-colors duration-300"
+                                     :class="selectedCustomer ? 'border-emerald-100' : 'border-slate-200'">
+                                    <span class="text-[0.7rem] font-bold whitespace-nowrap shrink-0" :class="selectedCustomer ? 'text-slate-500' : 'text-slate-400'">الحساب بعد الفاتورة:</span>
+                                    <span class="text-xs sm:text-sm font-black whitespace-nowrap" :class="!selectedCustomer ? 'text-slate-400' : (newCustomerBalance > 0 ? 'text-danger-600' : (newCustomerBalance < 0 ? 'text-emerald-600' : 'text-slate-600'))" dir="ltr" x-text="selectedCustomer ? formatBalance(newCustomerBalance) : '-'"></span>
                                 </div>
                             </div>
                         </div>
@@ -204,41 +146,11 @@ unset($__defined_vars, $__key, $__value); ?>
                                             
                                             <!-- Product Col (Row 1 on mobile) -->
                                             <div class="w-full sm:col-span-5 flex items-start gap-2">
-                                                <div x-data="{
-                                                    open: false,
-                                                    search: '',
-                                                    get filteredProducts() {
-                                                        if (!this.search) return products;
-                                                        return products.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase()));
-                                                    },
-                                                    get selectedProduct() {
-                                                        return products.find(p => p.id == item.product_id);
-                                                    },
-                                                    selectProduct(p) {
-                                                        item.product_id = p.id;
-                                                        this.open = false;
-                                                        this.search = '';
-                                                        
-                                                        item.priceInfoLoading = true;
-                                                        item.priceInfo = null;
-                                                        let url = `/api/products/${p.id}/price-info?type=sale`;
-                                                        if (selectedCustomerId) {
-                                                            url += `&entity_id=${selectedCustomerId}`;
-                                                        }
-                                                        fetch(url)
-                                                            .then(res => res.json())
-                                                            .then(data => {
-                                                                item.priceInfo = data;
-                                                                item.priceInfoLoading = false;
-                                                            }).catch(() => {
-                                                                item.priceInfoLoading = false;
-                                                            });
-                                                    }
-                                                }" class="relative w-full text-right">
+                                                <div x-data="{ open: false, search: '' }" class="relative w-full text-right">
                                                     <input type="hidden" :name="'items['+index+'][product_id]'" x-model="item.product_id" required>
                                                     
                                                     <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-2 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 transition-all text-right">
-                                                        <span class="text-[0.75rem] font-medium truncate" :class="item.product_id ? 'text-slate-800' : 'text-slate-400'" x-text="selectedProduct ? selectedProduct.name + ' (متوفر: ' + selectedProduct.stock + ')' : 'اختر المنتج...'"></span>
+                                                        <span class="text-[0.75rem] font-medium truncate" :class="item.product_id ? 'text-slate-800' : 'text-slate-400'" x-text="getProduct(item.product_id) ? getProduct(item.product_id).name + ' (متوفر: ' + getProduct(item.product_id).stock + ')' : 'اختر المنتج...'"></span>
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180 text-primary-600' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                                         </svg>
@@ -249,10 +161,10 @@ unset($__defined_vars, $__key, $__value); ?>
                                                             <input type="text" x-model="search" placeholder="ابحث عن المنتج..." class="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs focus:outline-none focus:border-primary-500">
                                                         </div>
                                                         <div class="max-h-48 overflow-y-auto divide-y divide-slate-50">
-                                                            <template x-for="p in filteredProducts" :key="p.id">
+                                                            <template x-for="p in filterProducts(search)" :key="p.id">
                                                                 <button type="button" 
                                                                         :disabled="items.some(i => i.product_id == p.id && i.id !== item.id)"
-                                                                        @click="selectProduct(p)" 
+                                                                        @click="onSelectProduct(item, p); open = false; search = ''" 
                                                                         class="w-full px-3 py-2 text-right flex items-center justify-between transition-colors group" 
                                                                         :class="[
                                                                             item.product_id == p.id ? 'bg-primary-50 font-bold' : '',
@@ -313,7 +225,7 @@ unset($__defined_vars, $__key, $__value); ?>
                             <!-- Footer Total -->
                             <div class="bg-slate-50 border-t border-slate-200 px-4 py-3 flex justify-between items-center rounded-b-xl">
                                 <span class="text-sm font-bold text-slate-600">إجمالي الفاتورة:</span>
-                                <span class="text-lg font-black text-primary-600" dir="ltr" x-text="total.toLocaleString('en-US', {minimumFractionDigits: 2}) + ' ج.م'"></span>
+                                <span class="text-lg font-black text-primary-600" dir="ltr" x-text="total.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م'"></span>
                             </div>
                         </div>
                     </div>
@@ -351,6 +263,53 @@ unset($__defined_vars, $__key, $__value); ?>
             
             get actionUrl() {
                 return this.isEdit ? `/sales/${this.invoiceId}` : '/sales';
+            },
+
+            getProduct(id) {
+                return this.products.find(p => p.id == id);
+            },
+
+            filterCustomers(search) {
+                if (!search) return this.customers;
+                return this.customers.filter(e => e.name.toLowerCase().includes(search.toLowerCase()));
+            },
+
+            filterProducts(search) {
+                if (!search) return this.products;
+                return this.products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+            },
+
+            onSelectCustomer(entity) {
+                this.selectedCustomerId = entity.id;
+                this.selectedName = entity.name;
+                
+                this.items.forEach(item => {
+                    if (item.product_id) {
+                        this.fetchItemPriceInfo(item, entity.id);
+                    }
+                });
+            },
+
+            onSelectProduct(item, product) {
+                item.product_id = product.id;
+                this.fetchItemPriceInfo(item, this.selectedCustomerId);
+            },
+
+            fetchItemPriceInfo(item, customerId) {
+                item.priceInfoLoading = true;
+                item.priceInfo = null;
+                let url = `/api/products/${item.product_id}/price-info?type=sale`;
+                if (customerId) {
+                    url += `&entity_id=${customerId}`;
+                }
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        item.priceInfo = data;
+                        item.priceInfoLoading = false;
+                    }).catch(() => {
+                        item.priceInfoLoading = false;
+                    });
             },
             
             createInvoice() {
@@ -429,14 +388,13 @@ unset($__defined_vars, $__key, $__value); ?>
             
             get newCustomerBalance() { 
                 if (!this.selectedCustomer) return 0;
-                // Positive balance for customers means they owe us (لك), so selling adds debt
                 return Number(this.selectedCustomer.balance) + this.total - (parseFloat(this.paidAmount) || 0);
             },
             
             formatBalance(amount) {
                 if (!amount || amount == 0) return '0 ج.م (خالص)';
-                if (amount > 0) return Number(amount).toLocaleString() + ' ج.م (لك)';
-                return Number(Math.abs(amount)).toLocaleString() + ' ج.م (عليك)';
+                if (amount > 0) return Number(amount).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (مطلوب منه)';
+                return Number(Math.abs(amount)).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (له عندنا)';
             }
         }));
     });

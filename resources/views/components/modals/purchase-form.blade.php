@@ -1,50 +1,22 @@
-<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
-
-$__newAttributes = [];
-$__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['products' => [], 'suppliers' => [], 'fixedSupplier' => null]));
-
-foreach ($attributes->all() as $__key => $__value) {
-    if (in_array($__key, $__propNames)) {
-        $$__key = $$__key ?? $__value;
-    } else {
-        $__newAttributes[$__key] = $__value;
-    }
-}
-
-$attributes = new \Illuminate\View\ComponentAttributeBag($__newAttributes);
-
-unset($__propNames);
-unset($__newAttributes);
-
-foreach (array_filter((['products' => [], 'suppliers' => [], 'fixedSupplier' => null]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
-    $$__key = $$__key ?? $__value;
-}
-
-$__defined_vars = get_defined_vars();
-
-foreach ($attributes->all() as $__key => $__value) {
-    if (array_key_exists($__key, $__defined_vars)) unset($$__key);
-}
-
-unset($__defined_vars, $__key, $__value); ?>
+@props(['products' => [], 'suppliers' => [], 'fixedSupplier' => null])
 
 <div x-data="purchaseFormComponent({
-        products: <?php echo e(Js::from($products)); ?>,
-        suppliers: <?php echo e(Js::from($suppliers)); ?>,
-        fixedSupplier: <?php echo e($fixedSupplier ? Js::from($fixedSupplier) : 'null'); ?>
-
+        products: {{ Js::from($products) }},
+        suppliers: {{ Js::from($suppliers) }},
+        fixedSupplier: {{ $fixedSupplier ? Js::from($fixedSupplier) : 'null' }}
     })" 
     x-show="showPurchaseModal" 
     @edit-purchase.window="editInvoice($event.detail)"
     @create-purchase.window="createInvoice()"
     x-cloak 
-    class="fixed inset-0 z-[70] overflow-y-auto">
+    class="fixed inset-0 z-[70] overflow-y-auto"
+    style="display: none;">
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-4 text-center sm:p-0">
         <div x-show="showPurchaseModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/50" @click="showPurchaseModal = false"></div>
         <div x-show="showPurchaseModal" x-transition class="relative w-full max-w-6xl p-5 sm:p-6 text-right transition-all transform bg-white shadow-xl rounded-2xl">
             <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
                 <h3 class="text-lg font-bold text-slate-800" x-text="isEdit ? 'تعديل فاتورة رقم ' + invoiceNumber : 'فاتورة مشتريات جديدة'"></h3>
-                <button @click="showPurchaseModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                <button type="button" @click="showPurchaseModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
 
             <div x-show="loading" class="py-12 flex justify-center">
@@ -52,7 +24,7 @@ unset($__defined_vars, $__key, $__value); ?>
             </div>
 
             <form x-show="!loading" :action="actionUrl" method="POST">
-                <?php echo csrf_field(); ?>
+                @csrf
                 <template x-if="isEdit">
                     <input type="hidden" name="_method" value="PUT">
                 </template>
@@ -67,35 +39,7 @@ unset($__defined_vars, $__key, $__value); ?>
                                 <!-- Supplier Selection -->
                                 <div class="relative">
                                     <template x-if="!fixedSupplier">
-                                        <div x-data="{
-                                            open: false,
-                                            search: '',
-                                            get filteredEntities() {
-                                                if (!this.search) return suppliers;
-                                                return suppliers.filter(e => e.name.toLowerCase().includes(this.search.toLowerCase()));
-                                            },
-                                            selectEntity(entity) {
-                                                selectedSupplierId = entity.id;
-                                                selectedName = entity.name;
-                                                this.open = false;
-                                                this.search = '';
-                                                
-                                                // Update price info for all items with the new supplier context
-                                                items.forEach(item => {
-                                                    if (item.product_id) {
-                                                        item.priceInfoLoading = true;
-                                                        fetch(`/api/products/${item.product_id}/price-info?type=purchase&entity_id=${entity.id}`)
-                                                            .then(res => res.json())
-                                                            .then(data => {
-                                                                item.priceInfo = data;
-                                                                item.priceInfoLoading = false;
-                                                            }).catch(() => {
-                                                                item.priceInfoLoading = false;
-                                                            });
-                                                    }
-                                                });
-                                            }
-                                        }">
+                                        <div x-data="{ open: false, search: '' }">
                                             <label class="block text-xs font-bold text-slate-700 mb-1.5">المورد <span class="text-danger-500">*</span></label>
                                             <input type="hidden" name="supplier_id" :value="selectedSupplierId" required>
                                             
@@ -116,8 +60,8 @@ unset($__defined_vars, $__key, $__value); ?>
                                                     <input type="text" x-model="search" placeholder="ابحث..." class="w-full pl-2 pr-6 py-1 bg-white border border-slate-200 rounded text-xs" @keydown.escape="open = false">
                                                 </div>
                                                 <div class="max-h-48 overflow-y-auto divide-y divide-slate-50">
-                                                    <template x-for="entity in filteredEntities" :key="entity.id">
-                                                        <button type="button" @click="selectEntity(entity)" class="w-full px-3 py-1.5 text-right hover:bg-primary-50/60" :class="selectedSupplierId == entity.id ? 'bg-primary-50 font-bold' : ''">
+                                                    <template x-for="entity in filterSuppliers(search)" :key="entity.id">
+                                                        <button type="button" @click="onSelectSupplier(entity); open = false; search = ''" class="w-full px-3 py-1.5 text-right hover:bg-primary-50/60" :class="selectedSupplierId == entity.id ? 'bg-primary-50 font-bold' : ''">
                                                             <span class="text-[0.75rem] text-slate-800" x-text="entity.name"></span>
                                                         </button>
                                                     </template>
@@ -158,19 +102,17 @@ unset($__defined_vars, $__key, $__value); ?>
                                 </div>
                             </div>
 
-
-
                             <!-- Balance Indicator -->
                             <div class="mt-2 p-3 bg-slate-100/50 border border-slate-200 rounded-lg space-y-2 transition-colors duration-300"
                                  :class="selectedSupplier ? 'bg-blue-50/50 border-blue-100' : ''">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-[0.7rem] font-bold" :class="selectedSupplier ? 'text-slate-500' : 'text-slate-400'">حساب المورد الحالي:</span>
-                                    <span class="text-sm font-bold" :class="selectedSupplier ? 'text-slate-800' : 'text-slate-400'" dir="ltr" x-text="selectedSupplier ? formatBalance(selectedSupplier.balance) : '-'"></span>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-[0.7rem] font-bold whitespace-nowrap shrink-0" :class="selectedSupplier ? 'text-slate-500' : 'text-slate-400'">حساب المورد الحالي:</span>
+                                    <span class="text-xs sm:text-sm font-bold whitespace-nowrap" :class="selectedSupplier ? 'text-slate-800' : 'text-slate-400'" dir="ltr" x-text="selectedSupplier ? formatBalance(selectedSupplier.balance) : '-'"></span>
                                 </div>
-                                <div class="flex items-center justify-between border-t pt-2 transition-colors duration-300"
+                                <div class="flex items-center justify-between gap-2 border-t pt-2 transition-colors duration-300"
                                      :class="selectedSupplier ? 'border-blue-100' : 'border-slate-200'">
-                                    <span class="text-[0.7rem] font-bold" :class="selectedSupplier ? 'text-slate-500' : 'text-slate-400'">الحساب بعد الفاتورة:</span>
-                                    <span class="text-sm font-black" :class="!selectedSupplier ? 'text-slate-400' : (newSupplierBalance > 0 ? 'text-danger-600' : (newSupplierBalance < 0 ? 'text-emerald-600' : 'text-slate-600'))" dir="ltr" x-text="selectedSupplier ? formatBalance(newSupplierBalance) : '-'"></span>
+                                    <span class="text-[0.7rem] font-bold whitespace-nowrap shrink-0" :class="selectedSupplier ? 'text-slate-500' : 'text-slate-400'">الحساب بعد الفاتورة:</span>
+                                    <span class="text-xs sm:text-sm font-black whitespace-nowrap" :class="!selectedSupplier ? 'text-slate-400' : (newSupplierBalance > 0 ? 'text-amber-800' : (newSupplierBalance < 0 ? 'text-emerald-600' : 'text-slate-600'))" dir="ltr" x-text="selectedSupplier ? formatBalance(newSupplierBalance) : '-'"></span>
                                 </div>
                             </div>
                         </div>
@@ -204,41 +146,11 @@ unset($__defined_vars, $__key, $__value); ?>
                                             
                                             <!-- Product Col (Row 1 on mobile) -->
                                             <div class="w-full sm:col-span-5 flex items-start gap-2">
-                                                <div x-data="{
-                                                    open: false,
-                                                    search: '',
-                                                    get filteredProducts() {
-                                                        if (!this.search) return products;
-                                                        return products.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase()));
-                                                    },
-                                                    get selectedProduct() {
-                                                        return products.find(p => p.id == item.product_id);
-                                                    },
-                                                    selectProduct(p) {
-                                                        item.product_id = p.id;
-                                                        this.open = false;
-                                                        this.search = '';
-                                                        
-                                                        item.priceInfoLoading = true;
-                                                        item.priceInfo = null;
-                                                        let url = `/api/products/${p.id}/price-info?type=purchase`;
-                                                        if (selectedSupplierId) {
-                                                            url += `&entity_id=${selectedSupplierId}`;
-                                                        }
-                                                        fetch(url)
-                                                            .then(res => res.json())
-                                                            .then(data => {
-                                                                item.priceInfo = data;
-                                                                item.priceInfoLoading = false;
-                                                            }).catch(() => {
-                                                                item.priceInfoLoading = false;
-                                                            });
-                                                    }
-                                                }" class="relative w-full text-right">
+                                                <div x-data="{ open: false, search: '' }" class="relative w-full text-right">
                                                     <input type="hidden" :name="'items['+index+'][product_id]'" x-model="item.product_id" required>
                                                     
                                                     <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-2 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 transition-all text-right">
-                                                        <span class="text-[0.75rem] font-medium truncate" :class="item.product_id ? 'text-slate-800' : 'text-slate-400'" x-text="selectedProduct ? selectedProduct.name + ' (متوفر: ' + selectedProduct.stock + ')' : 'اختر المنتج...'"></span>
+                                                        <span class="text-[0.75rem] font-medium truncate" :class="item.product_id ? 'text-slate-800' : 'text-slate-400'" x-text="getProduct(item.product_id) ? getProduct(item.product_id).name + ' (متوفر: ' + getProduct(item.product_id).stock + ')' : 'اختر المنتج...'"></span>
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180 text-primary-600' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                                         </svg>
@@ -249,10 +161,10 @@ unset($__defined_vars, $__key, $__value); ?>
                                                             <input type="text" x-model="search" placeholder="ابحث عن المنتج..." class="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs focus:outline-none focus:border-primary-500">
                                                         </div>
                                                         <div class="max-h-48 overflow-y-auto divide-y divide-slate-50">
-                                                            <template x-for="p in filteredProducts" :key="p.id">
+                                                            <template x-for="p in filterProducts(search)" :key="p.id">
                                                                 <button type="button" 
                                                                         :disabled="items.some(i => i.product_id == p.id && i.id !== item.id)"
-                                                                        @click="selectProduct(p)" 
+                                                                        @click="onSelectProduct(item, p); open = false; search = ''" 
                                                                         class="w-full px-3 py-2 text-right flex items-center justify-between transition-colors group" 
                                                                         :class="[
                                                                             item.product_id == p.id ? 'bg-primary-50 font-bold' : '',
@@ -313,13 +225,12 @@ unset($__defined_vars, $__key, $__value); ?>
                             <!-- Footer Total -->
                             <div class="bg-slate-50 border-t border-slate-200 px-4 py-3 flex justify-between items-center rounded-b-xl">
                                 <span class="text-sm font-bold text-slate-600">إجمالي الفاتورة:</span>
-                                <span class="text-lg font-black text-primary-600" dir="ltr" x-text="total.toLocaleString('en-US', {minimumFractionDigits: 2}) + ' ج.م'"></span>
+                                <span class="text-lg font-black text-primary-600" dir="ltr" x-text="total.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م'"></span>
                             </div>
                         </div>
                     </div>
                 </div> <!-- End of Grid -->
                     
-
                 <div class="mt-6 flex gap-3 pt-4 border-t border-slate-100">
                     <button type="submit" class="w-full sm:w-auto px-6 py-2.5 text-sm font-bold text-white bg-primary-600 rounded-xl hover:bg-primary-700 shadow-sm shadow-primary-600/20" x-text="isEdit ? 'حفظ التعديلات' : 'حفظ الفاتورة'"></button>
                     <button type="button" @click="showPurchaseModal = false" class="w-full sm:w-auto px-6 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">إلغاء</button>
@@ -352,6 +263,53 @@ unset($__defined_vars, $__key, $__value); ?>
             
             get actionUrl() {
                 return this.isEdit ? `/purchases/${this.invoiceId}` : '/purchases';
+            },
+
+            getProduct(id) {
+                return this.products.find(p => p.id == id);
+            },
+
+            filterSuppliers(search) {
+                if (!search) return this.suppliers;
+                return this.suppliers.filter(e => e.name.toLowerCase().includes(search.toLowerCase()));
+            },
+
+            filterProducts(search) {
+                if (!search) return this.products;
+                return this.products.filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
+            },
+
+            onSelectSupplier(entity) {
+                this.selectedSupplierId = entity.id;
+                this.selectedName = entity.name;
+                
+                this.items.forEach(item => {
+                    if (item.product_id) {
+                        this.fetchItemPriceInfo(item, entity.id);
+                    }
+                });
+            },
+
+            onSelectProduct(item, product) {
+                item.product_id = product.id;
+                this.fetchItemPriceInfo(item, this.selectedSupplierId);
+            },
+
+            fetchItemPriceInfo(item, supplierId) {
+                item.priceInfoLoading = true;
+                item.priceInfo = null;
+                let url = `/api/products/${item.product_id}/price-info?type=purchase`;
+                if (supplierId) {
+                    url += `&entity_id=${supplierId}`;
+                }
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        item.priceInfo = data;
+                        item.priceInfoLoading = false;
+                    }).catch(() => {
+                        item.priceInfoLoading = false;
+                    });
             },
             
             createInvoice() {
@@ -430,16 +388,13 @@ unset($__defined_vars, $__key, $__value); ?>
             
             get newSupplierBalance() { 
                 if (!this.selectedSupplier) return 0;
-                // In edit mode, we are modifying the existing transaction, 
-                // but doing an accurate projection client-side without knowing balanceBefore is complex.
-                // We'll just show the naive calculation.
                 return Number(this.selectedSupplier.balance) + this.total - (parseFloat(this.paidAmount) || 0);
             },
             
             formatBalance(amount) {
                 if (!amount || amount == 0) return '0 ج.م (خالص)';
-                if (amount > 0) return Number(amount).toLocaleString() + ' ج.م (عليك)';
-                return Number(Math.abs(amount)).toLocaleString() + ' ج.م (لك)';
+                if (amount > 0) return Number(amount).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (له علينا)';
+                return Number(Math.abs(amount)).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (لنا عنده)';
             }
         }));
     });

@@ -1,19 +1,11 @@
-<?php if (isset($component)) { $__componentOriginal5863877a5171c196453bfa0bd807e410 = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginal5863877a5171c196453bfa0bd807e410 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.layouts.app','data' => ['title' => 'إدارة الموردين']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('layouts.app'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['title' => 'إدارة الموردين']); ?>
-     <?php $__env->slot('breadcrumb', null, []); ?> الموردين <?php $__env->endSlot(); ?>
+<x-layouts.app title="إدارة الموردين">
+    <x-slot name="breadcrumb">الموردين</x-slot>
 
     <div x-data="{ 
         showAddModal: false, 
         showEditModal: false, 
         showDeleteModal: false,
+        search: '',
         editData: { id: '', name: '', phone: '' },
         deleteId: '' 
     }">
@@ -23,12 +15,12 @@
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center shrink-0 border border-primary-100">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                 </div>
                 <div>
                     <h2 class="text-lg sm:text-2xl font-black text-slate-800">إدارة الموردين</h2>
-                    <p class="text-slate-500 text-xs sm:text-sm mt-0.5">الموردين المسجلين في النظام</p>
+                    <p class="text-slate-500 text-xs sm:text-sm mt-0.5">الموردين والشركات المسجلة في النظام</p>
                 </div>
             </div>
             <button @click="showAddModal = true" class="px-5 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 text-sm font-bold flex items-center transition-colors shadow-sm shadow-primary-600/20 w-full sm:w-auto justify-center">
@@ -37,24 +29,65 @@
             </button>
         </div>
 
-        <?php if(session('success')): ?>
+        @if(session('success'))
             <div x-data="{ show: true }" x-show="show" class="mb-4 bg-success-50 border border-success-200 text-success-800 rounded-xl p-4 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-success-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                    <span class="text-sm font-bold"><?php echo e(session('success')); ?></span>
+                    <span class="text-sm font-bold">{{ session('success') }}</span>
                 </div>
                 <button @click="show = false" class="text-success-600 hover:text-success-800"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
-        <?php endif; ?>
-        <?php if(session('error')): ?>
+        @endif
+        @if(session('error'))
             <div x-data="{ show: true }" x-show="show" class="mb-4 bg-danger-50 border border-danger-200 text-danger-800 rounded-xl p-4 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <svg class="w-5 h-5 text-danger-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    <span class="text-sm font-bold"><?php echo e(session('error')); ?></span>
+                    <span class="text-sm font-bold">{{ session('error') }}</span>
                 </div>
                 <button @click="show = false" class="text-danger-600 hover:text-danger-800"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
-        <?php endif; ?>
+        @endif
+
+        <!-- Mobile Cards (visible on small screens only) -->
+        <div class="sm:hidden space-y-3 mb-6">
+            @forelse($suppliers as $supplier)
+            <div class="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <a href="{{ route('suppliers.show', $supplier->id) }}" class="text-base font-bold text-primary-700 hover:underline">{{ $supplier->name }}</a>
+                        @if($supplier->phone)
+                            <p class="text-xs text-slate-500 font-mono mt-0.5" dir="ltr">{{ $supplier->phone }}</p>
+                        @endif
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <a href="{{ route('suppliers.show', $supplier->id) }}" class="p-1.5 rounded border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all" title="كشف حساب المورد">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        </a>
+                        <button @click="editData = { id: '{{ $supplier->id }}', name: '{{ addslashes($supplier->name) }}', phone: '{{ $supplier->phone }}' }; showEditModal = true" class="p-1.5 rounded border border-slate-200 bg-white text-blue-600 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 shadow-sm transition-all" title="تعديل">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        </button>
+                        <button @click="deleteId = '{{ $supplier->id }}'; showDeleteModal = true" class="p-1.5 rounded border border-slate-200 bg-white text-danger-600 hover:text-danger-700 hover:border-danger-300 hover:bg-danger-50 shadow-sm transition-all" title="حذف">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-danger-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center text-sm border-t border-slate-50 pt-2">
+                    <span class="text-slate-500">حالة الحساب:</span>
+                    @if($supplier->balance > 0)
+                        <span class="font-bold text-amber-700" dir="ltr">{{ number_format($supplier->balance, 0) }} <span class="text-xs font-bold text-amber-800">ج.م (مستحق للمورد)</span></span>
+                    @elseif($supplier->balance < 0)
+                        <span class="font-bold text-emerald-600" dir="ltr">{{ number_format(abs($supplier->balance), 0) }} <span class="text-xs font-bold text-emerald-700">ج.م (لنا عند المورد)</span></span>
+                    @else
+                        <span class="font-bold text-slate-500">خالص (لا يوجد مستحقات)</span>
+                    @endif
+                </div>
+            </div>
+            @empty
+            <div class="bg-white rounded-xl border border-slate-100 p-8 text-center text-sm text-slate-500">
+                لا يوجد موردين مسجلين حالياً.
+            </div>
+            @endforelse
+        </div>
 
         <!-- Desktop Table (hidden on small screens) -->
         <div class="hidden sm:block bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
@@ -65,56 +98,62 @@
                             <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">#</th>
                             <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">اسم المورد</th>
                             <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">رقم الهاتف</th>
-                            <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">الرصيد المتبقي له</th>
-                            <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">الرصيد المتبقي عليه</th>
+                            <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">مستحق له (علينا للمورد)</th>
+                            <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">لنا عنده (دافعين زيادة)</th>
                             <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php $__empty_1 = true; $__currentLoopData = $suppliers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $supplier): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                        @forelse($suppliers as $supplier)
                         <tr class="hover:bg-slate-50/60 transition-colors group">
-                            <td class="px-4 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100 align-middle text-center font-medium"><?php echo e($loop->iteration); ?></td>
+                            <td class="px-4 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100 align-middle text-center font-medium">{{ $loop->iteration }}</td>
                             <td class="px-4 py-3 text-[0.85rem] font-bold text-primary-700 border-b border-slate-100 align-middle text-center">
-                                <a href="<?php echo e(route('suppliers.show', $supplier->id)); ?>" class="hover:underline"><?php echo e($supplier->name); ?></a>
+                                <a href="{{ route('suppliers.show', $supplier->id) }}" class="hover:underline">{{ $supplier->name }}</a>
                             </td>
-                            <td class="px-4 py-3 text-[0.8rem] text-slate-600 border-b border-slate-100 align-middle text-center" dir="ltr"><?php echo e($supplier->phone ?? '-'); ?></td>
+                            <td class="px-4 py-3 text-[0.8rem] text-slate-600 border-b border-slate-100 align-middle text-center" dir="ltr">{{ $supplier->phone ?? '-' }}</td>
                             <td class="px-4 py-3 text-[0.85rem] font-bold text-slate-700 border-b border-slate-100 align-middle text-center" dir="ltr">
-                                <?php if($supplier->balance < 0): ?>
-                                    <span class="text-danger-600"><?php echo e(number_format(abs($supplier->balance), 0)); ?></span>
-                                <?php else: ?>
+                                @if($supplier->balance > 0)
+                                    <span class="text-amber-700 font-bold">{{ number_format($supplier->balance, 0) }}</span>
+                                @else
                                     -
-                                <?php endif; ?>
+                                @endif
                             </td>
                             <td class="px-4 py-3 text-[0.85rem] font-bold text-slate-700 border-b border-slate-100 align-middle text-center" dir="ltr">
-                                <?php if($supplier->balance > 0): ?>
-                                    <span class="text-primary-600"><?php echo e(number_format($supplier->balance, 0)); ?></span>
-                                <?php else: ?>
+                                @if($supplier->balance < 0)
+                                    <span class="text-emerald-600 font-bold">{{ number_format(abs($supplier->balance), 0) }}</span>
+                                @else
                                     -
-                                <?php endif; ?>
+                                @endif
                             </td>
                             <td class="px-4 py-3 border-b border-slate-100 align-middle text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <a href="<?php echo e(route('suppliers.show', $supplier->id)); ?>" class="p-1.5 rounded border border-slate-200 bg-white text-slate-400 hover:text-primary-600 hover:border-primary-600 hover:bg-primary-50 shadow-sm transition-all" title="كشف حساب المورد">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                    <a href="{{ route('suppliers.show', $supplier->id) }}" class="p-1.5 rounded border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all" title="كشف حساب المورد">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                     </a>
-                                    <button @click="editData = { id: '<?php echo e($supplier->id); ?>', name: '<?php echo e($supplier->name); ?>', phone: '<?php echo e($supplier->phone); ?>' }; showEditModal = true" class="p-1.5 rounded border border-slate-200 bg-white text-slate-400 hover:text-primary-600 hover:border-primary-600 hover:bg-primary-50 shadow-sm transition-all" title="تعديل">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                    <button @click="editData = { id: '{{ $supplier->id }}', name: '{{ addslashes($supplier->name) }}', phone: '{{ $supplier->phone }}' }; showEditModal = true" class="p-1.5 rounded border border-slate-200 bg-white text-blue-600 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 shadow-sm transition-all" title="تعديل">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                     </button>
-                                    <button @click="deleteId = '<?php echo e($supplier->id); ?>'; showDeleteModal = true" class="p-1.5 rounded border border-slate-200 bg-white text-slate-400 hover:text-danger-600 hover:border-danger-600 hover:bg-danger-50 shadow-sm transition-all" title="حذف">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    <button @click="deleteId = '{{ $supplier->id }}'; showDeleteModal = true" class="p-1.5 rounded border border-slate-200 bg-white text-danger-600 hover:text-danger-700 hover:border-danger-300 hover:bg-danger-50 shadow-sm transition-all" title="حذف">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-danger-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                     </button>
                                 </div>
                             </td>
                         </tr>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                        @empty
                         <tr>
-                            <td colspan="6" class="px-4 py-8 text-center text-sm text-slate-500">لا يوجد عملاء مسجلين حالياً.</td>
+                            <td colspan="6" class="px-4 py-8 text-center text-sm text-slate-500">لا يوجد موردين مسجلين حالياً.</td>
                         </tr>
-                        <?php endif; ?>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
+
+        @if($suppliers->hasPages())
+            <div class="mt-4">
+                {{ $suppliers->links() }}
+            </div>
+        @endif
 
         <!-- Add Modal -->
         <div x-show="showAddModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
@@ -124,8 +163,8 @@
                 </div>
                 <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
                 <div x-show="showAddModal" x-transition.scale class="inline-block align-bottom bg-white rounded-2xl text-right overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
-                    <form action="<?php echo e(route('suppliers.store')); ?>" method="POST">
-                        <?php echo csrf_field(); ?>
+                    <form action="{{ route('suppliers.store') }}" method="POST">
+                        @csrf
                         <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                             <div class="flex justify-between items-center mb-5">
                                 <h3 class="text-lg font-bold text-slate-800">إضافة مورد جديد</h3>
@@ -145,7 +184,7 @@
                                 <div>
                                     <label class="block text-sm font-bold text-slate-700 mb-1">الرصيد الافتتاحي (اختياري)</label>
                                     <input type="number" step="0.01" name="balance" value="0" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all text-sm" dir="ltr">
-                                    <p class="text-[0.65rem] text-slate-500 mt-1">رقم موجب = الرصيد المتبقي عليه، رقم سالب = الرصيد المتبقي له.</p>
+                                    <p class="text-[0.65rem] text-slate-500 mt-1">رقم موجب = الرصيد المتبقي له، رقم سالب = الرصيد المتبقي عليه.</p>
                                 </div>
                             </div>
                         </div>
@@ -167,8 +206,8 @@
                 <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
                 <div x-show="showEditModal" x-transition.scale class="inline-block align-bottom bg-white rounded-2xl text-right overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full">
                     <form :action="`/suppliers/${editData.id}`" method="POST">
-                        <?php echo csrf_field(); ?>
-                        <?php echo method_field('PUT'); ?>
+                        @csrf
+                        @method('PUT')
                         <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                             <div class="flex justify-between items-center mb-5">
                                 <h3 class="text-lg font-bold text-slate-800">تعديل بيانات المورد</h3>
@@ -203,8 +242,8 @@
                 <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
                 <div x-show="showDeleteModal" x-transition.scale class="inline-block align-bottom bg-white rounded-2xl text-right overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full">
                     <form :action="`/suppliers/${deleteId}`" method="POST">
-                        <?php echo csrf_field(); ?>
-                        <?php echo method_field('DELETE'); ?>
+                        @csrf
+                        @method('DELETE')
                         <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                             <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-danger-100 sm:mx-0 sm:h-10 sm:w-10 mb-4">
                                 <svg class="h-6 w-6 text-danger-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -222,13 +261,4 @@
         </div>
 
     </div>
- <?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginal5863877a5171c196453bfa0bd807e410)): ?>
-<?php $attributes = $__attributesOriginal5863877a5171c196453bfa0bd807e410; ?>
-<?php unset($__attributesOriginal5863877a5171c196453bfa0bd807e410); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginal5863877a5171c196453bfa0bd807e410)): ?>
-<?php $component = $__componentOriginal5863877a5171c196453bfa0bd807e410; ?>
-<?php unset($__componentOriginal5863877a5171c196453bfa0bd807e410); ?>
-<?php endif; ?>
+</x-layouts.app>

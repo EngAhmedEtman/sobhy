@@ -28,14 +28,14 @@
                         <template x-if="transactionDetails && transactionDetails.id">
                             <div class="flex items-center gap-2">
                                 <!-- Print Button -->
-                                <button @click="openPrintPreviewModal('printPreviewModal', `/transactions/${transactionDetails.id}/print`)" class="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 text-xs font-bold flex items-center gap-1 transition-colors" title="طباعة الإيصال">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                                    طباعة
+                                <button @click="openPrintPreviewModal('printPreviewModal', `/transactions/${transactionDetails.id}/print`)" class="px-3 py-1.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors" title="طباعة الإيصال">
+                                    <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                    <span>طباعة</span>
                                 </button>
                                 <!-- Edit Button -->
-                                <button @click="$dispatch('edit-transaction', transactionDetails); showTransactionDetailsModal = false" class="px-3 py-1.5 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 text-xs font-bold flex items-center gap-1 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                    تعديل
+                                <button @click="$dispatch('edit-transaction', transactionDetails); showTransactionDetailsModal = false" class="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 hover:text-blue-800 text-xs font-bold flex items-center gap-1.5 transition-colors" title="تعديل العملية">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                    <span>تعديل</span>
                                 </button>
                             </div>
                         </template>
@@ -90,7 +90,7 @@
                                         </div>
                                         <div>
                                             <p class="text-xs text-slate-500 mb-1">سعر الوحدة</p>
-                                            <p class="font-bold text-slate-800 text-sm" dir="ltr" x-text="Number(transactionDetails.unit_price).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' ج.م'"></p>
+                                            <p class="font-bold text-slate-800 text-sm" dir="ltr" x-text="Number(transactionDetails.unit_price).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م'"></p>
                                         </div>
                                     </div>
                                 </div>
@@ -99,19 +99,19 @@
                             <!-- Financial details -->
                             <div class="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-3">
                                 <h4 class="text-sm font-bold text-emerald-800 flex items-center gap-1.5">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0-2.08-.402-2.599-1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <svg class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     الملخص المالي
                                 </h4>
                                 <div class="space-y-3">
                                     <div class="flex justify-between items-center pb-2 border-b border-emerald-100">
                                         <span class="text-xs font-bold text-slate-600" x-text="['return_sale', 'return_purchase'].includes(transactionDetails.type) ? 'إجمالي المرتجع' : 'المبلغ المسدد'"></span>
-                                        <span class="text-sm font-bold text-emerald-700" dir="ltr" x-text="Number(transactionDetails.amount).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' ج.م'"></span>
+                                        <span class="text-sm font-bold text-emerald-700" dir="ltr" x-text="Number(transactionDetails.amount).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م'"></span>
                                     </div>
                                     <div class="flex justify-between items-center">
                                         <span class="text-xs font-bold text-slate-600">الرصيد بعد العملية</span>
                                         <span class="text-sm font-bold text-slate-800" dir="ltr" x-text="
-                                            transactionDetails.balance_after < 0 ? Number(Math.abs(transactionDetails.balance_after)).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' ج.م (لنا)' : 
-                                            (transactionDetails.balance_after > 0 ? Number(transactionDetails.balance_after).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' ج.م (عليه)' : 'خالص')
+                                            transactionDetails.balance_after < 0 ? Number(Math.abs(transactionDetails.balance_after)).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (لنا)' : 
+                                             (transactionDetails.balance_after > 0 ? Number(transactionDetails.balance_after).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (عليه)' : 'خالص')
                                         "></span>
                                     </div>
                                 </div>
