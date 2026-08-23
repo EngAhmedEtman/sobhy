@@ -284,7 +284,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-bold text-slate-700 mb-1">رقم الهاتف</label>
-                                    <input type="text" name="phone" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all text-sm" dir="ltr">
+                                    <input type="tel" name="phone" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9+]/g, '')" placeholder="مثال: 01012345678" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all text-sm" dir="ltr">
                                 </div>
                                 <div x-data="{ initialAmount: 0, balanceType: 'credit' }">
                                     <input type="hidden" name="balance" :value="balanceType === 'debit' ? -Math.abs(parseFloat(initialAmount) || 0) : Math.abs(parseFloat(initialAmount) || 0)">
@@ -339,7 +339,7 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-bold text-slate-700 mb-1">رقم الهاتف</label>
-                                    <input type="text" name="phone" x-model="editData.phone" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all text-sm" dir="ltr">
+                                    <input type="tel" name="phone" x-model="editData.phone" inputmode="numeric" @input="editData.phone = editData.phone.replace(/[^0-9+]/g, '')" placeholder="مثال: 01012345678" class="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-50 focus:bg-white focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all text-sm" dir="ltr">
                                 </div>
                             </div>
                         </div>
@@ -371,7 +371,7 @@
                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                  x-transition:leave-end="opacity-0 scale-95 translate-y-2"
                  @click.away="showDeleteModal = false"
-                 class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 text-center overflow-hidden">
+                 class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 text-center overflow-hidden whitespace-normal break-words">
                 
                 <form :action="`/suppliers/${deleteId}`" method="POST">
                     @csrf

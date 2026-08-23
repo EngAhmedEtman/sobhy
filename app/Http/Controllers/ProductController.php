@@ -19,9 +19,14 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'stock' => 'nullable|numeric',
+            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
+            'stock' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string'
+        ], [
+            'name.required' => 'يرجى إدخال اسم المنتج',
+            'name.regex' => 'اسم المنتج يجب ألا يتكون من أرقام فقط',
+            'stock.numeric' => 'يجب أن يكون الرصيد الافتتاحي رقماً صحيحاً أو عشرياً',
+            'stock.min' => 'لا يمكن أن يكون الرصيد الافتتاحي بالسالب (أقل من صفر)',
         ]);
 
         $product = Product::create([
@@ -46,9 +51,14 @@ class ProductController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'stock' => 'nullable|numeric',
+            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
+            'stock' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string'
+        ], [
+            'name.required' => 'يرجى إدخال اسم المنتج',
+            'name.regex' => 'اسم المنتج يجب ألا يتكون من أرقام فقط',
+            'stock.numeric' => 'يجب أن يكون الرصيد الافتتاحي رقماً صحيحاً أو عشرياً',
+            'stock.min' => 'لا يمكن أن يكون الرصيد الافتتاحي بالسالب (أقل من صفر)',
         ]);
 
         $product = Product::findOrFail($id);

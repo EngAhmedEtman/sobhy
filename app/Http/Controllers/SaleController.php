@@ -96,23 +96,29 @@ class SaleController extends Controller
     {
         $request->validate([
             'customer_id' => 'required|exists:customers,id',
-            'date' => 'required|date',
+            'date' => 'required|date|before_or_equal:today',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.price' => 'required|numeric|min:0',
             'paid_amount' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
+        ], [
+            'date.required' => 'يرجى تحديد تاريخ الفاتورة',
+            'date.before_or_equal' => 'لا يمكن تسجيل تاريخ فاتورة في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
         ]);
 
         DB::transaction(function () use ($request) {
             $customer = Customer::findOrFail($request->customer_id);
             $totalAmount = 0;
 
-            // Generate invoice number
-            $lastSale = Sale::orderBy('id', 'desc')->first();
-            $nextId = $lastSale ? $lastSale->id + 1 : 1;
-            $invoiceNumber = 'INV-' . str_pad($nextId, 6, '0', STR_PAD_LEFT);
+            // Generate invoice number safely
+            $lastSale = Sale::withTrashed()->orderBy('id', 'desc')->first();
+            $nextId = $lastSale ? ($lastSale->id + 1) : 1;
+            do {
+                $invoiceNumber = 'INV-' . str_pad($nextId, 6, '0', STR_PAD_LEFT);
+                $nextId++;
+            } while (Sale::withTrashed()->where('invoice_number', $invoiceNumber)->exists());
 
             $sale = Sale::create([
                 'customer_id' => $customer->id,
@@ -247,26 +253,39 @@ class SaleController extends Controller
     {
         $request->validate([
             'customer_id' => 'required|exists:customers,id',
-            'date' => 'required|date',
+            'date' => 'required|date|before_or_equal:today',
             'paid_amount' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:255',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.price' => 'required|numeric|min:0',
+        ], [
+            'date.required' => 'يرجى تحديد تاريخ الفاتورة',
+            'date.before_or_equal' => 'لا يمكن تسجيل تاريخ فاتورة في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
         ]);
 
         DB::transaction(function () use ($request, $sale) {
             $sale->load(['items', 'customer']);
             
-            // 1. REVERT OLD TRANSACTION & STOCK
-            // Find related transaction using exact note format
+            // 1. FIND OLD TRANSACTION TO PRESERVE PAID AMOUNT
             $oldTransaction = $sale->customer->transactions()
                 ->where('type', 'sale')
                 ->where('notes', 'like', '%رقم ' . $sale->invoice_number . '%')
                 ->first();
 
-            // Reverse customer balance
+            // Preserve the original paid_amount — do NOT re-apply it as a new payment.
+            // Only use the new paid_amount if the user explicitly changed it from the original.
+            $originalPaidAmount = $oldTransaction ? (float) $oldTransaction->paid_amount : 0;
+            $newPaidAmountInput = $request->filled('paid_amount') ? (float) $request->paid_amount : null;
+
+            // If user sent a value that differs from the original → use the new one.
+            // If same or not sent → keep the original.
+            $paidAmount = ($newPaidAmountInput !== null && $newPaidAmountInput !== $originalPaidAmount)
+                ? $newPaidAmountInput
+                : $originalPaidAmount;
+
+            // 2. REVERT OLD TRANSACTION & STOCK
             if ($oldTransaction) {
                 $oldDebtAdded = $oldTransaction->total_amount - $oldTransaction->paid_amount;
                 $sale->customer->balance -= $oldDebtAdded;
@@ -285,17 +304,17 @@ class SaleController extends Controller
                 ->where('related_id', $sale->id)
                 ->delete();
             
-            // 2. IF CUSTOMER CHANGED, we need to load the new customer
+            // 3. IF CUSTOMER CHANGED, load the new customer
             $customer = Customer::findOrFail($request->customer_id);
             
-            // 3. UPDATE SALE METADATA
+            // 4. UPDATE SALE METADATA
             $sale->update([
                 'customer_id' => $customer->id,
                 'date' => $request->date,
                 'notes' => $request->notes,
             ]);
 
-            // 4. CREATE NEW ITEMS & UPDATE STOCK
+            // 5. CREATE NEW ITEMS & UPDATE STOCK
             $totalAmount = 0;
             $totalQuantity = 0;
 
@@ -332,8 +351,7 @@ class SaleController extends Controller
 
             $sale->update(['total_amount' => $totalAmount]);
 
-            // 5. REGISTER NEW TRANSACTION
-            $paidAmount = $request->paid_amount ?: 0;
+            // 6. REGISTER NEW TRANSACTION (with preserved or updated paid_amount)
             $debtAdded = $totalAmount - $paidAmount;
             
             $customer->balance += $debtAdded;

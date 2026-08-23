@@ -40,21 +40,46 @@ class PrintController extends Controller
             ->orderBy('id', 'asc');
 
         $filter = $request->query('filter', 'all');
-        $subtitle = 'كشف حساب كامل';
+        $subtitle = 'كشف حساب شامل لجميع العمليات';
 
-        if ($filter === 'last_zero') {
+        if ($filter === 'this_month') {
+            $startDate = now()->startOfMonth()->toDateString();
+            $endDate = now()->endOfMonth()->toDateString();
+            $query->whereBetween('transaction_date', [$startDate, $endDate]);
+            $subtitle = 'كشف حساب شهر ' . now()->translatedFormat('F Y');
+        } elseif ($filter === 'custom' || $request->filled('start_date') || $request->filled('end_date')) {
+            if ($request->filled('start_date')) {
+                $query->where('transaction_date', '>=', $request->start_date);
+            }
+            if ($request->filled('end_date')) {
+                $query->where('transaction_date', '<=', $request->end_date);
+            }
+            $from = $request->start_date ?: 'البداية';
+            $to = $request->end_date ?: 'اليوم';
+            $subtitle = "عن الفترة من {$from} إلى {$to}";
+        } elseif ($filter === 'last_zero') {
             // Find the last transaction where balance_after was 0
             $lastZero = Transaction::where('transactionable_type', Customer::class)
                 ->where('transactionable_id', $customer->id)
-                ->where('balance_after', 0)
+                ->where(function($q) {
+                    $q->where('balance_after', 0)
+                      ->orWhereRaw('ABS(balance_after) < 0.001');
+                })
                 ->orderBy('transaction_date', 'desc')
                 ->orderBy('id', 'desc')
                 ->first();
 
             if ($lastZero) {
-                $query->where('transaction_date', '>=', $lastZero->transaction_date)
-                      ->where('id', '>=', $lastZero->id);
-                $subtitle = 'منذ آخر تصفية حساب';
+                $query->where(function($q) use ($lastZero) {
+                    $q->where('transaction_date', '>', $lastZero->transaction_date)
+                      ->orWhere(function($sub) use ($lastZero) {
+                          $sub->where('transaction_date', '=', $lastZero->transaction_date)
+                              ->where('id', '>=', $lastZero->id);
+                      });
+                });
+                $subtitle = 'منذ آخر تسوية وتصفير للرصيد (' . $lastZero->transaction_date->format('Y-m-d') . ')';
+            } else {
+                $subtitle = 'كشف حساب شامل (لا توجد تسوية سابقة)';
             }
         } elseif ($filter === 'last_n') {
             $n = (int) $request->query('n', 10);
@@ -89,21 +114,46 @@ class PrintController extends Controller
             ->orderBy('id', 'asc');
 
         $filter = $request->query('filter', 'all');
-        $subtitle = 'كشف حساب كامل';
+        $subtitle = 'كشف حساب شامل لجميع العمليات';
 
-        if ($filter === 'last_zero') {
+        if ($filter === 'this_month') {
+            $startDate = now()->startOfMonth()->toDateString();
+            $endDate = now()->endOfMonth()->toDateString();
+            $query->whereBetween('transaction_date', [$startDate, $endDate]);
+            $subtitle = 'كشف حساب شهر ' . now()->translatedFormat('F Y');
+        } elseif ($filter === 'custom' || $request->filled('start_date') || $request->filled('end_date')) {
+            if ($request->filled('start_date')) {
+                $query->where('transaction_date', '>=', $request->start_date);
+            }
+            if ($request->filled('end_date')) {
+                $query->where('transaction_date', '<=', $request->end_date);
+            }
+            $from = $request->start_date ?: 'البداية';
+            $to = $request->end_date ?: 'اليوم';
+            $subtitle = "عن الفترة من {$from} إلى {$to}";
+        } elseif ($filter === 'last_zero') {
             // Find the last transaction where balance_after was 0
             $lastZero = Transaction::where('transactionable_type', Supplier::class)
                 ->where('transactionable_id', $supplier->id)
-                ->where('balance_after', 0)
+                ->where(function($q) {
+                    $q->where('balance_after', 0)
+                      ->orWhereRaw('ABS(balance_after) < 0.001');
+                })
                 ->orderBy('transaction_date', 'desc')
                 ->orderBy('id', 'desc')
                 ->first();
 
             if ($lastZero) {
-                $query->where('transaction_date', '>=', $lastZero->transaction_date)
-                      ->where('id', '>=', $lastZero->id);
-                $subtitle = 'منذ آخر تصفية حساب';
+                $query->where(function($q) use ($lastZero) {
+                    $q->where('transaction_date', '>', $lastZero->transaction_date)
+                      ->orWhere(function($sub) use ($lastZero) {
+                          $sub->where('transaction_date', '=', $lastZero->transaction_date)
+                              ->where('id', '>=', $lastZero->id);
+                      });
+                });
+                $subtitle = 'منذ آخر تسوية وتصفير للرصيد (' . $lastZero->transaction_date->format('Y-m-d') . ')';
+            } else {
+                $subtitle = 'كشف حساب شامل (لا توجد تسوية سابقة)';
             }
         } elseif ($filter === 'last_n') {
             $n = (int) $request->query('n', 10);

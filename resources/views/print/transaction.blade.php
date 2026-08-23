@@ -36,16 +36,18 @@
         $partyType = $transaction->type === 'payment_received' || $transaction->type === 'return_sale' ? 'العميل' : 'المورد';
     @endphp
     <title>{{ $typeLabel }} #{{ str_pad($transaction->id, 5, '0', STR_PAD_LEFT) }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap" rel="stylesheet">
     <style>
         @page {
             size: A4 portrait;
             margin: 8mm 6mm !important;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *, ::before, ::after { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif !important; }
         html, body { height: 100%; min-height: 100%; }
         body {
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Cairo', sans-serif !important;
             background: #fff; color: #0f172a; font-size: 12px; line-height: 1.4;
             -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }

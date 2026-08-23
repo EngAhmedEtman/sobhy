@@ -96,23 +96,29 @@ class PurchaseController extends Controller
     {
         $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
-            'date' => 'required|date',
+            'date' => 'required|date|before_or_equal:today',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.price' => 'required|numeric|min:0',
             'paid_amount' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
+        ], [
+            'date.required' => 'يرجى تحديد تاريخ الفاتورة',
+            'date.before_or_equal' => 'لا يمكن تسجيل تاريخ فاتورة في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
         ]);
 
         DB::transaction(function () use ($request) {
             $supplier = Supplier::findOrFail($request->supplier_id);
             $totalAmount = 0;
 
-            // Generate invoice number
-            $lastPurchase = Purchase::orderBy('id', 'desc')->first();
-            $nextId = $lastPurchase ? $lastPurchase->id + 1 : 1;
-            $invoiceNumber = 'PO-' . str_pad($nextId, 6, '0', STR_PAD_LEFT);
+            // Generate invoice number safely
+            $lastPurchase = Purchase::withTrashed()->orderBy('id', 'desc')->first();
+            $nextId = $lastPurchase ? ($lastPurchase->id + 1) : 1;
+            do {
+                $invoiceNumber = 'PO-' . str_pad($nextId, 6, '0', STR_PAD_LEFT);
+                $nextId++;
+            } while (Purchase::withTrashed()->where('invoice_number', $invoiceNumber)->exists());
 
             $purchase = Purchase::create([
                 'supplier_id' => $supplier->id,
@@ -247,26 +253,39 @@ class PurchaseController extends Controller
     {
         $request->validate([
             'supplier_id' => 'required|exists:suppliers,id',
-            'date' => 'required|date',
+            'date' => 'required|date|before_or_equal:today',
             'paid_amount' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string|max:255',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.price' => 'required|numeric|min:0',
+        ], [
+            'date.required' => 'يرجى تحديد تاريخ الفاتورة',
+            'date.before_or_equal' => 'لا يمكن تسجيل تاريخ فاتورة في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
         ]);
 
         DB::transaction(function () use ($request, $purchase) {
             $purchase->load(['items', 'supplier']);
             
-            // 1. REVERT OLD TRANSACTION & STOCK
-            // Find related transaction using exact note format
+            // 1. FIND OLD TRANSACTION TO PRESERVE PAID AMOUNT
             $oldTransaction = $purchase->supplier->transactions()
                 ->where('type', 'purchase')
                 ->where('notes', 'like', '%رقم ' . $purchase->invoice_number . '%')
                 ->first();
 
-            // Reverse supplier balance
+            // Preserve the original paid_amount — do NOT re-apply it as a new payment.
+            // Only use the new paid_amount if the user explicitly changed it from the original.
+            $originalPaidAmount = $oldTransaction ? (float) $oldTransaction->paid_amount : 0;
+            $newPaidAmountInput = $request->filled('paid_amount') ? (float) $request->paid_amount : null;
+
+            // If user sent a value that differs from the original → use the new one.
+            // If same or not sent → keep the original.
+            $paidAmount = ($newPaidAmountInput !== null && $newPaidAmountInput !== $originalPaidAmount)
+                ? $newPaidAmountInput
+                : $originalPaidAmount;
+
+            // 2. REVERT OLD TRANSACTION & STOCK
             if ($oldTransaction) {
                 $oldDebtAdded = $oldTransaction->total_amount - $oldTransaction->paid_amount;
                 $purchase->supplier->balance -= $oldDebtAdded;
@@ -285,17 +304,17 @@ class PurchaseController extends Controller
                 ->where('related_id', $purchase->id)
                 ->delete();
             
-            // 2. IF SUPPLIER CHANGED, we need to load the new supplier
+            // 3. IF SUPPLIER CHANGED, load the new supplier
             $supplier = Supplier::findOrFail($request->supplier_id);
             
-            // 3. UPDATE PURCHASE METADATA
+            // 4. UPDATE PURCHASE METADATA
             $purchase->update([
                 'supplier_id' => $supplier->id,
                 'date' => $request->date,
                 'notes' => $request->notes,
             ]);
 
-            // 4. CREATE NEW ITEMS & UPDATE STOCK
+            // 5. CREATE NEW ITEMS & UPDATE STOCK
             $totalAmount = 0;
             $totalQuantity = 0;
 
@@ -332,8 +351,7 @@ class PurchaseController extends Controller
 
             $purchase->update(['total_amount' => $totalAmount]);
 
-            // 5. REGISTER NEW TRANSACTION
-            $paidAmount = $request->paid_amount ?: 0;
+            // 6. REGISTER NEW TRANSACTION (with preserved or updated paid_amount)
             $debtAdded = $totalAmount - $paidAmount;
             
             $supplier->balance += $debtAdded;

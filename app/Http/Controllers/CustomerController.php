@@ -74,9 +74,15 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:255',
+            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
+            'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+]+$/'],
             'balance' => 'required|numeric'
+        ], [
+            'name.required' => 'يرجى إدخال اسم العميل',
+            'name.regex' => 'اسم العميل يجب ألا يتكون من أرقام فقط',
+            'phone.regex' => 'رقم الهاتف يجب أن يحتوي على أرقام فقط بدون أحرف',
+            'phone.max' => 'رقم الهاتف لا يجب أن يتجاوز 20 رقماً',
+            'balance.required' => 'يرجى تحديد الرصيد الافتتاحي',
         ]);
 
         Customer::create($request->all());
@@ -87,8 +93,13 @@ class CustomerController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:255',
+            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
+            'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+]+$/'],
+        ], [
+            'name.required' => 'يرجى إدخال اسم العميل',
+            'name.regex' => 'اسم العميل يجب ألا يتكون من أرقام فقط',
+            'phone.regex' => 'رقم الهاتف يجب أن يحتوي على أرقام فقط بدون أحرف',
+            'phone.max' => 'رقم الهاتف لا يجب أن يتجاوز 20 رقماً',
         ]);
 
         $customer = Customer::findOrFail($id);
@@ -133,9 +144,14 @@ class CustomerController extends Controller
     public function storePayment(Request $request, $id)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'date' => 'required|date',
-            'notes' => 'nullable|string'
+            'amount' => 'required|numeric|min:0.01',
+            'date' => 'required|date|before_or_equal:today',
+            'notes' => 'nullable|string|max:255'
+        ], [
+            'amount.required' => 'يرجى إدخال مبلغ التحصيل',
+            'amount.min' => 'مبلغ التحصيل يجب أن يكون أكبر من 0',
+            'date.required' => 'يرجى تحديد تاريخ التحصيل',
+            'date.before_or_equal' => 'لا يمكن تسجيل تاريخ في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
         ]);
 
         $customer = Customer::findOrFail($id);
@@ -150,24 +166,33 @@ class CustomerController extends Controller
                 'total_amount' => 0,
                 'balance_after' => $newBalance,
                 'transaction_date' => $request->date,
-                'notes' => $request->notes ?? 'Ø¯ÙØ¹Ø© Ù†Ù‚Ø¯ÙŠØ©'
+                'notes' => $request->notes ?? 'تحصيل دفعة نقدية'
             ]);
 
             $customer->update(['balance' => $newBalance]);
         });
 
-        return back()->with('success', 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯ÙØ¹Ø© Ø¨Ù†Ø¬Ø§Ø­');
+        return back()->with('success', 'تم تسجيل التحصيل بنجاح');
     }
 
     public function storeReturn(Request $request, $id)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'paid_amount' => 'nullable|numeric|min:0',
-            'date' => 'required|date',
-            'notes' => 'nullable|string',
             'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|numeric|min:0.01'
+            'quantity' => 'required|numeric|min:0.01',
+            'amount' => 'required|numeric|min:0.01',
+            'paid_amount' => 'nullable|numeric|min:0',
+            'date' => 'required|date|before_or_equal:today',
+            'notes' => 'nullable|string|max:255',
+        ], [
+            'product_id.required' => 'يرجى اختيار الصنف / المنتج المراد إرجاعه أولاً',
+            'product_id.exists' => 'المنتج المحدد غير موجود في قاعدة البيانات',
+            'quantity.required' => 'يرجى تحديد الكمية المسترجعة',
+            'quantity.min' => 'الكمية المسترجعة يجب أن تكون أكبر من 0',
+            'amount.required' => 'يرجى إدخال إجمالي قيمة المرتجع',
+            'amount.min' => 'قيمة المرتجع يجب أن تكون أكبر من 0',
+            'date.required' => 'يرجى تحديد تاريخ المرتجع',
+            'date.before_or_equal' => 'لا يمكن تسجيل تاريخ في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
         ]);
 
         $customer = Customer::findOrFail($id);
@@ -190,7 +215,7 @@ class CustomerController extends Controller
                 'total_amount' => $amount, // We record it in total_amount to show value of goods
                 'balance_after' => $newBalance,
                 'transaction_date' => $request->date,
-                'notes' => $request->notes ?? 'Ù…Ø±ØªØ¬Ø¹ ' . $product->name
+                'notes' => $request->notes ?? ('مرتجع بيع - ' . $product->name)
             ]);
 
             $customer->update(['balance' => $newBalance]);

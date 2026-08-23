@@ -1,7 +1,7 @@
 <x-layouts.app title="المديونيات">
     <x-slot:breadcrumb>المديونيات</x-slot:breadcrumb>
 
-    <div x-data="{ tab: 'customers' }">
+    <div x-data="{ tab: '{{ request('tab', 'customers') }}' }">
         <!-- Header & Tabs -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div class="flex items-center gap-3">

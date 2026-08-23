@@ -16,6 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\PreventBackHistory::class,
         ]);
+
+        $middleware->alias([
+            'permission' => \App\Http\Middleware\CheckPermission::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Illuminate\Session\TokenMismatchException $e, \Illuminate\Http\Request $request) {

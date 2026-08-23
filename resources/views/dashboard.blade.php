@@ -102,7 +102,7 @@
                     <div class="text-base sm:text-lg font-black text-danger-600" dir="ltr">{{ number_format($totalCustomersDebt, 0) }} <span class="text-[0.65rem] font-bold">ج.م</span></div>
                     <div class="flex items-center justify-between text-[0.65rem] text-slate-400 mt-1">
                         <span>{{ $customersDebtCount }} عميل مدين</span>
-                        <a href="{{ route('debts.index') }}" class="text-primary-600 hover:underline font-bold">عرض ></a>
+                        <a href="{{ route('debts.index', ['tab' => 'customers']) }}" class="text-primary-600 hover:underline font-bold">عرض ></a>
                     </div>
                 </div>
             </div>
@@ -119,7 +119,7 @@
                     <div class="text-base sm:text-lg font-black text-amber-800" dir="ltr">{{ number_format($totalSuppliersDebt, 0) }} <span class="text-[0.65rem] font-bold">ج.م</span></div>
                     <div class="flex items-center justify-between text-[0.65rem] text-slate-400 mt-1">
                         <span>{{ $suppliersDebtCount }} مورد مستحق</span>
-                        <a href="{{ route('debts.index') }}" class="text-primary-600 hover:underline font-bold">عرض ></a>
+                        <a href="{{ route('debts.index', ['tab' => 'suppliers']) }}" class="text-primary-600 hover:underline font-bold">عرض ></a>
                     </div>
                 </div>
             </div>
@@ -226,7 +226,7 @@
                 </div>
 
                 <div class="pt-3 border-t border-slate-100 text-center">
-                    <a href="{{ route('debts.index') }}" class="text-xs font-bold text-primary-600 hover:text-primary-700">الانتقال إلى جدول المديونيات الشامل &larr;</a>
+                    <a :href="activeTab === 'suppliers' ? '{{ route('debts.index', ['tab' => 'suppliers']) }}' : '{{ route('debts.index', ['tab' => 'customers']) }}'" class="text-xs font-bold text-primary-600 hover:text-primary-700">الانتقال إلى جدول المديونيات الشامل &larr;</a>
                 </div>
             </div>
 

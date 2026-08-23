@@ -73,9 +73,15 @@ class SupplierController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:255',
+            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
+            'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+]+$/'],
             'balance' => 'required|numeric'
+        ], [
+            'name.required' => 'يرجى إدخال اسم المورد',
+            'name.regex' => 'اسم المورد يجب ألا يتكون من أرقام فقط',
+            'phone.regex' => 'رقم الهاتف يجب أن يحتوي على أرقام فقط بدون أحرف',
+            'phone.max' => 'رقم الهاتف لا يجب أن يتجاوز 20 رقماً',
+            'balance.required' => 'يرجى تحديد الرصيد الافتتاحي',
         ]);
 
         Supplier::create($request->all());
@@ -86,8 +92,13 @@ class SupplierController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:255',
+            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
+            'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+]+$/'],
+        ], [
+            'name.required' => 'يرجى إدخال اسم المورد',
+            'name.regex' => 'اسم المورد يجب ألا يتكون من أرقام فقط',
+            'phone.regex' => 'رقم الهاتف يجب أن يحتوي على أرقام فقط بدون أحرف',
+            'phone.max' => 'رقم الهاتف لا يجب أن يتجاوز 20 رقماً',
         ]);
 
         $supplier = Supplier::findOrFail($id);
@@ -132,9 +143,14 @@ class SupplierController extends Controller
     public function storePayment(Request $request, $id)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'date' => 'required|date',
-            'notes' => 'nullable|string'
+            'amount' => 'required|numeric|min:0.01',
+            'date' => 'required|date|before_or_equal:today',
+            'notes' => 'nullable|string|max:255'
+        ], [
+            'amount.required' => 'يرجى إدخال مبلغ السداد',
+            'amount.min' => 'مبلغ السداد يجب أن يكون أكبر من 0',
+            'date.required' => 'يرجى تحديد تاريخ السداد',
+            'date.before_or_equal' => 'لا يمكن تسجيل تاريخ في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
         ]);
 
         $supplier = Supplier::findOrFail($id);
@@ -161,12 +177,21 @@ class SupplierController extends Controller
     public function storeReturn(Request $request, $id)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'paid_amount' => 'nullable|numeric|min:0',
-            'date' => 'required|date',
-            'notes' => 'nullable|string',
             'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|numeric|min:0.01'
+            'quantity' => 'required|numeric|min:0.01',
+            'amount' => 'required|numeric|min:0.01',
+            'paid_amount' => 'nullable|numeric|min:0',
+            'date' => 'required|date|before_or_equal:today',
+            'notes' => 'nullable|string|max:255',
+        ], [
+            'product_id.required' => 'يرجى اختيار الصنف / المنتج المراد إرجاعه أولاً',
+            'product_id.exists' => 'المنتج المحدد غير موجود في قاعدة البيانات',
+            'quantity.required' => 'يرجى تحديد الكمية المسترجعة',
+            'quantity.min' => 'الكمية المسترجعة يجب أن تكون أكبر من 0',
+            'amount.required' => 'يرجى إدخال إجمالي قيمة المرتجع',
+            'amount.min' => 'قيمة المرتجع يجب أن تكون أكبر من 0',
+            'date.required' => 'يرجى تحديد تاريخ المرتجع',
+            'date.before_or_equal' => 'لا يمكن تسجيل تاريخ في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
         ]);
 
         $supplier = Supplier::findOrFail($id);

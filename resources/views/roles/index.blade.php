@@ -368,7 +368,7 @@
                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                  x-transition:leave-end="opacity-0 scale-95 translate-y-2"
                  @click.outside="showDeleteModal = false"
-                 class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 text-center overflow-hidden">
+                 class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 text-center overflow-hidden whitespace-normal break-words">
                 
                 <form :action="`{{ url('roles') }}/${deleteId}`" method="POST">
                     @csrf

@@ -19,15 +19,19 @@ class DashboardController extends Controller
         $startOfMonth = Carbon::now()->startOfMonth();
 
         // Sales Metrics
-        $todaySales = Sale::whereDate('created_at', $today)->get();
-        $todaySalesCount = $todaySales->count();
-        $todaySalesTotal = $todaySales->sum('total_amount');
+        $todaySales = Sale::whereDate('created_at', $today)
+            ->selectRaw('COUNT(*) as aggregate_count, COALESCE(SUM(total_amount), 0) as aggregate_total')
+            ->first();
+        $todaySalesCount = (int) $todaySales->aggregate_count;
+        $todaySalesTotal = (float) $todaySales->aggregate_total;
         $monthSalesTotal = Sale::where('created_at', '>=', $startOfMonth)->sum('total_amount');
 
         // Purchases Metrics
-        $todayPurchases = Purchase::whereDate('created_at', $today)->get();
-        $todayPurchasesCount = $todayPurchases->count();
-        $todayPurchasesTotal = $todayPurchases->sum('total_amount');
+        $todayPurchases = Purchase::whereDate('created_at', $today)
+            ->selectRaw('COUNT(*) as aggregate_count, COALESCE(SUM(total_amount), 0) as aggregate_total')
+            ->first();
+        $todayPurchasesCount = (int) $todayPurchases->aggregate_count;
+        $todayPurchasesTotal = (float) $todayPurchases->aggregate_total;
         $monthPurchasesTotal = Purchase::where('created_at', '>=', $startOfMonth)->sum('total_amount');
 
         // Cash Flow Today (from transactions)
@@ -57,16 +61,24 @@ class DashboardController extends Controller
         $todayNetCash = $todayCashIn - $todayCashOut;
 
         // Debt Overview
-        $totalCustomersDebt = Customer::where('balance', '>', 0)->sum('balance');
-        $customersDebtCount = Customer::where('balance', '>', 0)->count();
+        $customerDebt = Customer::where('balance', '>', 0)
+            ->selectRaw('COUNT(*) as aggregate_count, COALESCE(SUM(balance), 0) as aggregate_total')
+            ->first();
+        $totalCustomersDebt = (float) $customerDebt->aggregate_total;
+        $customersDebtCount = (int) $customerDebt->aggregate_count;
 
-        $totalSuppliersDebt = Supplier::where('balance', '>', 0)->sum('balance');
-        $suppliersDebtCount = Supplier::where('balance', '>', 0)->count();
+        $supplierDebt = Supplier::where('balance', '>', 0)
+            ->selectRaw('COUNT(*) as aggregate_count, COALESCE(SUM(balance), 0) as aggregate_total')
+            ->first();
+        $totalSuppliersDebt = (float) $supplierDebt->aggregate_total;
+        $suppliersDebtCount = (int) $supplierDebt->aggregate_count;
 
         // Stock Overview
-        $totalStockWeight = Product::sum('stock');
-        $productsCount = Product::count();
-        $lowStockProductsCount = Product::where('stock', '<=', 100)->count();
+        $stock = Product::selectRaw('COUNT(*) as aggregate_count, COALESCE(SUM(stock), 0) as aggregate_total, SUM(CASE WHEN stock <= 100 THEN 1 ELSE 0 END) as low_stock_count')
+            ->first();
+        $totalStockWeight = (float) $stock->aggregate_total;
+        $productsCount = (int) $stock->aggregate_count;
+        $lowStockProductsCount = (int) $stock->low_stock_count;
 
         // Top Debtors (Customers who owe money)
         $topDebtorCustomers = Customer::where('balance', '>', 0)
@@ -90,9 +102,9 @@ class DashboardController extends Controller
             ->get();
 
         // Entities for Quick Modals
-        $customers = Customer::orderBy('name')->get();
-        $suppliers = Supplier::orderBy('name')->get();
-        $products = Product::orderBy('name')->get();
+        $customers = Customer::orderBy('name')->get(['id', 'name']);
+        $suppliers = Supplier::orderBy('name')->get(['id', 'name']);
+        $products = Product::orderBy('name')->get(['id', 'name']);
 
         return view('dashboard', compact(
             'todaySalesCount',

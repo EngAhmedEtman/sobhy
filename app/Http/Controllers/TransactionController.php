@@ -62,9 +62,13 @@ class TransactionController extends Controller
         
         $request->validate([
             'amount' => 'required|numeric|min:0',
-            'date' => 'required|date',
+            'date' => 'required|date|before_or_equal:today',
             'notes' => 'nullable|string',
             'quantity' => 'nullable|numeric|min:0',
+        ], [
+            'amount.required' => 'يرجى إدخال المبلغ',
+            'date.required' => 'يرجى تحديد التاريخ',
+            'date.before_or_equal' => 'لا يمكن تسجيل تاريخ في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
         ]);
 
         DB::transaction(function () use ($request, $transaction) {

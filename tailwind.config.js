@@ -12,7 +12,8 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Cairo', ...defaultTheme.fontFamily.sans],
+                sans: ['Cairo Variable', 'Cairo', ...defaultTheme.fontFamily.sans],
+                mono: ['Cairo Variable', 'Cairo', ...defaultTheme.fontFamily.mono],
             },
             colors: {
                 primary: {

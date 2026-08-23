@@ -5,27 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?php echo e($title ?? 'طباعة التقرير'); ?></title>
     
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <!-- Tailwind CSS (CDN to avoid disk space issues) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: { sans: ['Cairo', 'sans-serif'] },
-            colors: {
-                primary: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
-                danger: { 50: '#fef2f2', 100: '#fee2e2', 200: '#fecaca', 300: '#fca5a5', 400: '#f87171', 500: '#ef4444', 600: '#dc2626', 700: '#b91c1c', 800: '#991b1b', 900: '#7f1d1d' }
-            }
-          }
-        }
-      }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        body { font-family: 'Cairo', sans-serif; }
+        *, ::before, ::after { font-family: 'Cairo Variable', 'Cairo', sans-serif !important; }
+        body { font-family: 'Cairo Variable', 'Cairo', sans-serif !important; }
         
         /* Force print modifiers to apply on screen in this layout (preview mode) */
         .print\:hidden { display: none !important; }

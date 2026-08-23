@@ -3,7 +3,7 @@
     
     <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 pl-2">
         <!-- Mobile menu button -->
-        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 -mr-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg focus:outline-none transition-colors shrink-0">
+        <button type="button" @click="sidebarOpen = !sidebarOpen" aria-label="فتح القائمة الرئيسية" :aria-expanded="sidebarOpen" class="lg:hidden p-2 -mr-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg focus:outline-none transition-colors shrink-0">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
@@ -27,6 +27,7 @@
         <div class="hidden md:block relative" @click.away="isOpen = false">
             <div class="relative flex items-center">
                 <input type="text" 
+                       aria-label="البحث السريع في النظام"
                        x-ref="desktopSearchInput"
                        x-model="query" 
                        @input="handleInput()"
@@ -48,7 +49,7 @@
 
                 <!-- Clear Button / Shortcut badge -->
                 <div class="absolute left-2.5 flex items-center">
-                    <button type="button" x-show="query.length > 0" @click="clearSearch()" class="text-slate-400 hover:text-slate-600 p-0.5 rounded">
+                    <button type="button" x-show="query.length > 0" @click="clearSearch()" aria-label="مسح البحث" class="text-slate-400 hover:text-slate-600 p-0.5 rounded">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                     <span x-show="query.length === 0" class="hidden lg:inline-block text-[0.65rem] font-bold text-slate-400 bg-slate-200/70 px-1.5 py-0.5 rounded border border-slate-200 select-none pointer-events-none">Ctrl+K</span>
@@ -422,6 +423,7 @@
             <div class="p-3 border-b border-slate-100 flex items-center gap-2 bg-slate-50">
                 <div class="relative flex-1">
                     <input type="text" 
+                           aria-label="البحث السريع في النظام"
                            x-ref="mobileSearchInput"
                            x-model="query" 
                            @input="handleInput()"
@@ -430,7 +432,7 @@
                     <div class="absolute right-3 top-3 text-slate-400">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                     </div>
-                    <button type="button" x-show="query.length > 0" @click="clearSearch()" class="absolute left-2.5 top-2.5 text-slate-400 p-1">
+                    <button type="button" x-show="query.length > 0" @click="clearSearch()" aria-label="مسح البحث" class="absolute left-2.5 top-2.5 text-slate-400 p-1">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>

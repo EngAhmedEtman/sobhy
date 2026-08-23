@@ -25,9 +25,7 @@
 
             <form x-show="!loading" :action="actionUrl" method="POST">
                 @csrf
-                <template x-if="isEdit">
-                    <input type="hidden" name="_method" value="PUT">
-                </template>
+                <input type="hidden" name="_method" value="PUT" :disabled="!isEdit">
                 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     
@@ -91,6 +89,7 @@
                                                     locale: 'ar',
                                                     dateFormat: 'Y-m-d',
                                                     defaultDate: date || new Date().toISOString().split('T')[0],
+                                                    maxDate: 'today',
                                                     disableMobile: true,
                                                     static: true,
                                                     appendTo: this.$refs.dateWrapper,
@@ -159,38 +158,38 @@
                                 إضافة صنف
                             </button>
                         </div>
-                        <div class="border border-slate-200 rounded-xl bg-white">
+                        <div class="border border-slate-200 rounded-xl bg-white shadow-sm">
                             <!-- Desktop Header -->
-                            <div class="hidden sm:grid sm:grid-cols-12 gap-2 bg-slate-50 border-b border-slate-200 px-2 py-2 text-[0.7rem] font-bold text-slate-500 uppercase text-center rounded-t-xl">
-                                <div class="sm:col-span-5 text-right px-2">المنتج</div>
-                                <div class="sm:col-span-2">الكمية</div>
-                                <div class="sm:col-span-2">سعر الكيلو</div>
-                                <div class="sm:col-span-2">الإجمالي</div>
-                                <div class="sm:col-span-1"></div>
+                            <div class="hidden sm:grid sm:grid-cols-12 gap-2 bg-slate-50 border-b border-slate-200 px-3 py-2 text-[0.7rem] font-bold text-slate-500 uppercase text-center rounded-t-xl">
+                                <div class="sm:col-span-5 text-right px-1">المنتج</div>
+                                <div class="sm:col-span-2 text-center">الكمية (ك)</div>
+                                <div class="sm:col-span-2 text-center">سعر الكيلو</div>
+                                <div class="sm:col-span-2 text-center">الإجمالي</div>
+                                <div class="sm:col-span-1 text-center">حذف</div>
                             </div>
                             
                             <!-- Items Body -->
                             <div class="divide-y divide-slate-100">
                                 <template x-for="(item, index) in items" :key="item.id">
-                                    <div class="p-3 sm:p-2 hover:bg-slate-50/50 transition-colors">
-                                        <!-- Row Container -->
-                                        <div class="flex flex-col sm:grid sm:grid-cols-12 gap-3 sm:gap-2 items-start sm:items-center">
-                                            
-                                            <!-- Product Col (Row 1 on mobile) -->
-                                            <div class="w-full sm:col-span-5 flex items-start gap-2">
-                                                <div x-data="{ open: false, search: '' }" class="relative w-full text-right">
+                                    <div class="p-2.5 sm:p-2 hover:bg-slate-50/50 transition-colors">
+                                        
+                                        <!-- Desktop Row (grid-cols-12) -->
+                                        <div class="hidden sm:grid sm:grid-cols-12 gap-2 items-center">
+                                            <!-- Product (5 cols) -->
+                                            <div class="sm:col-span-5">
+                                                <div x-data="{ open: false, search: '' }" class="relative w-full text-right" :class="open ? 'z-50' : 'z-10'">
                                                     <input type="hidden" :name="'items['+index+'][product_id]'" x-model="item.product_id" required>
                                                     
-                                                    <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-2 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 transition-all text-right">
-                                                        <span class="text-[0.75rem] font-medium truncate" :class="item.product_id ? 'text-slate-800' : 'text-slate-400'" x-text="getProduct(item.product_id) ? getProduct(item.product_id).name + ' (متوفر: ' + getProduct(item.product_id).stock + ')' : 'اختر المنتج...'"></span>
+                                                    <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 transition-all text-right">
+                                                        <span class="text-xs font-medium truncate" :class="item.product_id ? 'text-slate-800' : 'text-slate-400'" x-text="getProduct(item.product_id) ? getProduct(item.product_id).name + ' (متوفر: ' + getProduct(item.product_id).stock + ')' : 'اختر المنتج...'"></span>
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180 text-primary-600' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                                         </svg>
                                                     </button>
 
-                                                    <div x-show="open" @click.outside="open = false" class="absolute z-[100] left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden" style="display: none; min-width: 220px;">
-                                                        <div class="p-1.5 border-b border-slate-100 bg-slate-50/70">
-                                                            <input type="text" x-model="search" placeholder="ابحث عن المنتج..." class="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs focus:outline-none focus:border-primary-500">
+                                                    <div x-show="open" @click.outside="open = false" class="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden" style="display: none; min-width: 240px;">
+                                                        <div class="p-1.5 border-b border-slate-100 bg-slate-50/90">
+                                                            <input type="text" x-model="search" placeholder="ابحث عن المنتج..." class="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs focus:outline-none focus:border-primary-500" @click.stop>
                                                         </div>
                                                         <div class="max-h-48 overflow-y-auto divide-y divide-slate-50">
                                                             <template x-for="p in filterProducts(search)" :key="p.id">
@@ -202,53 +201,105 @@
                                                                             item.product_id == p.id ? 'bg-primary-50 font-bold' : '',
                                                                             items.some(i => i.product_id == p.id && i.id !== item.id) ? 'opacity-50 cursor-not-allowed bg-slate-50' : 'hover:bg-primary-50/60'
                                                                         ]">
-                                                                    <span class="text-[0.75rem] font-medium" :class="items.some(i => i.product_id == p.id && i.id !== item.id) ? 'text-slate-400' : 'text-slate-800 group-hover:text-primary-700'" x-text="items.some(i => i.product_id == p.id && i.id !== item.id) ? p.name + ' (مضاف مسبقاً)' : p.name"></span>
+                                                                    <span class="text-xs font-medium" :class="items.some(i => i.product_id == p.id && i.id !== item.id) ? 'text-slate-400' : 'text-slate-800 group-hover:text-primary-700'" x-text="items.some(i => i.product_id == p.id && i.id !== item.id) ? p.name + ' (مضاف مسبقاً)' : p.name"></span>
                                                                     <span class="text-[0.7rem] font-bold" :class="items.some(i => i.product_id == p.id && i.id !== item.id) ? 'text-slate-400' : 'text-slate-500'" x-text="p.stock"></span>
                                                                 </button>
                                                             </template>
+                                                            <div x-show="filterProducts(search).length === 0" class="p-3 text-center text-xs text-slate-400">
+                                                                لا توجد نتائج مطابقة
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Quantity (2 cols) -->
+                                            <div class="sm:col-span-2">
+                                                <input type="number" step="0.01" :name="'items['+index+'][quantity]'" x-model="item.quantity" min="0.01" required placeholder="0" class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-primary-500 focus:ring-1 text-center bg-white" dir="ltr">
+                                            </div>
+
+                                            <!-- Price (2 cols) -->
+                                            <div class="sm:col-span-2">
+                                                <input type="number" step="0.01" :name="'items['+index+'][price]'" x-model="item.price" min="0" required placeholder="0.00" class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-primary-500 focus:ring-1 text-center bg-white" dir="ltr">
+                                            </div>
+
+                                            <!-- Total (2 cols) -->
+                                            <div class="sm:col-span-2 text-center">
+                                                <div class="text-xs font-bold text-slate-800 py-1.5 rounded-lg text-center" dir="ltr">
+                                                    <span x-text="Number((parseFloat(item.quantity || 0) * parseFloat(item.price || 0)).toFixed(2)).toLocaleString('en-US')"></span>
+                                                    <span class="text-[0.65rem] text-slate-400 font-normal">ج.م</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Delete Button (1 col) -->
+                                            <div class="sm:col-span-1 flex justify-center">
+                                                <button type="button" @click="removeItem(item.id)" class="p-1 rounded border border-slate-200 bg-white text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 shadow-sm transition-all inline-flex items-center justify-center" title="حذف الصنف">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Mobile Layout -->
+                                        <div class="sm:hidden space-y-2">
+                                            <div class="flex items-center gap-2">
+                                                <div x-data="{ open: false, search: '' }" class="relative flex-1 text-right" :class="open ? 'z-50' : 'z-10'">
+                                                    <input type="hidden" :name="'items['+index+'][product_id]'" x-model="item.product_id" required>
+                                                    
+                                                    <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-2.5 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 text-right">
+                                                        <span class="text-xs font-bold truncate" :class="item.product_id ? 'text-slate-800' : 'text-slate-400'" x-text="getProduct(item.product_id) ? getProduct(item.product_id).name + ' (متوفر: ' + getProduct(item.product_id).stock + ')' : 'اختر المنتج...'"></span>
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                                    </button>
+
+                                                    <div x-show="open" @click.outside="open = false" class="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden" style="display: none; min-width: 220px;">
+                                                        <div class="p-1.5 border-b border-slate-100 bg-slate-50/90">
+                                                            <input type="text" x-model="search" placeholder="ابحث عن المنتج..." class="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs focus:outline-none focus:border-primary-500" @click.stop>
+                                                        </div>
+                                                        <div class="max-h-48 overflow-y-auto divide-y divide-slate-50">
+                                                            <template x-for="p in filterProducts(search)" :key="p.id">
+                                                                <button type="button" 
+                                                                        :disabled="items.some(i => i.product_id == p.id && i.id !== item.id)"
+                                                                        @click="onSelectProduct(item, p); open = false; search = ''" 
+                                                                        class="w-full px-3 py-2 text-right flex items-center justify-between transition-colors" 
+                                                                        :class="item.product_id == p.id ? 'bg-primary-50 font-bold' : ''">
+                                                                    <span class="text-xs font-medium" :class="items.some(i => i.product_id == p.id && i.id !== item.id) ? 'text-slate-400' : 'text-slate-800'" x-text="items.some(i => i.product_id == p.id && i.id !== item.id) ? p.name + ' (مضاف مسبقاً)' : p.name"></span>
+                                                                    <span class="text-[0.7rem] font-bold text-slate-500" x-text="p.stock"></span>
+                                                                </button>
+                                                            </template>
+                                                            <div x-show="filterProducts(search).length === 0" class="p-3 text-center text-xs text-slate-400">
+                                                                لا توجد نتائج مطابقة
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                <!-- Mobile Delete Button -->
-                                                <button type="button" @click="removeItem(item.id)" class="sm:hidden p-2 text-danger-400 hover:text-danger-600 bg-danger-50 hover:bg-danger-100 rounded-lg shrink-0 transition-colors border border-danger-100">
+                                                <button type="button" @click="removeItem(item.id)" class="p-2 text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-lg shrink-0 border border-rose-100" title="حذف الصنف">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                 </button>
                                             </div>
 
-                                            <!-- Details (Row 2 on mobile) -->
-                                            <div class="w-full sm:col-span-6 grid grid-cols-3 gap-2 sm:gap-2">
-                                                <!-- Quantity -->
+                                            <div class="grid grid-cols-3 gap-2">
                                                 <div>
-                                                    <span class="block sm:hidden text-[0.65rem] font-bold text-slate-500 mb-1 text-center">الكمية</span>
-                                                    <input type="number" step="0.01" :name="'items['+index+'][quantity]'" x-model="item.quantity" min="0.01" required class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-primary-500 focus:ring-1 text-center" dir="ltr">
+                                                    <label class="block text-[0.65rem] font-bold text-slate-500 mb-1 text-center">الكمية (ك)</label>
+                                                    <input type="number" step="0.01" :name="'items['+index+'][quantity]'" x-model="item.quantity" min="0.01" required class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-center bg-white" dir="ltr">
                                                 </div>
-                                                <!-- Price -->
                                                 <div>
-                                                    <span class="block sm:hidden text-[0.65rem] font-bold text-slate-500 mb-1 text-center">سعر الكيلو</span>
-                                                    <input type="number" step="0.01" :name="'items['+index+'][price]'" x-model="item.price" min="0" required class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-primary-500 focus:ring-1 text-center" dir="ltr">
+                                                    <label class="block text-[0.65rem] font-bold text-slate-500 mb-1 text-center">سعر الكيلو</label>
+                                                    <input type="number" step="0.01" :name="'items['+index+'][price]'" x-model="item.price" min="0" required class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-center bg-white" dir="ltr">
                                                 </div>
-                                                <!-- Total -->
-                                                <div class="flex flex-col justify-end sm:justify-center h-full">
-                                                    <span class="block sm:hidden text-[0.65rem] font-bold text-slate-500 mb-1 text-center">الإجمالي</span>
-                                                    <div class="text-xs sm:text-sm font-bold text-slate-700 bg-slate-50 sm:bg-transparent py-1.5 rounded-lg text-center h-full flex items-center justify-center border border-slate-100 sm:border-none" dir="ltr">
+                                                <div>
+                                                    <label class="block text-[0.65rem] font-bold text-slate-500 mb-1 text-center">الإجمالي</label>
+                                                    <div class="px-2 py-1.5 bg-slate-50 rounded-lg text-xs font-bold text-slate-800 text-center border border-slate-200" dir="ltr">
                                                         <span x-text="Number((parseFloat(item.quantity || 0) * parseFloat(item.price || 0)).toFixed(2)).toLocaleString('en-US')"></span>
                                                     </div>
                                                 </div>
                                             </div>
-
-                                            <!-- Desktop Delete Button -->
-                                            <div class="hidden sm:flex sm:col-span-1 justify-center">
-                                                <button type="button" @click="removeItem(item.id)" class="p-1.5 text-danger-400 hover:text-danger-600 hover:bg-danger-50 rounded-lg transition-colors">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                                </button>
-                                            </div>
                                         </div>
                                         
                                         <!-- Price Info -->
-                                        <div x-show="item.priceInfo" x-transition class="mt-2 flex justify-between items-center px-3 py-1.5 bg-slate-50/50 rounded-lg border border-slate-100 sm:w-1/2">
-                                            <span class="text-[0.6rem] text-slate-500">عميل: <span class="font-bold text-primary-600" dir="ltr" x-text="(item.priceInfo && item.priceInfo.entity !== 'لا يوجد') ? item.priceInfo.entity : '-'"></span></span>
-                                            <span class="text-[0.6rem] text-slate-500">عام: <span class="font-bold text-slate-700" dir="ltr" x-text="(item.priceInfo && item.priceInfo.overall !== 'لا يوجد') ? item.priceInfo.overall : '-'"></span></span>
+                                        <div x-show="item.priceInfo" x-transition class="mt-2 flex items-center gap-3 px-3 py-1.5 bg-blue-50/50 rounded-lg border border-blue-100/60 text-[0.7rem] sm:w-2/3">
+                                            <span class="text-blue-800 font-medium">سعر العميل السابق: <b class="text-primary-700 font-mono" dir="ltr" x-text="(item.priceInfo && item.priceInfo.entity !== 'لا يوجد') ? item.priceInfo.entity + ' ج.م' : '-'"></b></span>
+                                            <span class="text-slate-400">|</span>
+                                            <span class="text-slate-600">العام: <b class="text-slate-800 font-mono" dir="ltr" x-text="(item.priceInfo && item.priceInfo.overall !== 'لا يوجد') ? item.priceInfo.overall + ' ج.م' : '-'"></b></span>
                                         </div>
                                     </div>
                                 </template>

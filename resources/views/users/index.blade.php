@@ -17,16 +17,20 @@
                 </div>
 
                 <div class="flex items-center gap-2 shrink-0">
+                    @canPermission('roles.view')
                     <a href="{{ route('roles.index') }}" 
                        class="px-5 py-2.5 bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 font-bold rounded-xl text-sm transition-colors shadow-sm inline-flex items-center gap-1.5 whitespace-nowrap">
                         <svg class="w-5 h-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                         <span>الأدوار والصلاحيات</span>
                     </a>
+                    @endCanPermission
 
+                    @canPermission('users.create')
                     <button @click="showAddModal = true" class="px-5 py-2.5 bg-primary-600 text-white font-bold rounded-xl shadow-sm shadow-primary-600/20 hover:bg-primary-700 transition flex items-center gap-2 text-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                         <span>مستخدم جديد</span>
                     </button>
+                    @endCanPermission
                 </div>
             </div>
         </div>
@@ -60,14 +64,18 @@
                         </td>
                         <td class="px-4 py-3 border-b border-slate-50 align-middle text-center">
                             <div class="flex items-center justify-center gap-1.5">
+                                @canPermission('users.update')
                                 <button @click="editData = { id: '{{ $user->id }}', name: '{{ $user->name }}', email: '{{ $user->email }}', role_id: '{{ $user->role_id }}' }; showEditModal = true" class="p-1 rounded border border-slate-200 bg-white text-slate-400 hover:text-primary-600 hover:border-primary-600 hover:bg-primary-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                 </button>
+                                @endCanPermission
+                                @canPermission('users.delete')
                                 @if(auth()->id() !== $user->id)
                                 <button @click="deleteId = '{{ $user->id }}'; showDeleteModal = true" class="p-1 rounded border border-slate-200 bg-white text-slate-400 hover:text-danger-600 hover:border-danger-600 hover:bg-danger-50 shadow-sm transition-all inline-flex items-center justify-center" title="حذف">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                 </button>
                                 @endif
+                                @endCanPermission
                             </div>
                         </td>
                     </tr>
@@ -223,7 +231,7 @@
                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                  x-transition:leave-end="opacity-0 scale-95 translate-y-2"
                  @click.outside="showDeleteModal = false"
-                 class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 text-center overflow-hidden">
+                 class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 text-center overflow-hidden whitespace-normal break-words">
                 
                 <form :action="`{{ url('users') }}/${deleteId}`" method="POST">
                     @csrf

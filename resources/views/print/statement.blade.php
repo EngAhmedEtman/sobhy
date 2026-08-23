@@ -4,49 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title }} - {{ $party->name }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap" rel="stylesheet">
     <style>
         @page {
             size: A4 portrait;
             margin: 8mm 6mm !important;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { height: 100%; min-height: 100%; }
-        body {
-            font-family: 'Cairo', sans-serif;
-            background: #fff; color: #0f172a; font-size: 11px; line-height: 1.4;
-            -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+        *, ::before, ::after { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif !important; }
+        html, body {
+            background: #fff !important;
+            color: #0f172a;
+            font-size: 11px;
+            line-height: 1.4;
+            height: auto !important;
+            min-height: auto !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
-        .page-container { width: 100%; margin: 0 auto; padding: 5mm; background: #fff; display: flex; flex-direction: column; min-height: 100%; }
-        .report-repeat-table { width: 100%; border-collapse: collapse; border: none; }
-        .report-repeat-cell { padding: 0; border: none; }
-        .report-repeat-header { display: table-header-group; }
-        .report-repeat-footer { display: table-footer-group; }
+        .page-container {
+            width: 100%;
+            margin: 0 auto;
+            padding: 4mm 2mm;
+            background: #fff;
+            display: block;
+        }
+        .report-repeat-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: none;
+            margin: 0;
+        }
+        .report-repeat-cell {
+            padding: 0;
+            border: none;
+            vertical-align: top !important;
+            text-align: right;
+        }
+        .report-repeat-header {
+            display: table-header-group;
+        }
+        .report-repeat-footer {
+            display: table-footer-group;
+        }
 
         .party-info-box {
-            display: flex; justify-content: space-between; align-items: center;
-            background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px;
-            padding: 8px 12px; margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 6px 12px;
+            margin-bottom: 10px;
         }
         .party-name { font-size: 13px; font-weight: 800; color: #0f172a; }
         .party-badge { font-size: 10px; background: #e2e8f0; color: #334155; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
         .stat-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 10px; text-align: center; }
         .stat-label { font-size: 9px; font-weight: 700; color: #64748b; margin-bottom: 2px; }
         .stat-value { font-size: 12px; font-weight: 900; color: #0f172a; direction: ltr; }
         .stat-value.danger { color: #b91c1c; }
         .stat-value.success { color: #15803d; }
 
-        .print-data-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; page-break-inside: auto; }
+        .print-data-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; page-break-inside: auto; }
         .print-data-table th { background: #f1f5f9; color: #0f172a; padding: 5px 4px; border: 1px solid #475569; font-size: 10px; font-weight: 800; text-align: center; }
-        .print-data-table td { padding: 5px 4px; border: 1px solid #94a3b8; font-size: 10px; text-align: center; color: #1e293b; direction: ltr;}
+        .print-data-table td { padding: 5px 4px; border: 1px solid #94a3b8; font-size: 10px; text-align: center; color: #1e293b; direction: ltr; }
         .print-data-table tr { page-break-inside: avoid; }
         .print-data-table tr:nth-child(even) { background: #f8fafc; }
         
         @media print {
             .no-print { display: none !important; }
-            html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; height: 100% !important; }
+            html, body {
+                background: #fff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                height: auto !important;
+                min-height: auto !important;
+            }
             #print-wrapper {
                 zoom: 1 !important;
                 transform: none !important;
@@ -54,9 +91,20 @@
                 min-width: 100% !important;
                 max-width: 100% !important;
             }
-            .page-container { padding: 0 !important; min-height: 275mm !important; display: flex !important; flex-direction: column !important; width: 100% !important; }
-            .report-repeat-table { flex: 1 0 auto !important; width: 100% !important; }
-            .report-footer-wrapper { margin-top: auto !important; }
+            .page-container {
+                padding: 0 !important;
+                margin: 0 !important;
+                display: block !important;
+                width: 100% !important;
+                min-height: auto !important;
+            }
+            .report-repeat-table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+            .report-repeat-cell {
+                vertical-align: top !important;
+            }
         }
     </style>
 </head>
@@ -87,10 +135,17 @@
 
                             <!-- Stats -->
                             @php
-                                $isOwed = $party->balance > 0;
-                                $isCredit = $party->balance < 0;
-                                $balanceColor = $isOwed ? 'danger' : ($isCredit ? 'success' : '');
-                                $balanceLabel = $isOwed ? 'المتبقي له' : ($isCredit ? 'المتبقي عليه' : 'الرصيد');
+                                if ($partyType === 'supplier') {
+                                    $isOwed = $party->balance > 0;
+                                    $isCredit = $party->balance < 0;
+                                    $balanceColor = $isOwed ? 'danger' : ($isCredit ? 'success' : '');
+                                    $balanceLabel = $isOwed ? 'المستحق له (له علينا)' : ($isCredit ? 'رصيد دائن (لنا عنده)' : 'الرصيد الحالي');
+                                } else {
+                                    $isOwed = $party->balance > 0;
+                                    $isCredit = $party->balance < 0;
+                                    $balanceColor = $isOwed ? 'danger' : ($isCredit ? 'success' : '');
+                                    $balanceLabel = $isOwed ? 'المطلوب منه (مديونية)' : ($isCredit ? 'رصيد دائن (له عندنا)' : 'الرصيد الحالي');
+                                }
                                 
                                 $totalPurchases = $transactions->where('type', 'purchase')->sum('total_amount');
                                 $totalSales = $transactions->where('type', 'sale')->sum('total_amount');
@@ -102,11 +157,11 @@
                                     <div class="stat-value">{{ number_format($partyType === 'supplier' ? $totalPurchases : $totalSales, 0) }} ج.م</div>
                                 </div>
                                 <div class="stat-card">
-                                    <div class="stat-label">إجمالي المسدد</div>
+                                    <div class="stat-label">{{ $partyType === 'supplier' ? 'إجمالي المسدد له' : 'إجمالي المحصل منه' }}</div>
                                     <div class="stat-value success">{{ number_format($totalPayments, 0) }} ج.م</div>
                                 </div>
                                 <div class="stat-card">
-                                    <div class="stat-label">{{ $balanceLabel }} الحالي</div>
+                                    <div class="stat-label">{{ $balanceLabel }}</div>
                                     <div class="stat-value {{ $balanceColor }}">{{ number_format(abs($party->balance), 0) }} ج.م</div>
                                 </div>
                             </div>
@@ -145,7 +200,7 @@
                                             @if($t->balance_after == 0)
                                                 0 (خالص)
                                             @else
-                                                {{ $formattedTBal }} {{ $partyType === 'supplier' ? ($t->balance_after > 0 ? '(له)' : '(عليه)') : ($t->balance_after > 0 ? '(عليه)' : '(له)') }}
+                                                {{ $formattedTBal }} {{ $partyType === 'supplier' ? ($t->balance_after > 0 ? '(له علينا)' : '(لنا عنده)') : ($t->balance_after > 0 ? '(مطلوب منه)' : '(له عندنا)') }}
                                             @endif
                                         </td>
                                     </tr>

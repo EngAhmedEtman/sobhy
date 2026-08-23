@@ -4,16 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap" rel="stylesheet">
     <style>
         @page {
             size: A4 landscape;
             margin: 8mm 6mm !important;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *, ::before, ::after { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif !important; }
         html, body { height: 100%; min-height: 100%; }
         body {
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Cairo', sans-serif !important;
             background: #f8fafc; color: #0f172a; font-size: 11px; line-height: 1.4;
             -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }
@@ -25,7 +27,7 @@
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
         .stat-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 8px; text-align: center; }
         .stat-label { font-size: 9px; font-weight: 700; color: #64748b; margin-bottom: 2px; }
-        .stat-value { font-size: 11px; font-weight: 900; color: #0f172a; direction: ltr; font-family: monospace; }
+        .stat-value { font-size: 11px; font-weight: 900; color: #0f172a; direction: ltr; font-family: 'Cairo', sans-serif; }
         .stat-value.primary { color: #16a34a; }
         .stat-value.danger { color: #b91c1c; }
         .stat-value.success { color: #15803d; }
@@ -141,13 +143,13 @@
                                     @endphp
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
-                                        <td style="font-weight: 800; font-family: monospace; direction: ltr;">PO-{{ str_pad($purchase->id, 6, '0', STR_PAD_LEFT) }}</td>
-                                        <td style="font-family: monospace; direction: ltr;">{{ $purchase->created_at->format('Y-m-d') }}</td>
+                                        <td style="font-weight: 800; font-family: 'Cairo', sans-serif; direction: ltr;">PO-{{ str_pad($purchase->id, 6, '0', STR_PAD_LEFT) }}</td>
+                                        <td style="font-family: 'Cairo', sans-serif; direction: ltr;">{{ $purchase->created_at->format('Y-m-d') }}</td>
                                         <td style="font-weight: 700; text-align: right; padding-right: 6px;">{{ $purchase->supplier->name ?? 'مورد نقدي' }}</td>
                                         <td style="text-align: right; padding-right: 6px; font-size: 9.5px; color: #475569;">{{ $itemsSummary ?: '---' }}</td>
-                                        <td style="direction: ltr; font-family: monospace; font-weight: 800;">{{ format_amount($purchase->total_amount) }} ج.م</td>
-                                        <td style="direction: ltr; font-family: monospace; color: #166534;">{{ format_amount($purchase->paid_amount) }} ج.م</td>
-                                        <td style="direction: ltr; font-family: monospace; font-weight: 800;" class="{{ $purchase->remaining_amount > 0 ? 'danger' : 'success' }}">
+                                        <td style="direction: ltr; font-family: 'Cairo', sans-serif; font-weight: 800;">{{ format_amount($purchase->total_amount) }} ج.م</td>
+                                        <td style="direction: ltr; font-family: 'Cairo', sans-serif; color: #166534;">{{ format_amount($purchase->paid_amount) }} ج.م</td>
+                                        <td style="direction: ltr; font-family: 'Cairo', sans-serif; font-weight: 800;" class="{{ $purchase->remaining_amount > 0 ? 'danger' : 'success' }}">
                                             {{ format_amount($purchase->remaining_amount) }} ج.م
                                         </td>
                                         <td>
@@ -169,9 +171,9 @@
                             <tfoot>
                                 <tr>
                                     <td colspan="5" style="text-align: right; padding-right: 6px;">الإجمالي العام ({{ $totalInvoices }} فاتورة مشتريات)</td>
-                                    <td style="direction: ltr; font-family: monospace; font-size: 11px;">{{ format_amount($totalAmount) }} ج.م</td>
-                                    <td style="direction: ltr; font-family: monospace; font-size: 11px; color: #166534;">{{ format_amount($totalPaid) }} ج.م</td>
-                                    <td style="direction: ltr; font-family: monospace; font-size: 11px;" class="{{ $totalRemaining > 0 ? 'danger' : 'success' }}">
+                                    <td style="direction: ltr; font-family: 'Cairo', sans-serif; font-size: 11px;">{{ format_amount($totalAmount) }} ج.م</td>
+                                    <td style="direction: ltr; font-family: 'Cairo', sans-serif; font-size: 11px; color: #166534;">{{ format_amount($totalPaid) }} ج.م</td>
+                                    <td style="direction: ltr; font-family: 'Cairo', sans-serif; font-size: 11px;" class="{{ $totalRemaining > 0 ? 'danger' : 'success' }}">
                                         {{ format_amount($totalRemaining) }} ج.م
                                     </td>
                                     <td></td>

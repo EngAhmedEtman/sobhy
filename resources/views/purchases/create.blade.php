@@ -52,7 +52,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1.5">تاريخ الفاتورة <span class="text-danger-500">*</span></label>
-                    <input type="date" name="date" required value="<?php echo e(date('Y-m-d')); ?>" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-base">
+                    <input type="date" name="date" required value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-base">
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-slate-700 mb-1.5">المدفوع نقداً (ج.م)</label>

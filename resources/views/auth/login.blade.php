@@ -3,37 +3,18 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0f172a">
     <title>{{ \App\Models\Setting::get('company_name', 'مؤسسة صبحي رضا لتجارة الخردة') }} - تسجيل الدخول</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link rel="shortcut icon" href="{{ asset('favicon.svg') }}">
     
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: { sans: ['Cairo', 'sans-serif'] },
-            colors: {
-                primary: { 50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac', 400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 800: '#166534', 900: '#14532d' },
-                danger: { 50: '#fef2f2', 100: '#fee2e2', 200: '#fecaca', 300: '#fca5a5', 400: '#f87171', 500: '#ef4444', 600: '#dc2626', 700: '#b91c1c', 800: '#991b1b', 900: '#7f1d1d' }
-            }
-          }
-        }
-      }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-      body { font-family: 'Cairo', sans-serif; }
-      [x-cloak] { display: none !important; }
-    </style>
 </head>
 <body class="bg-slate-50 min-h-screen flex text-slate-800 selection:bg-primary-500 selection:text-white" x-data="{ showSupportModal: false }">
+    <a href="#login-form" class="skip-link">تخطَّ إلى نموذج تسجيل الدخول</a>
 
     <div class="flex-1 flex items-center justify-center p-6 lg:p-12">
         <div class="w-full max-w-md bg-white rounded-[2rem] shadow-2xl shadow-primary-900/5 p-8 sm:p-12 border border-slate-100 relative overflow-hidden">
@@ -62,7 +43,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('login') }}" class="space-y-4" x-data="{ isSubmitting: false }" @submit="if(isSubmitting) { $event.preventDefault(); return; } isSubmitting = true;">
+            <form id="login-form" method="POST" action="{{ route('login') }}" class="space-y-4" x-data="{ isSubmitting: false }" @submit="if(isSubmitting) { $event.preventDefault(); return; } isSubmitting = true;" tabindex="-1">
                 @csrf
 
                 <!-- Email Address -->
@@ -132,9 +113,9 @@
     </div>
 
     <!-- Right Side Graphic (Hidden on mobile) -->
-    <div class="hidden lg:flex lg:flex-1 bg-slate-900 relative items-center justify-center overflow-hidden">
+    <div class="hidden lg:flex lg:flex-1 bg-slate-900 relative items-center justify-center overflow-hidden" aria-hidden="true">
         <div class="absolute inset-0 bg-gradient-to-br from-primary-900 to-slate-900 opacity-90 z-10"></div>
-        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 z-10"></div>
+        <div class="absolute inset-0 opacity-10 z-10 bg-slate-800"></div>
         
         <!-- Decorative Shapes -->
         <div class="absolute -top-24 -right-24 w-96 h-96 bg-primary-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob z-0"></div>
@@ -193,7 +174,7 @@
                         <p class="text-xs text-slate-400 font-medium">شركة كوديرا (Codera)</p>
                     </div>
                 </div>
-                <button type="button" @click="showSupportModal = false" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+                <button type="button" @click="showSupportModal = false" aria-label="إغلاق نافذة الدعم" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>

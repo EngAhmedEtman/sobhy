@@ -1,11 +1,62 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
+@import '@fontsource-variable/cairo';
+@import 'flatpickr/dist/flatpickr.min.css';
+@import 'flatpickr/dist/themes/material_green.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+*, ::before, ::after {
+    font-family: 'Cairo Variable', 'Cairo', sans-serif !important;
+}
+
 body {
-    font-family: 'Cairo', sans-serif;
+    font-family: 'Cairo Variable', 'Cairo', sans-serif !important;
+}
+
+input, button, select, textarea, optgroup, option {
+    font-family: 'Cairo Variable', 'Cairo', sans-serif !important;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+.flatpickr-calendar {
+    font-family: 'Cairo Variable', 'Cairo', sans-serif !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 10%), 0 8px 10px -6px rgb(0 0 0 / 10%) !important;
+}
+
+.skip-link {
+    position: fixed;
+    inset-block-start: 0.75rem;
+    inset-inline-start: 0.75rem;
+    z-index: 100;
+    transform: translateY(-200%);
+    border-radius: 0.5rem;
+    background: #0f172a;
+    color: #fff;
+    padding: 0.625rem 1rem;
+    font-weight: 700;
+}
+
+.skip-link:focus {
+    transform: translateY(0);
+}
+
+:where(a, button, input, select, textarea):focus-visible {
+    outline: 3px solid #0ea5e9;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 /* Fix native date input on WebKit/Mobile (Prevent Arabic BiDi slash scrambling) */

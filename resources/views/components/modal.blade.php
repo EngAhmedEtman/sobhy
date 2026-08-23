@@ -5,13 +5,14 @@
 ])
 
 @php
-$maxWidth = [
-    'sm' => 'sm:max-w-sm',
-    'md' => 'sm:max-w-md',
-    'lg' => 'sm:max-w-lg',
-    'xl' => 'sm:max-w-xl',
-    '2xl' => 'sm:max-w-2xl',
-][$maxWidth];
+$maxWidthClass = match ($maxWidth) {
+    'sm' => 'max-w-sm',
+    'md' => 'max-w-md',
+    'lg' => 'max-w-lg',
+    'xl' => 'max-w-xl',
+    '2xl' => 'max-w-2xl',
+    default => $maxWidth,
+};
 @endphp
 
 <div
@@ -42,38 +43,43 @@ $maxWidth = [
     x-on:keydown.escape.window="show = false"
     x-on:keydown.tab.prevent="$event.shiftKey || nextFocusable().focus()"
     x-on:keydown.shift.tab.prevent="prevFocusable().focus()"
-    x-show="show"
-    x-cloak
-    class="fixed inset-0 z-50 overflow-y-auto"
-    style="display: {{ $show ? 'block' : 'none' }};"
 >
-    <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="show = false">
-        <!-- Backdrop -->
+    <template x-teleport="body">
         <div
             x-show="show"
-            class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm"
-            x-on:click="show = false"
-            x-transition:enter="ease-out duration-200"
-            x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100"
-            x-transition:leave="ease-in duration-150"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0"
-        ></div>
-
-        <!-- Modal Dialog Box -->
-        <div
-            x-show="show"
-            @click.outside="show = false"
-            class="relative bg-white rounded-2xl overflow-hidden shadow-2xl transform transition-all w-full {{ $maxWidth }} z-10 text-right"
-            x-transition:enter="ease-out duration-200"
-            x-transition:enter-start="opacity-0 scale-95"
-            x-transition:enter-end="opacity-100 scale-100"
-            x-transition:leave="ease-in duration-150"
-            x-transition:leave-start="opacity-100 scale-100"
-            x-transition:leave-end="opacity-0 scale-95"
+            x-cloak
+            class="fixed inset-0 z-[9999] overflow-y-auto"
+            style="display: none;"
         >
-            {{ $slot }}
+            <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="show = false">
+                <!-- Backdrop -->
+                <div
+                    x-show="show"
+                    class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm"
+                    x-on:click="show = false"
+                    x-transition:enter="ease-out duration-200"
+                    x-transition:enter-start="opacity-0"
+                    x-transition:enter-end="opacity-100"
+                    x-transition:leave="ease-in duration-150"
+                    x-transition:leave-start="opacity-100"
+                    x-transition:leave-end="opacity-0"
+                ></div>
+
+                <!-- Modal Dialog Box -->
+                <div
+                    x-show="show"
+                    @click.outside="show = false"
+                    class="relative bg-white rounded-2xl overflow-hidden shadow-2xl transform transition-all w-full {{ $maxWidthClass }} z-10 text-right whitespace-normal"
+                    x-transition:enter="ease-out duration-200"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="ease-in duration-150"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                >
+                    {{ $slot }}
+                </div>
+            </div>
         </div>
-    </div>
+    </template>
 </div>

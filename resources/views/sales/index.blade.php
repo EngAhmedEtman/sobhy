@@ -16,6 +16,9 @@
         max_amount: '{{ request('max_amount', '') }}',
         sort_by: '{{ request('sort_by', 'latest') }}',
         loading: false,
+        showDeleteModal: false,
+        deleteSaleId: '',
+        deleteInvoiceNumber: '',
 
         get activeFiltersCount() {
             let count = 0;
@@ -363,6 +366,36 @@
                             class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors">
                         إلغاء
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Single Centralized Delete Sale Modal -->
+        <div x-show="showDeleteModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+            <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="showDeleteModal = false">
+                <div x-show="showDeleteModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showDeleteModal = false"></div>
+                <div x-show="showDeleteModal" @click.outside="showDeleteModal = false" x-transition class="relative w-full max-w-md p-6 text-center whitespace-normal break-words transition-all transform bg-white shadow-2xl rounded-2xl z-10" dir="rtl">
+                    <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-100 shadow-sm">
+                        <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </div>
+                    <h3 class="text-base sm:text-lg font-black text-slate-800 mb-2 text-center whitespace-normal break-words leading-relaxed">
+                        حذف فاتورة مبيعات <span class="font-mono text-primary-700" x-text="'رقم ' + deleteInvoiceNumber"></span>
+                    </h3>
+                    <p class="text-xs sm:text-sm text-slate-500 leading-relaxed mb-6 text-center whitespace-normal break-words px-2">
+                        سيتم التراجع عن خصم الكميات من المخزن وإلغاء المديونية المتعلقة بها نهائياً.
+                    </p>
+                    <form :action="'{{ url('sales') }}/' + deleteSaleId" method="POST" class="grid grid-cols-2 gap-2.5">
+                        @csrf
+                        @method('DELETE')
+                        <button type="button" @click="showDeleteModal = false" class="w-full px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs sm:text-sm font-bold transition-colors">
+                            إلغاء
+                        </button>
+                        <button type="submit" class="w-full px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs sm:text-sm font-bold transition-all shadow-md shadow-rose-500/20">
+                            تأكيد الحذف
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

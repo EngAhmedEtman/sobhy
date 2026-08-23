@@ -103,7 +103,7 @@
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1">الرصيد الافتتاحي (كيلو)</label>
-                                <input type="number" step="0.01" name="stock" value="0" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-base" dir="ltr">
+                                <input type="number" step="0.01" min="0" name="stock" value="0" placeholder="0" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-base" dir="ltr">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1">ملاحظات (اختياري)</label>
@@ -169,7 +169,7 @@
                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                  x-transition:leave-end="opacity-0 scale-95 translate-y-2"
                  @click.away="showDeleteModal = false"
-                 class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 text-center overflow-hidden">
+                 class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 text-center overflow-hidden whitespace-normal break-words">
                 
                 <form :action="`/products/${deleteId}`" method="POST">
                     @csrf

@@ -4,16 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap" rel="stylesheet">
     <style>
         @page {
             size: A4 portrait;
             margin: 8mm 6mm !important;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        *, ::before, ::after { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif !important; }
         html, body { height: 100%; min-height: 100%; }
         body {
-            font-family: 'Cairo', sans-serif;
+            font-family: 'Cairo', sans-serif !important;
             background: #f8fafc; color: #0f172a; font-size: 11px; line-height: 1.4;
             -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
         }
@@ -25,7 +27,7 @@
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
         .stat-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 8px; text-align: center; }
         .stat-label { font-size: 9px; font-weight: 700; color: #64748b; margin-bottom: 2px; }
-        .stat-value { font-size: 11px; font-weight: 900; color: #0f172a; direction: ltr; font-family: monospace; }
+        .stat-value { font-size: 11px; font-weight: 900; color: #0f172a; direction: ltr; font-family: 'Cairo', sans-serif; }
         .stat-value.danger { color: #b91c1c; }
         .stat-value.success { color: #15803d; }
 
@@ -136,9 +138,9 @@
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
                                         <td style="font-weight: 700; text-align: right; padding-right: 6px;">{{ $supplier->name }}</td>
-                                        <td style="direction: ltr; font-family: monospace;">{{ $supplier->phone ?? '---' }}</td>
-                                        <td style="direction: ltr; font-family: monospace;">{{ format_amount($purchasesTotal) }} ج.م</td>
-                                        <td style="direction: ltr; font-family: monospace; font-weight: 800;" class="{{ $isDebt ? 'danger' : ($isCredit ? 'success' : '') }}">
+                                        <td style="direction: ltr; font-family: 'Cairo', sans-serif;">{{ $supplier->phone ?? '---' }}</td>
+                                        <td style="direction: ltr; font-family: 'Cairo', sans-serif;">{{ format_amount($purchasesTotal) }} ج.م</td>
+                                        <td style="direction: ltr; font-family: 'Cairo', sans-serif; font-weight: 800;" class="{{ $isDebt ? 'danger' : ($isCredit ? 'success' : '') }}">
                                             {{ format_amount($supplier->balance) }} ج.م
                                         </td>
                                         <td>
@@ -160,8 +162,8 @@
                             <tfoot>
                                 <tr>
                                     <td colspan="3" style="text-align: right; padding-right: 6px;">الإجمالي العام ({{ $totalSuppliers }} مورد)</td>
-                                    <td style="direction: ltr; font-family: monospace;">---</td>
-                                    <td style="direction: ltr; font-family: monospace; font-size: 11px;" class="{{ $netBalance > 0 ? 'danger' : ($netBalance < 0 ? 'success' : '') }}">
+                                    <td style="direction: ltr; font-family: 'Cairo', sans-serif;">---</td>
+                                    <td style="direction: ltr; font-family: 'Cairo', sans-serif; font-size: 11px;" class="{{ $netBalance > 0 ? 'danger' : ($netBalance < 0 ? 'success' : '') }}">
                                         {{ format_amount($netBalance) }} ج.م
                                     </td>
                                     <td></td>
