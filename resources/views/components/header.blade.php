@@ -257,7 +257,7 @@
                             </h4>
                             <div class="space-y-1">
                                 <template x-for="item in results.transactions" :key="item.id">
-                                    <a :href="item.url" target="_blank" class="flex items-center justify-between p-2 rounded-xl hover:bg-slate-100 transition-colors group">
+                                    <button type="button" @click="openTransaction(item)" class="w-full flex items-center justify-between p-2 rounded-xl hover:bg-slate-100 transition-colors group text-right">
                                         <div class="flex items-center gap-2 min-w-0">
                                             <div class="w-7 h-7 rounded-lg bg-slate-100 text-slate-600 font-bold flex items-center justify-center text-xs shrink-0">
                                                 🧾
@@ -268,7 +268,7 @@
                                             </div>
                                         </div>
                                         <span class="text-[0.7rem] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">عرض الإيصال</span>
-                                    </a>
+                                    </button>
                                 </template>
                             </div>
                         </div>
@@ -604,13 +604,13 @@
                         <h4 class="text-[0.7rem] font-bold text-slate-400 mb-1.5">الإيصالات والعمليات</h4>
                         <div class="space-y-1">
                             <template x-for="item in results.transactions" :key="item.id">
-                                <a :href="item.url" target="_blank" class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                <button type="button" @click="openTransaction(item)" class="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-right">
                                     <div class="min-w-0">
                                         <p class="text-xs font-bold text-slate-800 truncate" x-text="item.title"></p>
                                         <p class="text-[0.65rem] text-slate-400" x-text="item.subtitle"></p>
                                     </div>
                                     <span class="text-[0.7rem] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">عرض</span>
-                                </a>
+                                </button>
                             </template>
                         </div>
                     </div>
@@ -621,6 +621,7 @@
     </div>
 
     <x-modals.global-invoice-details />
+    <x-modals.global-transaction-details />
 
 </header>
 
@@ -637,6 +638,11 @@
             invoiceDetails: null,
             invoiceType: null,
             invoicePrintUrl: '',
+            transactionModalOpen: false,
+            transactionLoading: false,
+            transactionError: '',
+            transactionDetails: null,
+            transactionPrintUrl: '',
             loading: false,
             debounceTimer: null,
             searchRequestController: null,
@@ -775,6 +781,38 @@
                 this.invoiceError = '';
                 this.invoiceType = null;
                 this.invoicePrintUrl = '';
+            },
+
+            async openTransaction(item) {
+                this.closeSearch();
+                this.transactionModalOpen = true;
+                this.transactionLoading = true;
+                this.transactionError = '';
+                this.transactionDetails = null;
+                this.transactionPrintUrl = item.url;
+
+                try {
+                    const response = await fetch(`/transactions/${item.id}`, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Transaction request failed');
+                    }
+
+                    this.transactionDetails = await response.json();
+                } catch (error) {
+                    this.transactionError = 'تعذر تحميل بيانات العملية. حاول مرة أخرى.';
+                } finally {
+                    this.transactionLoading = false;
+                }
+            },
+
+            closeTransactionModal() {
+                this.transactionModalOpen = false;
+                this.transactionDetails = null;
+                this.transactionError = '';
+                this.transactionPrintUrl = '';
             }
         }));
     });

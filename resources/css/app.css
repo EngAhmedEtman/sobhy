@@ -26,7 +26,10 @@ input, button, select, textarea, optgroup, option {
 [dir="rtl"] select:not([multiple]):not([size]) {
     background-position: left 0.75rem center !important;
     padding-right: 0.75rem !important;
-    padding-left: 2.5rem !important;
+    padding-left: 3rem !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
 }
 
 [dir="ltr"] select:not([multiple]):not([size]) {

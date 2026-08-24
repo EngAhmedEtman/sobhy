@@ -1,3 +1,4 @@
+<template x-teleport="body">
 <div
     x-show="invoiceModalOpen"
     x-cloak
@@ -129,3 +130,4 @@
         </div>
     </div>
 </div>
+</template>
