@@ -17,7 +17,7 @@ class GlobalSearchTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_header_invoice_results_open_the_details_modal(): void
+    public function test_header_invoice_and_transaction_results_open_details_modals(): void
     {
         $this->actingAs(User::factory()->create(['email' => 'admin@gmail.com']));
 
@@ -25,7 +25,10 @@ class GlobalSearchTest extends TestCase
             ->assertOk()
             ->assertSee("openInvoice(item, 'sale')", false)
             ->assertSee("openInvoice(item, 'purchase')", false)
+            ->assertSee('openTransaction(item)', false)
             ->assertSee('global-invoice-modal-title', false)
+            ->assertSee('global-transaction-modal-title', false)
+            ->assertSee('x-teleport', false)
             ->assertSee('invoicePrintUrl', false);
     }
 
