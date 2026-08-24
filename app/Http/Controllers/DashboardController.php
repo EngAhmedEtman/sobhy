@@ -101,9 +101,9 @@ class DashboardController extends Controller
             ->get();
 
         // Entities for Quick Modals
-        $customers = Customer::orderBy('name')->get(['id', 'name']);
-        $suppliers = Supplier::orderBy('name')->get(['id', 'name']);
-        $products = Product::orderBy('name')->get(['id', 'name']);
+        $customers = Customer::orderBy('name')->get(['id', 'name', 'balance']);
+        $suppliers = Supplier::orderBy('name')->get(['id', 'name', 'balance']);
+        $products = Product::orderBy('name')->get(['id', 'name', 'stock']);
 
         return view('dashboard', compact(
             'todaySalesCount',
