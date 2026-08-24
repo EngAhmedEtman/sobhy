@@ -631,7 +631,9 @@
             showSupportModal: false,
             loading: false,
             debounceTimer: null,
+            searchRequestController: null,
             results: {
+                pages: [],
                 customers: [],
                 suppliers: [],
                 products: [],
@@ -680,7 +682,7 @@
                 if (q.length === 0) {
                     this.isOpen = false;
                     this.loading = false;
-                    this.results = { customers: [], suppliers: [], products: [], sales: [], purchases: [], transactions: [], total_count: 0 };
+                    this.results = { pages: [], customers: [], suppliers: [], products: [], sales: [], purchases: [], transactions: [], total_count: 0 };
                     return;
                 }
 
@@ -693,20 +695,34 @@
             },
 
             fetchResults(q) {
-                fetch(`/api/global-search?q=${encodeURIComponent(q)}`)
-                    .then(res => res.json())
+                if (this.searchRequestController) {
+                    this.searchRequestController.abort();
+                }
+                this.searchRequestController = new AbortController();
+
+                fetch(`/api/global-search?q=${encodeURIComponent(q)}`, {
+                    signal: this.searchRequestController.signal,
+                    headers: { 'Accept': 'application/json' }
+                })
+                    .then(res => {
+                        if (!res.ok) throw new Error('Search request failed');
+                        return res.json();
+                    })
                     .then(data => {
                         this.results = data;
                         this.loading = false;
                     })
-                    .catch(() => {
+                    .catch(error => {
+                        if (error.name === 'AbortError') return;
+                        this.results = { pages: [], customers: [], suppliers: [], products: [], sales: [], purchases: [], transactions: [], total_count: 0 };
                         this.loading = false;
                     });
             },
 
             clearSearch() {
                 this.query = '';
-                this.results = { customers: [], suppliers: [], products: [], sales: [], purchases: [], transactions: [], total_count: 0 };
+                if (this.searchRequestController) this.searchRequestController.abort();
+                this.results = { pages: [], customers: [], suppliers: [], products: [], sales: [], purchases: [], transactions: [], total_count: 0 };
                 this.isOpen = false;
                 this.loading = false;
             },

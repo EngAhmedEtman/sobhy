@@ -116,7 +116,7 @@ class SaleController extends Controller
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.price' => 'required|numeric|min:0',
             'paid_amount' => 'nullable|numeric|min:0',
-            'notes' => 'nullable|string',
+            'notes' => ['nullable', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
         ], [
             'customer_id.required' => 'يرجى تحديد العميل',
             'customer_id.exists' => 'العميل المحدد غير موجود',
@@ -128,6 +128,7 @@ class SaleController extends Controller
             'items.*.product_id.exists' => 'المنتج المحدد غير موجود',
             'items.*.quantity.required' => 'يرجى تحديد الكمية',
             'items.*.price.required' => 'يرجى تحديد السعر',
+            'notes.regex' => 'الملاحظات يجب ألا تتكون من أرقام فقط',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -289,7 +290,7 @@ class SaleController extends Controller
             'customer_id' => 'required|exists:customers,id',
             'date' => 'required|date|before_or_equal:today',
             'paid_amount' => 'nullable|numeric|min:0',
-            'notes' => 'nullable|string|max:255',
+            'notes' => ['nullable', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
@@ -305,6 +306,7 @@ class SaleController extends Controller
             'items.*.product_id.exists' => 'المنتج المحدد غير موجود',
             'items.*.quantity.required' => 'يرجى تحديد الكمية',
             'items.*.price.required' => 'يرجى تحديد السعر',
+            'notes.regex' => 'الملاحظات يجب ألا تتكون من أرقام فقط',
         ]);
 
         DB::transaction(function () use ($request, $sale) {

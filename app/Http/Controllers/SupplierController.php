@@ -156,12 +156,13 @@ class SupplierController extends Controller
         $request->validate([
             'amount' => 'required|numeric|min:0.01',
             'date' => 'required|date|before_or_equal:today',
-            'notes' => 'nullable|string|max:255',
+            'notes' => ['nullable', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
         ], [
             'amount.required' => 'يرجى إدخال مبلغ السداد',
             'amount.min' => 'مبلغ السداد يجب أن يكون أكبر من 0',
             'date.required' => 'يرجى تحديد تاريخ السداد',
             'date.before_or_equal' => 'لا يمكن تسجيل تاريخ في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
+            'notes.regex' => 'الملاحظات يجب ألا تتكون من أرقام فقط',
         ]);
 
         DB::transaction(function () use ($id, $request) {
@@ -189,7 +190,7 @@ class SupplierController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'paid_amount' => 'nullable|numeric|min:0',
             'date' => 'required|date|before_or_equal:today',
-            'notes' => 'nullable|string|max:255',
+            'notes' => ['nullable', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
         ], [
             'product_id.required' => 'يرجى اختيار الصنف / المنتج المراد إرجاعه أولاً',
             'product_id.exists' => 'المنتج المحدد غير موجود في قاعدة البيانات',
@@ -199,6 +200,7 @@ class SupplierController extends Controller
             'amount.min' => 'قيمة المرتجع يجب أن تكون أكبر من 0',
             'date.required' => 'يرجى تحديد تاريخ المرتجع',
             'date.before_or_equal' => 'لا يمكن تسجيل تاريخ في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
+            'notes.regex' => 'الملاحظات يجب ألا تتكون من أرقام فقط',
         ]);
 
         DB::transaction(function () use ($id, $request) {

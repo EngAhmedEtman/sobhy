@@ -61,10 +61,14 @@ class TransactionController extends Controller
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0.01',
             'date' => 'required|date|before_or_equal:today',
-            'notes' => 'nullable|string|max:255',
+            'notes' => ['nullable', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
             'quantity' => in_array($transaction->type, ['return_sale', 'return_purchase'], true)
                 ? 'required|numeric|min:0.01'
                 : 'nullable|numeric|min:0.01',
+        ], [
+            'amount.required' => 'يرجى إدخال المبلغ',
+            'date.required' => 'يرجى تحديد التاريخ',
+            'notes.regex' => 'الملاحظات يجب ألا تتكون من أرقام فقط',
         ]);
 
         DB::transaction(function () use ($validated, $transaction) {

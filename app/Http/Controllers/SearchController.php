@@ -8,198 +8,128 @@ use App\Models\Purchase;
 use App\Models\Sale;
 use App\Models\Supplier;
 use App\Models\Transaction;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class SearchController extends Controller
 {
     public function globalSearch(Request $request)
     {
-        $q = trim($request->input('q', ''));
+        $query = trim((string) $request->input('q', ''));
 
-        if (empty($q) || mb_strlen($q) < 1) {
-            return response()->json([
-                'customers' => [],
-                'suppliers' => [],
-                'products' => [],
-                'sales' => [],
-                'purchases' => [],
-                'transactions' => [],
-                'total_count' => 0,
-            ]);
+        if ($query === '') {
+            return response()->json($this->emptyResponse());
         }
 
-        // 1. Customers
-        $customers = Customer::where(function ($query) use ($q) {
-            $query->where('name', 'like', "%{$q}%")
-                ->orWhere('phone', 'like', "%{$q}%")
-                ->orWhere('notes', 'like', "%{$q}%");
-        })
-            ->take(5)
-            ->get()
-            ->map(function ($c) {
-                return [
-                    'id' => $c->id,
-                    'title' => $c->name,
-                    'subtitle' => $c->phone ? 'هاتف: '.$c->phone : 'عميل مسجل',
-                    'balance' => $c->balance,
-                    'balance_text' => $c->balance == 0 ? 'خالص' : ($c->balance > 0 ? number_format($c->balance, 0).' ج.م (مطلوب منه)' : number_format(abs($c->balance), 0).' ج.م (له عندنا)'),
-                    'balance_type' => $c->balance == 0 ? 'zero' : ($c->balance > 0 ? 'debt' : 'credit'),
-                    'url' => route('customers.show', $c->id),
-                    'category' => 'العملاء',
-                ];
-            });
+        $terms = $this->searchTerms($query);
+        $digits = $this->normalizeDigits($query);
+        $numericId = ctype_digit($digits) && (int) $digits > 0 ? (int) $digits : null;
 
-        // 2. Suppliers
-        $suppliers = Supplier::where(function ($query) use ($q) {
-            $query->where('name', 'like', "%{$q}%")
-                ->orWhere('phone', 'like', "%{$q}%")
-                ->orWhere('notes', 'like', "%{$q}%");
-        })
-            ->take(5)
-            ->get()
-            ->map(function ($s) {
-                return [
-                    'id' => $s->id,
-                    'title' => $s->name,
-                    'subtitle' => $s->phone ? 'هاتف: '.$s->phone : 'مورد مسجل',
-                    'balance' => $s->balance,
-                    'balance_text' => $s->balance == 0 ? 'خالص' : ($s->balance > 0 ? number_format($s->balance, 0).' ج.م (له علينا)' : number_format(abs($s->balance), 0).' ج.م (لنا عنده)'),
-                    'balance_type' => $s->balance == 0 ? 'zero' : ($s->balance > 0 ? 'supplier_liability' : 'supplier_debit'),
-                    'url' => route('suppliers.show', $s->id),
-                    'category' => 'الموردين',
-                ];
-            });
-
-        // 3. Products
-        $products = Product::where(function ($query) use ($q) {
-            $query->where('name', 'like', "%{$q}%")
-                ->orWhere('notes', 'like', "%{$q}%");
-        })
-            ->take(5)
-            ->get()
-            ->map(function ($p) {
-                return [
-                    'id' => $p->id,
-                    'title' => $p->name,
-                    'subtitle' => 'الرصيد بالمخزن: '.number_format($p->stock, 0).' '.($p->unit ?? 'ك'),
-                    'url' => route('products.index'),
-                    'category' => 'المنتجات والمخزون',
-                ];
-            });
-
-        // 4. Sales Invoices
-        $sales = Sale::with('customer')
-            ->where(function ($query) use ($q) {
-                $query->where('invoice_number', 'like', "%{$q}%")
-                    ->orWhere('notes', 'like', "%{$q}%")
-                    ->orWhereHas('customer', function ($cq) use ($q) {
-                        $cq->where('name', 'like', "%{$q}%")->orWhere('phone', 'like', "%{$q}%");
-                    });
-            })
-            ->orderBy('id', 'desc')
-            ->take(5)
-            ->get()
-            ->map(function ($sale) {
-                return [
-                    'id' => $sale->id,
-                    'title' => 'فاتورة مبيعات #'.$sale->invoice_number,
-                    'subtitle' => ($sale->customer ? $sale->customer->name : 'عميل نقدي').' - '.number_format($sale->total_amount, 0).' ج.م',
-                    'date' => ($sale->invoice_date ?? $sale->created_at)?->format('Y-m-d') ?? '',
-                    'url' => route('print.sale', $sale->id),
-                    'category' => 'فواتير المبيعات',
-                ];
-            });
-
-        // 5. Purchases Invoices
-        $purchases = Purchase::with('supplier')
-            ->where(function ($query) use ($q) {
-                $query->where('invoice_number', 'like', "%{$q}%")
-                    ->orWhere('notes', 'like', "%{$q}%")
-                    ->orWhereHas('supplier', function ($sq) use ($q) {
-                        $sq->where('name', 'like', "%{$q}%")->orWhere('phone', 'like', "%{$q}%");
-                    });
-            })
-            ->orderBy('id', 'desc')
-            ->take(5)
-            ->get()
-            ->map(function ($purchase) {
-                return [
-                    'id' => $purchase->id,
-                    'title' => 'فاتورة مشتريات #'.$purchase->invoice_number,
-                    'subtitle' => ($purchase->supplier ? $purchase->supplier->name : 'مورد نقدي').' - '.number_format($purchase->total_amount, 0).' ج.م',
-                    'date' => ($purchase->invoice_date ?? $purchase->created_at)?->format('Y-m-d') ?? '',
-                    'url' => route('print.purchase', $purchase->id),
-                    'category' => 'فواتير المشتريات',
-                ];
-            });
-
-        // 6. Transactions
-        $transactions = Transaction::with('transactionable')
-            ->where(function ($query) use ($q) {
-                if (is_numeric($q)) {
-                    $query->where('id', $q);
+        $customerModels = Customer::query()
+            ->where(function (Builder $builder) use ($terms, $digits, $numericId) {
+                $this->addTextMatches($builder, ['name'], $terms);
+                if ($digits !== '') {
+                    $builder->orWhere('phone', 'like', '%'.$digits.'%');
                 }
-                $query->orWhere('notes', 'like', "%{$q}%");
-            })
-            ->orderBy('id', 'desc')
-            ->take(4)
-            ->get()
-            ->map(function ($t) {
-                $typeLabels = [
-                    'payment_received' => 'إيصال تحصيل',
-                    'payment_made' => 'إيصال سداد',
-                    'return_sale' => 'مرتجع مبيعات',
-                    'return_purchase' => 'مرتجع مشتريات',
-                    'sale' => 'عملية بيع',
-                    'purchase' => 'عملية شراء',
-                ];
-
-                return [
-                    'id' => $t->id,
-                    'title' => ($typeLabels[$t->type] ?? 'عملية').' #'.str_pad($t->id, 4, '0', STR_PAD_LEFT),
-                    'subtitle' => ($t->transactionable->name ?? '---').' - '.number_format($t->total_amount > 0 ? $t->total_amount : $t->paid_amount, 0).' ج.م',
-                    'url' => route('transactions.print', $t->id),
-                    'category' => 'الإيصالات والعمليات',
-                ];
-            });
-
-        // 7. Pages Search
-        $systemPages = [
-            ['title' => 'لوحة التحكم', 'url' => route('dashboard'), 'keywords' => ['لوحة التحكم', 'الرئيسية', 'داشبورد', 'dashboard']],
-            ['title' => 'إدارة العملاء', 'url' => route('customers.index'), 'keywords' => ['العملاء', 'عملاء', 'زبائن', 'customers']],
-            ['title' => 'إدارة الموردين', 'url' => route('suppliers.index'), 'keywords' => ['الموردين', 'موردين', 'تجار', 'suppliers']],
-            ['title' => 'إدارة المنتجات', 'url' => route('products.index'), 'keywords' => ['المنتجات', 'منتجات', 'اصناف', 'أصناف', 'مخزن', 'products']],
-            ['title' => 'فواتير المبيعات', 'url' => route('sales.index'), 'keywords' => ['المبيعات', 'مبيعات', 'بيع', 'sales']],
-            ['title' => 'فواتير المشتريات', 'url' => route('purchases.index'), 'keywords' => ['المشتريات', 'مشتريات', 'شراء', 'purchases']],
-            ['title' => 'الديون والأرصدة', 'url' => route('debts.index'), 'keywords' => ['الديون', 'ديون', 'ارصدة', 'أرصدة', 'debts']],
-            ['title' => 'التقارير الشاملة', 'url' => route('reports.index'), 'keywords' => ['التقارير', 'تقارير', 'احصائيات', 'reports']],
-            ['title' => 'إعدادات النظام', 'url' => route('settings.index'), 'keywords' => ['الاعدادات', 'إعدادات', 'ضبط', 'settings']],
-            ['title' => 'إدارة المستخدمين', 'url' => route('users.index'), 'keywords' => ['المستخدمين', 'مستخدمين', 'users']],
-            ['title' => 'الأدوار والصلاحيات', 'url' => route('roles.index'), 'keywords' => ['الصلاحيات', 'صلاحيات', 'ادوار', 'أدوار', 'roles']],
-        ];
-
-        $pages = collect();
-        $searchLower = mb_strtolower($q);
-        foreach ($systemPages as $page) {
-            $match = false;
-            foreach ($page['keywords'] as $keyword) {
-                if (mb_strpos($keyword, $searchLower) !== false) {
-                    $match = true;
-                    break;
+                if ($numericId) {
+                    $builder->orWhere('id', $numericId);
                 }
-            }
-            if ($match || mb_strpos(mb_strtolower($page['title']), $searchLower) !== false) {
-                $pages->push([
-                    'id' => 'page_' . md5($page['url']),
-                    'title' => $page['title'],
-                    'subtitle' => 'صفحة في النظام',
-                    'url' => $page['url'],
-                    'category' => 'صفحات النظام'
-                ]);
-            }
-        }
+            })
+            ->orderByRaw(
+                'CASE WHEN id = ? THEN 0 WHEN phone = ? THEN 1 WHEN name = ? THEN 2 WHEN name LIKE ? THEN 3 ELSE 4 END',
+                [$numericId ?? -1, $digits, $query, $query.'%']
+            )
+            ->orderByDesc('id')
+            ->limit(5)
+            ->get();
 
-        $totalCount = $customers->count() + $suppliers->count() + $products->count() + $sales->count() + $purchases->count() + $transactions->count() + $pages->count();
+        $supplierModels = Supplier::query()
+            ->where(function (Builder $builder) use ($terms, $digits, $numericId) {
+                $this->addTextMatches($builder, ['name'], $terms);
+                if ($digits !== '') {
+                    $builder->orWhere('phone', 'like', '%'.$digits.'%');
+                }
+                if ($numericId) {
+                    $builder->orWhere('id', $numericId);
+                }
+            })
+            ->orderByRaw(
+                'CASE WHEN id = ? THEN 0 WHEN phone = ? THEN 1 WHEN name = ? THEN 2 WHEN name LIKE ? THEN 3 ELSE 4 END',
+                [$numericId ?? -1, $digits, $query, $query.'%']
+            )
+            ->orderByDesc('id')
+            ->limit(5)
+            ->get();
+
+        $productModels = Product::query()
+            ->where(function (Builder $builder) use ($terms, $numericId) {
+                $this->addTextMatches($builder, ['name', 'notes'], $terms);
+                if ($numericId) {
+                    $builder->orWhere('id', $numericId);
+                }
+            })
+            ->orderByRaw(
+                'CASE WHEN id = ? THEN 0 WHEN name = ? THEN 1 WHEN name LIKE ? THEN 2 ELSE 3 END',
+                [$numericId ?? -1, $query, $query.'%']
+            )
+            ->orderByDesc('id')
+            ->limit(5)
+            ->get();
+
+        $sales = $this->salesResults(
+            $terms,
+            $numericId,
+            $customerModels->pluck('id'),
+            $productModels->pluck('id')
+        );
+        $purchases = $this->purchaseResults(
+            $terms,
+            $numericId,
+            $supplierModels->pluck('id'),
+            $productModels->pluck('id')
+        );
+        $transactions = $this->transactionResults(
+            $terms,
+            $numericId,
+            $customerModels->pluck('id'),
+            $supplierModels->pluck('id'),
+            $productModels->pluck('id')
+        );
+
+        $customers = $customerModels->map(fn (Customer $customer) => [
+            'id' => $customer->id,
+            'title' => $customer->name,
+            'subtitle' => 'كود العميل: #'.$customer->id.($customer->phone ? ' • هاتف: '.$customer->phone : ''),
+            'balance' => (float) $customer->balance,
+            'balance_text' => $this->customerBalanceText($customer),
+            'balance_type' => $customer->balance == 0 ? 'zero' : ($customer->balance > 0 ? 'debt' : 'credit'),
+            'url' => route('customers.show', $customer),
+            'category' => 'العملاء',
+        ]);
+
+        $suppliers = $supplierModels->map(fn (Supplier $supplier) => [
+            'id' => $supplier->id,
+            'title' => $supplier->name,
+            'subtitle' => 'كود المورد: #'.$supplier->id.($supplier->phone ? ' • هاتف: '.$supplier->phone : ''),
+            'balance' => (float) $supplier->balance,
+            'balance_text' => $this->supplierBalanceText($supplier),
+            'balance_type' => $supplier->balance == 0 ? 'zero' : ($supplier->balance > 0 ? 'supplier_liability' : 'supplier_debit'),
+            'url' => route('suppliers.show', $supplier),
+            'category' => 'الموردين',
+        ]);
+
+        $products = $productModels->map(fn (Product $product) => [
+            'id' => $product->id,
+            'title' => $product->name,
+            'subtitle' => 'كود الصنف: #'.$product->id.' • الرصيد: '.format_quantity($product->stock).' '.($product->unit ?? 'ك'),
+            'url' => route('products.show', $product),
+            'category' => 'المنتجات والمخزون',
+        ]);
+
+        $pages = $this->pageResults($query);
+        $totalCount = collect([$pages, $customers, $suppliers, $products, $sales, $purchases, $transactions])
+            ->sum(fn (Collection $items) => $items->count());
 
         return response()->json([
             'pages' => $pages,
@@ -212,5 +142,232 @@ class SearchController extends Controller
             'total_count' => $totalCount,
         ]);
     }
-}
 
+    private function salesResults(Collection $terms, ?int $numericId, Collection $customerIds, Collection $productIds): Collection
+    {
+        $results = Sale::with('customer')
+            ->where(function (Builder $builder) use ($terms, $numericId) {
+                $this->addTextMatches($builder, ['invoice_number', 'notes'], $terms);
+                if ($numericId) {
+                    $builder->orWhere('id', $numericId);
+                }
+            })
+            ->orderByDesc('id')
+            ->limit(5)
+            ->get();
+
+        foreach ($customerIds as $customerId) {
+            $results = $results->concat(
+                Sale::with('customer')->where('customer_id', $customerId)->orderByDesc('id')->limit(2)->get()
+            );
+        }
+
+        foreach ($productIds as $productId) {
+            $results = $results->concat(
+                Sale::with('customer')
+                    ->whereHas('items', fn (Builder $items) => $items->where('product_id', $productId))
+                    ->orderByDesc('id')
+                    ->limit(2)
+                    ->get()
+            );
+        }
+
+        return $results->unique('id')->sortByDesc('id')->take(12)->values()->map(fn (Sale $sale) => [
+            'id' => $sale->id,
+            'title' => 'فاتورة مبيعات #'.$sale->invoice_number,
+            'subtitle' => ($sale->customer?->name ?? 'عميل').' • '.format_amount($sale->total_amount).' ج.م',
+            'date' => ($sale->invoice_date ?? $sale->created_at)?->format('Y-m-d') ?? '',
+            'url' => route('print.sale', $sale),
+            'category' => 'فواتير المبيعات',
+        ]);
+    }
+
+    private function purchaseResults(Collection $terms, ?int $numericId, Collection $supplierIds, Collection $productIds): Collection
+    {
+        $results = Purchase::with('supplier')
+            ->where(function (Builder $builder) use ($terms, $numericId) {
+                $this->addTextMatches($builder, ['invoice_number', 'notes'], $terms);
+                if ($numericId) {
+                    $builder->orWhere('id', $numericId);
+                }
+            })
+            ->orderByDesc('id')
+            ->limit(5)
+            ->get();
+
+        foreach ($supplierIds as $supplierId) {
+            $results = $results->concat(
+                Purchase::with('supplier')->where('supplier_id', $supplierId)->orderByDesc('id')->limit(2)->get()
+            );
+        }
+
+        foreach ($productIds as $productId) {
+            $results = $results->concat(
+                Purchase::with('supplier')
+                    ->whereHas('items', fn (Builder $items) => $items->where('product_id', $productId))
+                    ->orderByDesc('id')
+                    ->limit(2)
+                    ->get()
+            );
+        }
+
+        return $results->unique('id')->sortByDesc('id')->take(12)->values()->map(fn (Purchase $purchase) => [
+            'id' => $purchase->id,
+            'title' => 'فاتورة مشتريات #'.$purchase->invoice_number,
+            'subtitle' => ($purchase->supplier?->name ?? 'مورد').' • '.format_amount($purchase->total_amount).' ج.م',
+            'date' => ($purchase->invoice_date ?? $purchase->created_at)?->format('Y-m-d') ?? '',
+            'url' => route('print.purchase', $purchase),
+            'category' => 'فواتير المشتريات',
+        ]);
+    }
+
+    private function transactionResults(
+        Collection $terms,
+        ?int $numericId,
+        Collection $customerIds,
+        Collection $supplierIds,
+        Collection $productIds
+    ): Collection {
+        return Transaction::with(['transactionable', 'product'])
+            ->where(function (Builder $builder) use ($terms, $numericId, $customerIds, $supplierIds, $productIds) {
+                $this->addTextMatches($builder, ['notes'], $terms);
+
+                if ($numericId) {
+                    $builder->orWhere('id', $numericId);
+                }
+                if ($customerIds->isNotEmpty()) {
+                    $builder->orWhere(function (Builder $party) use ($customerIds) {
+                        $party->where('transactionable_type', Customer::class)
+                            ->whereIn('transactionable_id', $customerIds);
+                    });
+                }
+                if ($supplierIds->isNotEmpty()) {
+                    $builder->orWhere(function (Builder $party) use ($supplierIds) {
+                        $party->where('transactionable_type', Supplier::class)
+                            ->whereIn('transactionable_id', $supplierIds);
+                    });
+                }
+                if ($productIds->isNotEmpty()) {
+                    $builder->orWhereIn('product_id', $productIds);
+                }
+            })
+            ->orderByDesc('transaction_date')
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get()
+            ->map(fn (Transaction $transaction) => [
+                'id' => $transaction->id,
+                'title' => $transaction->type_name.' #'.str_pad((string) $transaction->id, 4, '0', STR_PAD_LEFT),
+                'subtitle' => ($transaction->transactionable?->name ?? '---').' • '.
+                    format_amount($transaction->total_amount > 0 ? $transaction->total_amount : $transaction->paid_amount).' ج.م',
+                'date' => $transaction->transaction_date?->format('Y-m-d') ?? '',
+                'url' => route('transactions.print', $transaction),
+                'category' => 'الإيصالات والعمليات',
+            ]);
+    }
+
+    private function addTextMatches(Builder $builder, array $columns, Collection $terms): void
+    {
+        foreach ($terms as $term) {
+            foreach ($columns as $column) {
+                $builder->orWhere($column, 'like', '%'.$term.'%');
+            }
+        }
+    }
+
+    private function searchTerms(string $query): Collection
+    {
+        $lower = mb_strtolower($query);
+        $normalized = strtr($lower, [
+            'أ' => 'ا',
+            'إ' => 'ا',
+            'آ' => 'ا',
+            'ى' => 'ي',
+        ]);
+
+        return collect([
+            $query,
+            $lower,
+            $normalized,
+            str_replace('ا', 'أ', $normalized),
+            str_replace('ا', 'إ', $normalized),
+            str_replace('ي', 'ى', $normalized),
+        ])->filter(fn ($term) => $term !== '')->unique()->values();
+    }
+
+    private function normalizeDigits(string $value): string
+    {
+        $western = strtr($value, [
+            '٠' => '0', '١' => '1', '٢' => '2', '٣' => '3', '٤' => '4',
+            '٥' => '5', '٦' => '6', '٧' => '7', '٨' => '8', '٩' => '9',
+        ]);
+
+        return preg_replace('/\D+/u', '', $western) ?? '';
+    }
+
+    private function customerBalanceText(Customer $customer): string
+    {
+        if ((float) $customer->balance === 0.0) {
+            return 'خالص';
+        }
+
+        return $customer->balance > 0
+            ? format_amount($customer->balance).' ج.م (مطلوب منه)'
+            : format_amount(abs($customer->balance)).' ج.م (له عندنا)';
+    }
+
+    private function supplierBalanceText(Supplier $supplier): string
+    {
+        if ((float) $supplier->balance === 0.0) {
+            return 'خالص';
+        }
+
+        return $supplier->balance > 0
+            ? format_amount($supplier->balance).' ج.م (له علينا)'
+            : format_amount(abs($supplier->balance)).' ج.م (لنا عنده)';
+    }
+
+    private function pageResults(string $query): Collection
+    {
+        $pages = [
+            ['title' => 'لوحة التحكم', 'url' => route('dashboard'), 'keywords' => 'الرئيسية داشبورد dashboard'],
+            ['title' => 'إدارة العملاء', 'url' => route('customers.index'), 'keywords' => 'عملاء زبائن customers'],
+            ['title' => 'إدارة الموردين', 'url' => route('suppliers.index'), 'keywords' => 'موردين تجار suppliers'],
+            ['title' => 'إدارة المنتجات', 'url' => route('products.index'), 'keywords' => 'منتجات أصناف مخزن products'],
+            ['title' => 'فواتير المبيعات', 'url' => route('sales.index'), 'keywords' => 'مبيعات بيع sales'],
+            ['title' => 'فواتير المشتريات', 'url' => route('purchases.index'), 'keywords' => 'مشتريات شراء purchases'],
+            ['title' => 'الديون والأرصدة', 'url' => route('debts.index'), 'keywords' => 'ديون أرصدة debts'],
+            ['title' => 'التقارير الشاملة', 'url' => route('reports.index'), 'keywords' => 'تقارير إحصائيات reports'],
+        ];
+        $needle = strtr(mb_strtolower($query), ['أ' => 'ا', 'إ' => 'ا', 'آ' => 'ا', 'ى' => 'ي']);
+
+        return collect($pages)
+            ->filter(function (array $page) use ($needle) {
+                $haystack = strtr(mb_strtolower($page['title'].' '.$page['keywords']), ['أ' => 'ا', 'إ' => 'ا', 'آ' => 'ا', 'ى' => 'ي']);
+
+                return mb_strpos($haystack, $needle) !== false;
+            })
+            ->map(fn (array $page) => [
+                'id' => 'page_'.md5($page['url']),
+                'title' => $page['title'],
+                'subtitle' => 'صفحة في النظام',
+                'url' => $page['url'],
+                'category' => 'صفحات النظام',
+            ])
+            ->values();
+    }
+
+    private function emptyResponse(): array
+    {
+        return [
+            'pages' => [],
+            'customers' => [],
+            'suppliers' => [],
+            'products' => [],
+            'sales' => [],
+            'purchases' => [],
+            'transactions' => [],
+            'total_count' => 0,
+        ];
+    }
+}

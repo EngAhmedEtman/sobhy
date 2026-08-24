@@ -18,8 +18,11 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:roles,name',
+            'name' => ['required', 'string', 'max:255', 'unique:roles,name', 'regex:/^(?!\d+$).+$/u'],
             'permissions' => 'nullable|array',
+        ], [
+            'name.required' => 'يرجى إدخال اسم الدور',
+            'name.regex' => 'اسم الدور يجب ألا يتكون من أرقام فقط',
         ]);
 
         Role::create([
@@ -33,8 +36,11 @@ class RoleController extends Controller
     public function update(Request $request, Role $role)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:roles,name,' . $role->id,
+            'name' => ['required', 'string', 'max:255', 'unique:roles,name,' . $role->id, 'regex:/^(?!\d+$).+$/u'],
             'permissions' => 'nullable|array',
+        ], [
+            'name.required' => 'يرجى إدخال اسم الدور',
+            'name.regex' => 'اسم الدور يجب ألا يتكون من أرقام فقط',
         ]);
 
         $role->update([
