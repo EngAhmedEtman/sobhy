@@ -118,8 +118,16 @@ class SaleController extends Controller
             'paid_amount' => 'nullable|numeric|min:0',
             'notes' => 'nullable|string',
         ], [
+            'customer_id.required' => 'يرجى تحديد العميل',
+            'customer_id.exists' => 'العميل المحدد غير موجود',
             'date.required' => 'يرجى تحديد تاريخ الفاتورة',
             'date.before_or_equal' => 'لا يمكن تسجيل تاريخ فاتورة في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
+            'items.required' => 'يجب إضافة منتج واحد على الأقل للفاتورة',
+            'items.min' => 'يجب إضافة منتج واحد على الأقل للفاتورة',
+            'items.*.product_id.required' => 'يرجى تحديد المنتج',
+            'items.*.product_id.exists' => 'المنتج المحدد غير موجود',
+            'items.*.quantity.required' => 'يرجى تحديد الكمية',
+            'items.*.price.required' => 'يرجى تحديد السعر',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -286,8 +294,16 @@ class SaleController extends Controller
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.price' => 'required|numeric|min:0',
         ], [
+            'customer_id.required' => 'يرجى تحديد العميل',
+            'customer_id.exists' => 'العميل المحدد غير موجود',
             'date.required' => 'يرجى تحديد تاريخ الفاتورة',
             'date.before_or_equal' => 'لا يمكن تسجيل تاريخ فاتورة في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
+            'items.required' => 'يجب إضافة منتج واحد على الأقل للفاتورة',
+            'items.min' => 'يجب إضافة منتج واحد على الأقل للفاتورة',
+            'items.*.product_id.required' => 'يرجى تحديد المنتج',
+            'items.*.product_id.exists' => 'المنتج المحدد غير موجود',
+            'items.*.quantity.required' => 'يرجى تحديد الكمية',
+            'items.*.price.required' => 'يرجى تحديد السعر',
         ]);
 
         DB::transaction(function () use ($request, $sale) {
