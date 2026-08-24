@@ -18,6 +18,23 @@ input, button, select, textarea, optgroup, option {
     font-family: 'Cairo Variable', 'Cairo', sans-serif !important;
 }
 
+/*
+ * Tailwind Forms positions the select chevron on the right by default.
+ * In RTL layouts that is also where the text starts, and horizontal
+ * padding utilities can remove the space reserved for the chevron.
+ */
+[dir="rtl"] select:not([multiple]):not([size]) {
+    background-position: left 0.75rem center !important;
+    padding-right: 0.75rem !important;
+    padding-left: 2.5rem !important;
+}
+
+[dir="ltr"] select:not([multiple]):not([size]) {
+    background-position: right 0.75rem center !important;
+    padding-right: 2.5rem !important;
+    padding-left: 0.75rem !important;
+}
+
 [x-cloak] {
     display: none !important;
 }
