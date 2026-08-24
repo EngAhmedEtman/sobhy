@@ -122,7 +122,7 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <!-- Paid Amount -->
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5" x-text="isEdit ? 'المدفوع نقداً' : 'المدفوع (اختياري)'"></label>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5" x-text="isEdit ? 'إجمالي المدفوع في الفاتورة' : 'المدفوع (اختياري)'"></label>
                                     <input type="number" step="0.01" min="0" x-model="paidAmount" name="paid_amount" placeholder="0.00" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-center text-xs font-bold" dir="ltr">
                                 </div>
 
@@ -341,6 +341,9 @@
             selectedCustomerId: config.fixedCustomer ? config.fixedCustomer.id : '',
             selectedName: config.fixedCustomer ? config.fixedCustomer.name : '',
             paidAmount: 0,
+            originalCustomerId: null,
+            originalTotal: 0,
+            originalPaidAmount: 0,
             date: new Date().toISOString().split('T')[0],
             notes: '',
             
@@ -410,6 +413,9 @@
                 }
                 
                 this.paidAmount = 0;
+                this.originalCustomerId = null;
+                this.originalTotal = 0;
+                this.originalPaidAmount = 0;
                 this.date = new Date().toISOString().split('T')[0];
                 this.notes = '';
                 
@@ -433,7 +439,10 @@
                     this.selectedName = details.customer_name;
                     this.date = details.date;
                     this.notes = details.notes || '';
-                    this.paidAmount = details.transaction ? details.transaction.paid_cash : 0;
+                    this.paidAmount = details.transaction ? details.transaction.paid_amount : 0;
+                    this.originalCustomerId = details.customer_id;
+                    this.originalTotal = Number(details.total_amount) || 0;
+                    this.originalPaidAmount = Number(this.paidAmount) || 0;
                     
                     this.items = details.items.map(item => ({
                         id: item.id || Date.now() + Math.random(),
@@ -471,7 +480,11 @@
             
             get newCustomerBalance() { 
                 if (!this.selectedCustomer) return 0;
-                return Number(this.selectedCustomer.balance) + this.total - (parseFloat(this.paidAmount) || 0);
+                let baseBalance = Number(this.selectedCustomer.balance);
+                if (this.isEdit && this.selectedCustomerId == this.originalCustomerId) {
+                    baseBalance -= this.originalTotal - this.originalPaidAmount;
+                }
+                return baseBalance + this.total - (parseFloat(this.paidAmount) || 0);
             },
             
             formatBalance(amount) {

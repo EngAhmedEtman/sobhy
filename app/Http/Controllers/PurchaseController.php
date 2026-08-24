@@ -240,6 +240,7 @@ class PurchaseController extends Controller
             $transactionData = null;
             if ($transaction) {
                 $transactionData = [
+                    'paid_amount' => (float) $transaction->paid_amount,
                     'paid_cash' => $paid_cash,
                     'paid_from_balance' => $paid_from_balance,
                     'remaining_from_this' => max(0, $remaining_from_this),
@@ -330,14 +331,6 @@ class PurchaseController extends Controller
                 ? $newPaidAmountInput
                 : $originalPaidAmount;
 
-            // 2. REVERT OLD TRANSACTION & STOCK
-            if ($oldTransaction) {
-                $oldDebtAdded = $oldTransaction->total_amount - $oldTransaction->paid_amount;
-                $purchase->supplier->balance -= $oldDebtAdded;
-                $purchase->supplier->save();
-                $oldTransaction->delete();
-            }
-
             // Reverse product stock
             foreach ($purchase->items as $item) {
                 $item->product->decrement('stock', $item->quantity);
@@ -397,13 +390,10 @@ class PurchaseController extends Controller
 
             $purchase->update(['total_amount' => $totalAmount]);
 
-            // 6. REGISTER NEW TRANSACTION (with preserved or updated paid_amount)
-            $debtAdded = $totalAmount - $paidAmount;
-
-            $supplier->balance += $debtAdded;
-            $supplier->save();
-
-            $supplier->transactions()->create([
+            // Update the same ledger row so saving an unchanged invoice is idempotent.
+            $transactionData = [
+                'transactionable_type' => Supplier::class,
+                'transactionable_id' => $supplier->id,
                 'type' => 'purchase',
                 'transaction_date' => $request->date,
                 'quantity' => $totalQuantity,
@@ -413,7 +403,13 @@ class PurchaseController extends Controller
                 'source_type' => Purchase::class,
                 'source_id' => $purchase->id,
                 'notes' => 'فاتورة مشتريات رقم '.$purchase->invoice_number.($request->notes ? ' - '.$request->notes : ''),
-            ]);
+            ];
+
+            if ($oldTransaction) {
+                $oldTransaction->forceFill($transactionData)->save();
+            } else {
+                $supplier->transactions()->create($transactionData);
+            }
 
             collect([$oldSupplier, $supplier])
                 ->unique('id')

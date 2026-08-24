@@ -154,6 +154,53 @@ class AccountingIntegrityTest extends TestCase
         $this->assertSame($newDate, $purchase->fresh()->ledgerTransaction->transaction_date->toDateString());
     }
 
+    public function test_saving_unchanged_invoice_repeatedly_never_reapplies_paid_amount(): void
+    {
+        $supplier = Supplier::create(['name' => 'Supplier', 'balance' => 0, 'opening_balance' => 0]);
+        $customer = Customer::create(['name' => 'Customer', 'balance' => 0, 'opening_balance' => 0]);
+        $purchaseProduct = Product::create(['name' => 'Purchase Product', 'stock' => 0, 'opening_stock' => 0]);
+        $saleProduct = Product::create(['name' => 'Sale Product', 'stock' => 10, 'opening_stock' => 10]);
+        $date = Carbon::today()->toDateString();
+
+        $this->postPurchase($supplier, $purchaseProduct, $date, 1, 100, 150);
+        $purchase = Purchase::firstOrFail();
+        $purchasePayload = [
+            'supplier_id' => $supplier->id,
+            'date' => $date,
+            'paid_amount' => 150,
+            'items' => [['product_id' => $purchaseProduct->id, 'quantity' => 1, 'price' => 100]],
+        ];
+
+        $this->getJson(route('purchases.show', $purchase))->assertJsonPath('transaction.paid_amount', 150);
+        $this->put(route('purchases.update', $purchase), $purchasePayload)->assertSessionHasNoErrors();
+        $this->put(route('purchases.update', $purchase), $purchasePayload)->assertSessionHasNoErrors();
+
+        $this->post(route('sales.store'), [
+            'customer_id' => $customer->id,
+            'date' => $date,
+            'paid_amount' => 150,
+            'items' => [['product_id' => $saleProduct->id, 'quantity' => 1, 'price' => 100]],
+        ])->assertSessionHasNoErrors();
+        $sale = Sale::firstOrFail();
+        $salePayload = [
+            'customer_id' => $customer->id,
+            'date' => $date,
+            'paid_amount' => 150,
+            'items' => [['product_id' => $saleProduct->id, 'quantity' => 1, 'price' => 100]],
+        ];
+
+        $this->getJson(route('sales.show', $sale))->assertJsonPath('transaction.paid_amount', 150);
+        $this->put(route('sales.update', $sale), $salePayload)->assertSessionHasNoErrors();
+        $this->put(route('sales.update', $sale), $salePayload)->assertSessionHasNoErrors();
+
+        $this->assertSame(-50.0, (float) $supplier->fresh()->balance);
+        $this->assertSame(-50.0, (float) $customer->fresh()->balance);
+        $this->assertSame(1.0, (float) $purchaseProduct->fresh()->stock);
+        $this->assertSame(9.0, (float) $saleProduct->fresh()->stock);
+        $this->assertSame(1, $supplier->transactions()->where('type', 'purchase')->count());
+        $this->assertSame(1, $customer->transactions()->where('type', 'sale')->count());
+    }
+
     public function test_editing_and_deleting_a_return_rebuilds_both_ledgers(): void
     {
         $customer = Customer::create(['name' => 'Customer', 'balance' => 0, 'opening_balance' => 0]);

@@ -241,6 +241,7 @@ class SaleController extends Controller
             $transactionData = null;
             if ($transaction) {
                 $transactionData = [
+                    'paid_amount' => (float) $transaction->paid_amount,
                     'paid_cash' => $paid_cash,
                     'paid_from_balance' => $paid_from_balance,
                     'remaining_from_this' => max(0, $remaining_from_this),
@@ -331,14 +332,6 @@ class SaleController extends Controller
                 ? $newPaidAmountInput
                 : $originalPaidAmount;
 
-            // 2. REVERT OLD TRANSACTION & STOCK
-            if ($oldTransaction) {
-                $oldDebtAdded = $oldTransaction->total_amount - $oldTransaction->paid_amount;
-                $sale->customer->balance -= $oldDebtAdded;
-                $sale->customer->save();
-                $oldTransaction->delete();
-            }
-
             // Reverse product stock
             foreach ($sale->items as $item) {
                 $item->product->increment('stock', $item->quantity);
@@ -399,13 +392,10 @@ class SaleController extends Controller
 
             $sale->update(['total_amount' => $totalAmount]);
 
-            // 6. REGISTER NEW TRANSACTION (with preserved or updated paid_amount)
-            $debtAdded = $totalAmount - $paidAmount;
-
-            $customer->balance += $debtAdded;
-            $customer->save();
-
-            $customer->transactions()->create([
+            // Update the same ledger row so saving an unchanged invoice is idempotent.
+            $transactionData = [
+                'transactionable_type' => Customer::class,
+                'transactionable_id' => $customer->id,
                 'type' => 'sale',
                 'transaction_date' => $request->date,
                 'quantity' => $totalQuantity,
@@ -415,7 +405,13 @@ class SaleController extends Controller
                 'source_type' => Sale::class,
                 'source_id' => $sale->id,
                 'notes' => 'فاتورة مبيعات رقم '.$sale->invoice_number.($request->notes ? ' - '.$request->notes : ''),
-            ]);
+            ];
+
+            if ($oldTransaction) {
+                $oldTransaction->forceFill($transactionData)->save();
+            } else {
+                $customer->transactions()->create($transactionData);
+            }
 
             collect([$oldCustomer, $customer])
                 ->unique('id')
