@@ -17,6 +17,18 @@ class GlobalSearchTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_header_invoice_results_open_the_details_modal(): void
+    {
+        $this->actingAs(User::factory()->create(['email' => 'admin@gmail.com']));
+
+        $this->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee("openInvoice(item, 'sale')", false)
+            ->assertSee("openInvoice(item, 'purchase')", false)
+            ->assertSee('global-invoice-modal-title', false)
+            ->assertSee('invoicePrintUrl', false);
+    }
+
     public function test_header_search_finds_parties_and_their_latest_two_invoices(): void
     {
         $this->actingAs(User::factory()->create(['email' => 'admin@gmail.com']));

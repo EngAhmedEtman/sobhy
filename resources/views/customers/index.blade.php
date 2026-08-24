@@ -170,12 +170,6 @@
             <!-- Collapsible Advanced Filters Drawer with Smooth Animation -->
             <div x-show="showFilters" 
                  x-collapse.duration.300ms
-                 x-transition:enter="transition ease-out duration-250 transform"
-                 x-transition:enter-start="opacity-0 -translate-y-1"
-                 x-transition:enter-end="opacity-100 translate-y-0"
-                 x-transition:leave="transition ease-in duration-200 transform"
-                 x-transition:leave-start="opacity-100 translate-y-0"
-                 x-transition:leave-end="opacity-0 -translate-y-1"
                  x-cloak 
                  class="pt-3 mt-3 border-t border-slate-100">
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">

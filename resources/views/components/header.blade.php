@@ -205,7 +205,7 @@
                             </h4>
                             <div class="space-y-1">
                                 <template x-for="item in results.sales" :key="item.id">
-                                    <a :href="item.url" target="_blank" class="flex items-center justify-between p-2 rounded-xl hover:bg-emerald-50/50 transition-colors group">
+                                    <button type="button" @click="openInvoice(item, 'sale')" class="w-full flex items-center justify-between p-2 rounded-xl hover:bg-emerald-50/50 transition-colors group text-right">
                                         <div class="flex items-center gap-2 min-w-0">
                                             <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 font-bold flex items-center justify-center text-xs shrink-0">
                                                 #
@@ -215,8 +215,8 @@
                                                 <p class="text-[0.65rem] text-slate-400" x-text="item.subtitle"></p>
                                             </div>
                                         </div>
-                                        <span class="text-[0.7rem] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">طباعة / عرض</span>
-                                    </a>
+                                        <span class="text-[0.7rem] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">عرض الفاتورة</span>
+                                    </button>
                                 </template>
                             </div>
                         </div>
@@ -231,7 +231,7 @@
                             </h4>
                             <div class="space-y-1">
                                 <template x-for="item in results.purchases" :key="item.id">
-                                    <a :href="item.url" target="_blank" class="flex items-center justify-between p-2 rounded-xl hover:bg-sky-50/50 transition-colors group">
+                                    <button type="button" @click="openInvoice(item, 'purchase')" class="w-full flex items-center justify-between p-2 rounded-xl hover:bg-sky-50/50 transition-colors group text-right">
                                         <div class="flex items-center gap-2 min-w-0">
                                             <div class="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 font-bold flex items-center justify-center text-xs shrink-0">
                                                 #
@@ -241,8 +241,8 @@
                                                 <p class="text-[0.65rem] text-slate-400" x-text="item.subtitle"></p>
                                             </div>
                                         </div>
-                                        <span class="text-[0.7rem] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md">طباعة / عرض</span>
-                                    </a>
+                                        <span class="text-[0.7rem] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md">عرض الفاتورة</span>
+                                    </button>
                                 </template>
                             </div>
                         </div>
@@ -568,13 +568,13 @@
                         <h4 class="text-[0.7rem] font-bold text-slate-400 mb-1.5">فواتير المبيعات</h4>
                         <div class="space-y-1">
                             <template x-for="item in results.sales" :key="item.id">
-                                <a :href="item.url" target="_blank" class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                <button type="button" @click="openInvoice(item, 'sale')" class="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-right">
                                     <div class="min-w-0">
                                         <p class="text-xs font-bold text-slate-800 truncate" x-text="item.title"></p>
                                         <p class="text-[0.65rem] text-slate-400" x-text="item.subtitle"></p>
                                     </div>
                                     <span class="text-[0.7rem] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">عرض</span>
-                                </a>
+                                </button>
                             </template>
                         </div>
                     </div>
@@ -586,13 +586,13 @@
                         <h4 class="text-[0.7rem] font-bold text-slate-400 mb-1.5">فواتير المشتريات</h4>
                         <div class="space-y-1">
                             <template x-for="item in results.purchases" :key="item.id">
-                                <a :href="item.url" target="_blank" class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                <button type="button" @click="openInvoice(item, 'purchase')" class="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-right">
                                     <div class="min-w-0">
                                         <p class="text-xs font-bold text-slate-800 truncate" x-text="item.title"></p>
                                         <p class="text-[0.65rem] text-slate-400" x-text="item.subtitle"></p>
                                     </div>
                                     <span class="text-[0.7rem] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md">عرض</span>
-                                </a>
+                                </button>
                             </template>
                         </div>
                     </div>
@@ -620,6 +620,8 @@
         </div>
     </div>
 
+    <x-modals.global-invoice-details />
+
 </header>
 
 <script>
@@ -629,6 +631,12 @@
             isOpen: false,
             mobileOpen: false,
             showSupportModal: false,
+            invoiceModalOpen: false,
+            invoiceLoading: false,
+            invoiceError: '',
+            invoiceDetails: null,
+            invoiceType: null,
+            invoicePrintUrl: '',
             loading: false,
             debounceTimer: null,
             searchRequestController: null,
@@ -732,6 +740,41 @@
             closeSearch() {
                 this.isOpen = false;
                 this.mobileOpen = false;
+            },
+
+            async openInvoice(item, type) {
+                this.closeSearch();
+                this.invoiceModalOpen = true;
+                this.invoiceLoading = true;
+                this.invoiceError = '';
+                this.invoiceDetails = null;
+                this.invoiceType = type;
+                this.invoicePrintUrl = item.url;
+
+                try {
+                    const resource = type === 'sale' ? 'sales' : 'purchases';
+                    const response = await fetch(`/${resource}/${item.id}`, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Invoice request failed');
+                    }
+
+                    this.invoiceDetails = await response.json();
+                } catch (error) {
+                    this.invoiceError = 'تعذر تحميل بيانات الفاتورة. حاول مرة أخرى.';
+                } finally {
+                    this.invoiceLoading = false;
+                }
+            },
+
+            closeInvoiceModal() {
+                this.invoiceModalOpen = false;
+                this.invoiceDetails = null;
+                this.invoiceError = '';
+                this.invoiceType = null;
+                this.invoicePrintUrl = '';
             }
         }));
     });

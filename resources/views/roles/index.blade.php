@@ -42,12 +42,14 @@
                         <span>إدارة المستخدمين</span>
                     </a>
 
+                    @canPermission('roles.create')
                     <button type="button" 
                             @click="showAddDrawer = true"
                             class="px-5 py-2.5 bg-primary-600 text-white rounded-xl hover:bg-primary-700 text-sm font-bold flex items-center transition-colors shadow-sm shadow-primary-600/20 w-full sm:w-auto justify-center">
                         <svg class="w-5 h-5 ml-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         <span>إضافة دور جديد</span>
                     </button>
+                    @endCanPermission
                 </div>
             </div>
         </div>
@@ -126,21 +128,25 @@
                             </button>
 
                             <!-- Edit Drawer Trigger -->
+                            @canPermission('roles.update')
                             <button type="button" 
                                     @click="editData = { id: '{{ $role->id }}', name: '{{ $role->name }}', permissions: {{ json_encode($role->permissions ?? []) }} }; showEditDrawer = true"
                                     class="px-2.5 py-1.5 bg-primary-50 hover:bg-primary-100 border border-primary-200 text-primary-700 text-xs font-bold rounded-lg transition-colors flex items-center gap-1">
                                 <svg class="w-3.5 h-3.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                 <span>تعديل</span>
                             </button>
+                            @endCanPermission
                         </div>
 
                         @if($role->users_count == 0)
+                            @canPermission('roles.delete')
                             <button type="button" 
                                     @click="deleteId = '{{ $role->id }}'; showDeleteModal = true"
                                     class="p-1.5 rounded border border-slate-200 text-slate-400 hover:text-danger-600 hover:border-danger-200 hover:bg-danger-50 transition-colors"
                                     title="حذف الدور">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
+                            @endCanPermission
                         @endif
                     </div>
                 </div>
