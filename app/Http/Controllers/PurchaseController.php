@@ -323,7 +323,9 @@ class PurchaseController extends Controller
             // Preserve the original paid_amount — do NOT re-apply it as a new payment.
             // Only use the new paid_amount if the user explicitly changed it from the original.
             $originalPaidAmount = $oldTransaction ? (float) $oldTransaction->paid_amount : 0;
-            $newPaidAmountInput = $request->filled('paid_amount') ? (float) $request->paid_amount : null;
+            $newPaidAmountInput = $request->has('paid_amount')
+                ? (float) ($request->input('paid_amount') ?: 0)
+                : null;
 
             // If user sent a value that differs from the original → use the new one.
             // If same or not sent → keep the original.

@@ -201,6 +201,43 @@ class AccountingIntegrityTest extends TestCase
         $this->assertSame(1, $customer->transactions()->where('type', 'sale')->count());
     }
 
+    public function test_clearing_paid_amount_sets_it_to_zero_on_invoice_update(): void
+    {
+        $supplier = Supplier::create(['name' => 'Supplier', 'balance' => 0, 'opening_balance' => 0]);
+        $customer = Customer::create(['name' => 'Customer', 'balance' => 0, 'opening_balance' => 0]);
+        $purchaseProduct = Product::create(['name' => 'Purchase Product', 'stock' => 0, 'opening_stock' => 0]);
+        $saleProduct = Product::create(['name' => 'Sale Product', 'stock' => 10, 'opening_stock' => 10]);
+        $date = Carbon::today()->toDateString();
+
+        $this->postPurchase($supplier, $purchaseProduct, $date, 1, 100, 40);
+        $purchase = Purchase::firstOrFail();
+        $this->put(route('purchases.update', $purchase), [
+            'supplier_id' => $supplier->id,
+            'date' => $date,
+            'paid_amount' => '',
+            'items' => [['product_id' => $purchaseProduct->id, 'quantity' => 1, 'price' => 100]],
+        ])->assertSessionHasNoErrors();
+
+        $this->post(route('sales.store'), [
+            'customer_id' => $customer->id,
+            'date' => $date,
+            'paid_amount' => 40,
+            'items' => [['product_id' => $saleProduct->id, 'quantity' => 1, 'price' => 100]],
+        ])->assertSessionHasNoErrors();
+        $sale = Sale::firstOrFail();
+        $this->put(route('sales.update', $sale), [
+            'customer_id' => $customer->id,
+            'date' => $date,
+            'paid_amount' => 0,
+            'items' => [['product_id' => $saleProduct->id, 'quantity' => 1, 'price' => 100]],
+        ])->assertSessionHasNoErrors();
+
+        $this->assertSame(0.0, (float) $purchase->fresh()->ledgerTransaction->paid_amount);
+        $this->assertSame(0.0, (float) $sale->fresh()->ledgerTransaction->paid_amount);
+        $this->assertSame(100.0, (float) $supplier->fresh()->balance);
+        $this->assertSame(100.0, (float) $customer->fresh()->balance);
+    }
+
     public function test_editing_and_deleting_a_return_rebuilds_both_ledgers(): void
     {
         $customer = Customer::create(['name' => 'Customer', 'balance' => 0, 'opening_balance' => 0]);
