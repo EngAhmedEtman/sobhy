@@ -152,8 +152,7 @@
                             @foreach($transactions as $transaction)
                                 <tr class="hover:bg-slate-50/60 transition-colors group">
                                     <td class="px-4 py-2.5 text-[0.8rem] text-slate-700 border-b border-slate-50 align-middle">
-                                        <div class="font-semibold" dir="ltr">{{ \Carbon\Carbon::parse($transaction->created_at)->format('Y-m-d') }}</div>
-                                        <div class="text-[0.65rem] text-slate-400" dir="ltr">{{ \Carbon\Carbon::parse($transaction->created_at)->format('h:i A') }}</div>
+                                        <div class="font-semibold" dir="ltr">{{ ($transaction->transaction_date ?? $transaction->created_at)->format('Y-m-d') }}</div>
                                     </td>
                                     <td class="px-4 py-2.5 text-[0.8rem] text-slate-700 border-b border-slate-50 align-middle">
                                         @if($transaction->type == 'sale')

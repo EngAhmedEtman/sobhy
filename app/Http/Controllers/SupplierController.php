@@ -2,7 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
+use App\Models\Purchase;
 use App\Models\Supplier;
+use App\Models\Transaction;
+use App\Services\AccountingService;
+use App\Services\InventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -16,7 +21,7 @@ class SupplierController extends Controller
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -75,7 +80,7 @@ class SupplierController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+]+$/'],
-            'balance' => 'required|numeric'
+            'balance' => 'required|numeric',
         ], [
             'name.required' => 'يرجى إدخال اسم المورد',
             'name.regex' => 'اسم المورد يجب ألا يتكون من أرقام فقط',
@@ -84,7 +89,12 @@ class SupplierController extends Controller
             'balance.required' => 'يرجى تحديد الرصيد الافتتاحي',
         ]);
 
-        Supplier::create($request->all());
+        Supplier::create([
+            'name' => $request->name,
+            'phone' => $request->phone,
+            'balance' => $request->balance,
+            'opening_balance' => $request->balance,
+        ]);
 
         return back()->with('success', 'تم إضافة المورد بنجاح');
     }
@@ -110,8 +120,8 @@ class SupplierController extends Controller
     public function destroy($id)
     {
         $supplier = Supplier::findOrFail($id);
-        
-        $hasPurchases = \App\Models\Purchase::where('supplier_id', $id)->exists();
+
+        $hasPurchases = Purchase::where('supplier_id', $id)->exists();
         $hasTransactions = $supplier->transactions()->exists();
 
         if ($hasPurchases || $hasTransactions) {
@@ -131,11 +141,11 @@ class SupplierController extends Controller
             ->orderBy('transaction_date', 'desc')
             ->orderBy('id', 'desc')
             ->paginate(20, ['*'], 'page');
-        
+
         $totalPurchases = $supplier->transactions()->where('type', 'purchase')->sum('total_amount');
         $totalPayments = $supplier->transactions()->where('type', 'payment_made')->sum('paid_amount');
-        
-        $products = \App\Models\Product::all(['id', 'name', 'stock']);
+
+        $products = Product::all(['id', 'name', 'stock']);
 
         return view('suppliers.show', compact('supplier', 'transactions', 'totalPurchases', 'totalPayments', 'products'));
     }
@@ -145,7 +155,7 @@ class SupplierController extends Controller
         $request->validate([
             'amount' => 'required|numeric|min:0.01',
             'date' => 'required|date|before_or_equal:today',
-            'notes' => 'nullable|string|max:255'
+            'notes' => 'nullable|string|max:255',
         ], [
             'amount.required' => 'يرجى إدخال مبلغ السداد',
             'amount.min' => 'مبلغ السداد يجب أن يكون أكبر من 0',
@@ -153,22 +163,18 @@ class SupplierController extends Controller
             'date.before_or_equal' => 'لا يمكن تسجيل تاريخ في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
         ]);
 
-        $supplier = Supplier::findOrFail($id);
-
-        DB::transaction(function () use ($supplier, $request) {
-            $amount = $request->amount;
-            $newBalance = $supplier->balance - $amount; // Payment decreases supplier debt
-
+        DB::transaction(function () use ($id, $request) {
+            $supplier = Supplier::query()->lockForUpdate()->findOrFail($id);
             $supplier->transactions()->create([
                 'type' => 'payment_made',
-                'paid_amount' => $amount,
+                'paid_amount' => $request->amount,
                 'total_amount' => 0,
-                'balance_after' => $newBalance,
+                'balance_after' => $supplier->balance,
                 'transaction_date' => $request->date,
-                'notes' => $request->notes ?? 'سداد دفعة'
+                'notes' => $request->notes ?? 'سداد دفعة',
             ]);
 
-            $supplier->update(['balance' => $newBalance]);
+            app(AccountingService::class)->recalculateParty($supplier);
         });
 
         return back()->with('success', 'تم تسجيل السداد بنجاح');
@@ -194,31 +200,35 @@ class SupplierController extends Controller
             'date.before_or_equal' => 'لا يمكن تسجيل تاريخ في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
         ]);
 
-        $supplier = Supplier::findOrFail($id);
+        DB::transaction(function () use ($id, $request) {
+            $supplier = Supplier::query()->lockForUpdate()->findOrFail($id);
+            $product = Product::query()->lockForUpdate()->findOrFail($request->product_id);
+            app(InventoryService::class)->assertAvailable($product, $request->quantity);
 
-        DB::transaction(function () use ($supplier, $request) {
-            $amount = $request->amount;
-            $paidAmount = $request->paid_amount ?? 0;
-            $newBalance = $supplier->balance - $amount + $paidAmount; // Return decreases supplier debt, paid back increases it
-
-            $product = \App\Models\Product::findOrFail($request->product_id);
-            // Returning a purchase to supplier means we give the product back, so stock DECREASES
-            $product->decrement('stock', $request->quantity);
-
-            $supplier->transactions()->create([
+            $transaction = $supplier->transactions()->create([
                 'type' => 'return_purchase',
                 'product_id' => $request->product_id,
                 'quantity' => $request->quantity,
                 'unit_price' => $request->amount / $request->quantity,
-                'paid_amount' => $paidAmount,
-                'total_amount' => $amount, 
-                'balance_after' => $newBalance,
+                'paid_amount' => $request->paid_amount ?? 0,
+                'total_amount' => $request->amount,
+                'balance_after' => $supplier->balance,
                 'transaction_date' => $request->date,
-                'notes' => $request->notes ?? 'مرتجع ' . $product->name
+                'notes' => $request->notes ?? 'مرتجع '.$product->name,
             ]);
 
-            $supplier->balance = $newBalance;
-            $supplier->save();
+            $product->transactions()->create([
+                'type' => 'return_purchase',
+                'transaction_date' => $request->date,
+                'quantity' => $request->quantity,
+                'balance_after' => $product->stock,
+                'related_type' => Transaction::class,
+                'related_id' => $transaction->id,
+                'notes' => $transaction->notes,
+            ]);
+
+            app(AccountingService::class)->recalculateParty($supplier);
+            app(InventoryService::class)->recalculateProduct($product);
         });
 
         return back()->with('success', 'تم تسجيل المرتجع بنجاح');

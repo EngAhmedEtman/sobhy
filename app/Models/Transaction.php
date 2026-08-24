@@ -21,6 +21,8 @@ class Transaction extends Model
         'paid_amount',
         'balance_after',
         'transaction_date',
+        'source_type',
+        'source_id',
         'notes',
     ];
 
@@ -38,6 +40,11 @@ class Transaction extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function source()
+    {
+        return $this->morphTo();
+    }
+
     public function getInvoiceIdAttribute()
     {
         if (in_array($this->type, ['purchase', 'sale', 'return_purchase', 'return_sale'])) {
@@ -45,13 +52,16 @@ class Transaction extends Model
                 $invoiceNumber = trim($matches[1]);
                 if (str_starts_with($this->notes, 'فاتورة مشتريات')) {
                     $purchase = Purchase::where('invoice_number', $invoiceNumber)->first();
+
                     return $purchase ? $purchase->id : null;
                 } elseif (str_starts_with($this->notes, 'فاتورة مبيعات')) {
                     $sale = Sale::where('invoice_number', $invoiceNumber)->first();
+
                     return $sale ? $sale->id : null;
                 }
             }
         }
+
         return null;
     }
 

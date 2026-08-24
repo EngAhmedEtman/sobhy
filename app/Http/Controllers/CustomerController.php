@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\Product;
+use App\Models\Sale;
 use App\Models\Transaction;
+use App\Services\AccountingService;
+use App\Services\InventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -17,7 +21,7 @@ class CustomerController extends Controller
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('phone', 'like', "%{$search}%");
+                    ->orWhere('phone', 'like', "%{$search}%");
             });
         }
 
@@ -76,7 +80,7 @@ class CustomerController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+]+$/'],
-            'balance' => 'required|numeric'
+            'balance' => 'required|numeric',
         ], [
             'name.required' => 'يرجى إدخال اسم العميل',
             'name.regex' => 'اسم العميل يجب ألا يتكون من أرقام فقط',
@@ -85,7 +89,12 @@ class CustomerController extends Controller
             'balance.required' => 'يرجى تحديد الرصيد الافتتاحي',
         ]);
 
-        Customer::create($request->all());
+        Customer::create([
+            'name' => $request->name,
+            'phone' => $request->phone,
+            'balance' => $request->balance,
+            'opening_balance' => $request->balance,
+        ]);
 
         return back()->with('success', 'تم إضافة العميل بنجاح');
     }
@@ -111,8 +120,8 @@ class CustomerController extends Controller
     public function destroy($id)
     {
         $customer = Customer::findOrFail($id);
-        
-        $hasSales = \App\Models\Sale::where('customer_id', $id)->exists();
+
+        $hasSales = Sale::where('customer_id', $id)->exists();
         $hasTransactions = $customer->transactions()->exists();
 
         if ($hasSales || $hasTransactions) {
@@ -132,11 +141,11 @@ class CustomerController extends Controller
             ->orderBy('transaction_date', 'desc')
             ->orderBy('id', 'desc')
             ->paginate(20, ['*'], 'page');
-        
+
         $totalsales = $customer->transactions()->where('type', 'sale')->sum('total_amount');
         $totalPayments = $customer->transactions()->where('type', 'payment_received')->sum('paid_amount');
-        
-        $products = \App\Models\Product::all(['id', 'name', 'stock']);
+
+        $products = Product::all(['id', 'name', 'stock']);
 
         return view('customers.show', compact('customer', 'transactions', 'totalsales', 'totalPayments', 'products'));
     }
@@ -146,7 +155,7 @@ class CustomerController extends Controller
         $request->validate([
             'amount' => 'required|numeric|min:0.01',
             'date' => 'required|date|before_or_equal:today',
-            'notes' => 'nullable|string|max:255'
+            'notes' => 'nullable|string|max:255',
         ], [
             'amount.required' => 'يرجى إدخال مبلغ التحصيل',
             'amount.min' => 'مبلغ التحصيل يجب أن يكون أكبر من 0',
@@ -154,22 +163,18 @@ class CustomerController extends Controller
             'date.before_or_equal' => 'لا يمكن تسجيل تاريخ في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
         ]);
 
-        $customer = Customer::findOrFail($id);
-
-        DB::transaction(function () use ($customer, $request) {
-            $amount = $request->amount;
-            $newBalance = $customer->balance - $amount;
-
+        DB::transaction(function () use ($id, $request) {
+            $customer = Customer::query()->lockForUpdate()->findOrFail($id);
             $customer->transactions()->create([
                 'type' => 'payment_received',
-                'paid_amount' => $amount,
+                'paid_amount' => $request->amount,
                 'total_amount' => 0,
-                'balance_after' => $newBalance,
+                'balance_after' => $customer->balance,
                 'transaction_date' => $request->date,
-                'notes' => $request->notes ?? 'تحصيل دفعة نقدية'
+                'notes' => $request->notes ?? 'تحصيل دفعة نقدية',
             ]);
 
-            $customer->update(['balance' => $newBalance]);
+            app(AccountingService::class)->recalculateParty($customer);
         });
 
         return back()->with('success', 'تم تسجيل التحصيل بنجاح');
@@ -195,33 +200,36 @@ class CustomerController extends Controller
             'date.before_or_equal' => 'لا يمكن تسجيل تاريخ في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
         ]);
 
-        $customer = Customer::findOrFail($id);
+        DB::transaction(function () use ($id, $request) {
+            $customer = Customer::query()->lockForUpdate()->findOrFail($id);
+            $product = Product::query()->lockForUpdate()->findOrFail($request->product_id);
 
-        DB::transaction(function () use ($customer, $request) {
-            $amount = $request->amount;
-            $paidAmount = $request->paid_amount ?? 0;
-            $newBalance = $customer->balance - $amount + $paidAmount; // Return reduces customer debt, paid back increases it
-
-            $product = \App\Models\Product::findOrFail($request->product_id);
-            // Returning a sale from customer means we get the product back, so stock INCREASES
-            $product->increment('stock', $request->quantity);
-
-            $customer->transactions()->create([
+            $transaction = $customer->transactions()->create([
                 'type' => 'return_sale',
                 'product_id' => $request->product_id,
                 'quantity' => $request->quantity,
                 'unit_price' => $request->amount / $request->quantity,
-                'paid_amount' => $paidAmount,
-                'total_amount' => $amount, // We record it in total_amount to show value of goods
-                'balance_after' => $newBalance,
+                'paid_amount' => $request->paid_amount ?? 0,
+                'total_amount' => $request->amount,
+                'balance_after' => $customer->balance,
                 'transaction_date' => $request->date,
-                'notes' => $request->notes ?? ('مرتجع بيع - ' . $product->name)
+                'notes' => $request->notes ?? ('مرتجع بيع - '.$product->name),
             ]);
 
-            $customer->update(['balance' => $newBalance]);
+            $product->transactions()->create([
+                'type' => 'return_sale',
+                'transaction_date' => $request->date,
+                'quantity' => $request->quantity,
+                'balance_after' => $product->stock,
+                'related_type' => Transaction::class,
+                'related_id' => $transaction->id,
+                'notes' => $transaction->notes,
+            ]);
+
+            app(AccountingService::class)->recalculateParty($customer);
+            app(InventoryService::class)->recalculateProduct($product);
         });
 
         return back()->with('success', 'تم تسجيل المرتجع بنجاح');
     }
 }
-

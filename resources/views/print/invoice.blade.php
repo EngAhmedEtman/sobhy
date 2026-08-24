@@ -81,7 +81,7 @@
                 <div class="invoice-info-col" style="text-align: left;">
                     <h3>تفاصيل الفاتورة</h3>
                     <p><strong>رقم الفاتورة:</strong> #{{ $invoice->invoice_number ?? $invoice->id }}</p>
-                    <p><strong>التاريخ:</strong> {{ $invoice->created_at->format('Y-m-d') }}</p>
+                    <p><strong>التاريخ:</strong> {{ ($invoice->invoice_date ?? $invoice->created_at)->format('Y-m-d') }}</p>
                 </div>
             </div>
 

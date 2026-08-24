@@ -13,8 +13,13 @@ class Purchase extends Model
     protected $fillable = [
         'supplier_id',
         'invoice_number',
+        'invoice_date',
         'total_amount',
         'notes',
+    ];
+
+    protected $casts = [
+        'invoice_date' => 'date',
     ];
 
     public function supplier()
@@ -27,11 +32,30 @@ class Purchase extends Model
         return $this->hasMany(PurchaseItem::class);
     }
 
+    public function ledgerTransaction()
+    {
+        return $this->morphOne(Transaction::class, 'source');
+    }
+
     public function getTransactionAttribute()
     {
-        return Transaction::where('transactionable_type', Supplier::class)
+        if ($this->relationLoaded('ledgerTransaction')) {
+            return $this->getRelation('ledgerTransaction');
+        }
+
+        return $this->ledgerTransaction()->first() ?? Transaction::where('transactionable_type', Supplier::class)
             ->where('transactionable_id', $this->supplier_id)
-            ->where('notes', 'like', '%فاتورة مشتريات رقم ' . $this->invoice_number . '%')
+            ->where('notes', 'like', '%فاتورة مشتريات رقم '.$this->invoice_number.'%')
             ->first();
+    }
+
+    public function getPaidAmountAttribute(): float
+    {
+        return (float) ($this->transaction?->paid_amount ?? 0);
+    }
+
+    public function getRemainingAmountAttribute(): float
+    {
+        return max(0, round((float) $this->total_amount - $this->paid_amount, 2));
     }
 }

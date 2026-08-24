@@ -1,5 +1,5 @@
-<x-dynamic-component :component="request('print_mode') ? 'layouts.print' : 'layouts.app'" title="تقرير الأرباح الشامل">
-    <x-slot name="breadcrumb">التقارير والإحصائيات / تقرير الأرباح الشامل</x-slot>
+<x-dynamic-component :component="request('print_mode') ? 'layouts.print' : 'layouts.app'" title="تقرير الحركة المالية">
+    <x-slot name="breadcrumb">التقارير والإحصائيات / تقرير الحركة المالية</x-slot>
 
     <!-- Page Header & Action Buttons -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full print:hidden mb-6">
@@ -8,7 +8,7 @@
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </div>
             <div class="flex flex-col">
-                <h1 class="text-lg sm:text-2xl font-black text-slate-800 tracking-tight leading-snug">تقرير الأرباح الشامل</h1>
+                <h1 class="text-lg sm:text-2xl font-black text-slate-800 tracking-tight leading-snug">تقرير الحركة المالية</h1>
                 <p class="text-xs lg:text-sm font-medium text-slate-500 leading-relaxed mt-0.5 hidden sm:block">
                     متابعة شاملة للأرباح والمصروفات النقدية، بالإضافة للأرباح المتوقعة باحتساب ديون العملاء والموردين.
                 </p>
@@ -47,7 +47,7 @@
 
     <!-- Printable Header Branding -->
     <div class="hidden print:block mb-6">
-        <x-print.header title="تقرير الأرباح الشامل" :subtitle="(request('start_date') || request('end_date')) ? 'الفترة من ' . (request('start_date') ?? 'البداية') . ' إلى ' . (request('end_date') ?? 'الآن') : 'جميع الفترات'" />
+        <x-print.header title="تقرير الحركة المالية" :subtitle="(request('start_date') || request('end_date')) ? 'الفترة من ' . (request('start_date') ?? 'البداية') . ' إلى ' . (request('end_date') ?? 'الآن') : 'جميع الفترات'" />
     </div>
 
     <!-- Report Content -->
@@ -70,25 +70,25 @@
                 <div class="bg-slate-50 border-b border-slate-100 p-4">
                     <h3 class="font-bold text-slate-800 flex items-center gap-2">
                         <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                        الأرباح النقدية الفعلية (بدون الديون)
+                        صافي التدفق النقدي الفعلي
                     </h3>
                     <p class="text-[0.7rem] text-slate-500 mt-1">تعتمد على السيولة النقدية المستلمة والمسددة فعلياً خلال الفترة.</p>
                 </div>
                 <div class="p-5">
                     <div class="flex justify-between items-center py-2 border-b border-slate-100 border-dashed">
-                        <span class="text-sm font-medium text-slate-600">إجمالي النقدية المستلمة (من العملاء)</span>
+                        <span class="text-sm font-medium text-slate-600">إجمالي التدفقات النقدية الداخلة</span>
                         <span class="font-bold text-slate-800" dir="ltr">{{ format_amount($totalPaymentsReceived) }} ج.م</span>
                     </div>
                     <div class="flex justify-between items-center py-2 border-b border-slate-100 border-dashed">
-                        <span class="text-sm font-medium text-slate-600">إجمالي النقدية المسددة (للموردين)</span>
+                        <span class="text-sm font-medium text-slate-600">إجمالي التدفقات النقدية الخارجة</span>
                         <span class="font-bold text-slate-800" dir="ltr">{{ format_amount($totalPaymentsMade) }} ج.م</span>
                     </div>
                     <div class="flex justify-between items-center mt-4 pt-4 border-t border-slate-200">
-                        <span class="text-sm font-black text-slate-800">صافي الربح النقدي</span>
+                        <span class="text-sm font-black text-slate-800">صافي التدفق النقدي</span>
                         <span class="text-xl font-black {{ $cashProfit >= 0 ? 'text-emerald-600' : 'text-danger-600' }}" dir="ltr">
                             {{ format_amount(abs($cashProfit)) }} ج.م
                             <span class="text-[0.65rem] {{ $cashProfit >= 0 ? 'text-emerald-500' : 'text-danger-500' }}">
-                                {{ $cashProfit >= 0 ? '(ربح)' : '(خسارة)' }}
+                                {{ $cashProfit >= 0 ? '(موجب)' : '(سالب)' }}
                             </span>
                         </span>
                     </div>
@@ -100,9 +100,9 @@
                 <div class="bg-primary-50/50 border-b border-slate-100 p-4">
                     <h3 class="font-bold text-slate-800 flex items-center gap-2">
                         <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                        الأرباح الشاملة المتوقعة (مبيعات ومشتريات)
+                        فرق قيمة المبيعات والمشتريات
                     </h3>
-                    <p class="text-[0.7rem] text-slate-500 mt-1">تعتمد على إجمالي فواتير المبيعات والمشتريات بغض النظر عن التحصيل.</p>
+                    <p class="text-[0.7rem] text-slate-500 mt-1">مؤشر حسابي فقط، وليس صافي ربح؛ تحديد الربح يتطلب تسجيل تكلفة المخزون الافتتاحي وطريقة تقييم تكلفة البضاعة المباعة.</p>
                 </div>
                 <div class="p-5">
                     <div class="flex justify-between items-center py-2 border-b border-slate-100 border-dashed">
@@ -114,11 +114,11 @@
                         <span class="font-bold text-slate-800" dir="ltr">{{ format_amount($totalPurchases) }} ج.م</span>
                     </div>
                     <div class="flex justify-between items-center mt-4 pt-4 border-t border-slate-200">
-                        <span class="text-sm font-black text-slate-800">صافي الربح الشامل</span>
+                        <span class="text-sm font-black text-slate-800">الفرق الحسابي</span>
                         <span class="text-xl font-black {{ $accrualProfit >= 0 ? 'text-primary-600' : 'text-danger-600' }}" dir="ltr">
                             {{ format_amount(abs($accrualProfit)) }} ج.م
                             <span class="text-[0.65rem] {{ $accrualProfit >= 0 ? 'text-primary-500' : 'text-danger-500' }}">
-                                {{ $accrualProfit >= 0 ? '(ربح)' : '(خسارة)' }}
+                                {{ $accrualProfit >= 0 ? '(فائض)' : '(عجز)' }}
                             </span>
                         </span>
                     </div>

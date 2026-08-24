@@ -15,6 +15,7 @@ class Customer extends Model
         'phone',
         'avatar',
         'balance',
+        'opening_balance',
     ];
 
     public function transactions()

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\PurchaseItem;
+use App\Models\SaleItem;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -12,7 +14,7 @@ class ProductController extends Controller
         $products = Product::withCount(['transactions' => function ($query) {
             $query->where('type', 'رصيد افتتاحي');
         }])->orderBy('id', 'desc')->paginate(20);
-        
+
         return view('products.index', compact('products'));
     }
 
@@ -21,7 +23,7 @@ class ProductController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
             'stock' => 'nullable|numeric|min:0',
-            'notes' => 'nullable|string'
+            'notes' => 'nullable|string',
         ], [
             'name.required' => 'يرجى إدخال اسم المنتج',
             'name.regex' => 'اسم المنتج يجب ألا يتكون من أرقام فقط',
@@ -32,8 +34,9 @@ class ProductController extends Controller
         $product = Product::create([
             'name' => $request->name,
             'stock' => $request->stock ?? 0,
+            'opening_stock' => $request->stock ?? 0,
             'unit' => 'كيلو',
-            'notes' => $request->notes
+            'notes' => $request->notes,
         ]);
 
         if ($product->stock > 0) {
@@ -41,7 +44,7 @@ class ProductController extends Controller
                 'type' => 'رصيد افتتاحي',
                 'quantity' => $product->stock,
                 'balance_after' => $product->stock,
-                'notes' => 'رصيد افتتاحي للمنتج'
+                'notes' => 'رصيد افتتاحي للمنتج',
             ]);
         }
 
@@ -53,7 +56,7 @@ class ProductController extends Controller
         $request->validate([
             'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
             'stock' => 'nullable|numeric|min:0',
-            'notes' => 'nullable|string'
+            'notes' => 'nullable|string',
         ], [
             'name.required' => 'يرجى إدخال اسم المنتج',
             'name.regex' => 'اسم المنتج يجب ألا يتكون من أرقام فقط',
@@ -64,20 +67,21 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
         $product->update([
             'name' => $request->name,
-            'notes' => $request->notes
+            'notes' => $request->notes,
         ]);
 
         if ($request->filled('stock') && $request->stock > 0) {
             $hasOpening = $product->transactions()->where('type', 'رصيد افتتاحي')->exists();
-            if (!$hasOpening) {
+            if (! $hasOpening) {
                 $product->stock += $request->stock;
+                $product->opening_stock += $request->stock;
                 $product->save();
-                
+
                 $product->transactions()->create([
                     'type' => 'رصيد افتتاحي',
                     'quantity' => $request->stock,
                     'balance_after' => $product->stock,
-                    'notes' => 'رصيد افتتاحي للمنتج'
+                    'notes' => 'رصيد افتتاحي للمنتج',
                 ]);
             }
         }
@@ -90,7 +94,7 @@ class ProductController extends Controller
         $type = $request->query('type'); // 'purchase' or 'sale'
         $entityId = $request->query('entity_id');
 
-        $overallQuery = $type === 'purchase' ? \App\Models\PurchaseItem::class : \App\Models\SaleItem::class;
+        $overallQuery = $type === 'purchase' ? PurchaseItem::class : SaleItem::class;
         $relation = $type === 'purchase' ? 'purchase' : 'sale';
         $entityColumn = $type === 'purchase' ? 'supplier_id' : 'customer_id';
 
@@ -101,7 +105,7 @@ class ProductController extends Controller
         $lastForEntity = null;
         if ($entityId) {
             $lastForEntity = $overallQuery::where('product_id', $product->id)
-                ->whereHas($relation, function($q) use ($entityColumn, $entityId) {
+                ->whereHas($relation, function ($q) use ($entityColumn, $entityId) {
                     $q->where($entityColumn, $entityId);
                 })
                 ->latest('created_at')
@@ -117,9 +121,9 @@ class ProductController extends Controller
     public function destroy($id)
     {
         $product = Product::findOrFail($id);
-        
-        $hasPurchases = \App\Models\PurchaseItem::where('product_id', $id)->exists();
-        $hasSales = \App\Models\SaleItem::where('product_id', $id)->exists();
+
+        $hasPurchases = PurchaseItem::where('product_id', $id)->exists();
+        $hasSales = SaleItem::where('product_id', $id)->exists();
         $hasTransactions = $product->transactions()->exists();
 
         if ($hasPurchases || $hasSales || $hasTransactions) {
@@ -133,10 +137,10 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::with(['transactions' => function($q) {
+        $product = Product::with(['transactions' => function ($q) {
             $q->orderBy('id', 'desc');
         }])->findOrFail($id);
-        
+
         return view('products.show', compact('product'));
     }
 }

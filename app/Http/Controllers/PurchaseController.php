@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
+use App\Models\ProductTransaction;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\Supplier;
-use App\Models\Product;
+use App\Models\Transaction;
+use App\Services\AccountingService;
+use App\Services\InventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -16,16 +20,16 @@ class PurchaseController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Purchase::with(['supplier', 'items.product']);
+        $query = Purchase::with(['supplier', 'items.product', 'ledgerTransaction']);
 
         if ($request->filled('search')) {
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('invoice_number', 'like', "%{$search}%")
-                  ->orWhere('notes', 'like', "%{$search}%")
-                  ->orWhereHas('supplier', function ($sq) use ($search) {
-                      $sq->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhere('notes', 'like', "%{$search}%")
+                    ->orWhereHas('supplier', function ($sq) use ($search) {
+                        $sq->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -41,11 +45,11 @@ class PurchaseController extends Controller
         }
 
         if ($request->filled('start_date')) {
-            $query->whereDate('created_at', '>=', $request->start_date);
+            $query->whereDate('invoice_date', '>=', $request->start_date);
         }
 
         if ($request->filled('end_date')) {
-            $query->whereDate('created_at', '<=', $request->end_date);
+            $query->whereDate('invoice_date', '<=', $request->end_date);
         }
 
         if ($request->filled('min_amount')) {
@@ -58,13 +62,13 @@ class PurchaseController extends Controller
 
         $sortBy = $request->get('sort_by', 'latest');
         if ($sortBy === 'oldest') {
-            $query->orderBy('created_at', 'asc')->orderBy('id', 'asc');
+            $query->orderBy('invoice_date', 'asc')->orderBy('id', 'asc');
         } elseif ($sortBy === 'amount_desc') {
             $query->orderBy('total_amount', 'desc');
         } elseif ($sortBy === 'amount_asc') {
             $query->orderBy('total_amount', 'asc');
         } else {
-            $query->orderBy('created_at', 'desc')->orderBy('id', 'desc');
+            $query->orderBy('invoice_date', 'desc')->orderBy('id', 'desc');
         }
 
         $purchases = $query->paginate(20)->withQueryString();
@@ -75,7 +79,7 @@ class PurchaseController extends Controller
 
         $suppliers = Supplier::orderBy('name')->get(['id', 'name', 'balance']);
         $products = Product::orderBy('name')->get(['id', 'name', 'stock']);
-        
+
         return view('purchases.index', compact('purchases', 'suppliers', 'products'));
     }
 
@@ -86,6 +90,7 @@ class PurchaseController extends Controller
     {
         $suppliers = Supplier::orderBy('name')->get();
         $products = Product::orderBy('name')->get();
+
         return view('purchases.create', compact('suppliers', 'products'));
     }
 
@@ -109,29 +114,29 @@ class PurchaseController extends Controller
         ]);
 
         DB::transaction(function () use ($request) {
-            $supplier = Supplier::findOrFail($request->supplier_id);
+            $supplier = Supplier::query()->lockForUpdate()->findOrFail($request->supplier_id);
             $totalAmount = 0;
 
             // Generate invoice number safely
             $lastPurchase = Purchase::withTrashed()->orderBy('id', 'desc')->first();
             $nextId = $lastPurchase ? ($lastPurchase->id + 1) : 1;
             do {
-                $invoiceNumber = 'PO-' . str_pad($nextId, 6, '0', STR_PAD_LEFT);
+                $invoiceNumber = 'PO-'.str_pad($nextId, 6, '0', STR_PAD_LEFT);
                 $nextId++;
             } while (Purchase::withTrashed()->where('invoice_number', $invoiceNumber)->exists());
 
             $purchase = Purchase::create([
                 'supplier_id' => $supplier->id,
                 'invoice_number' => $invoiceNumber,
+                'invoice_date' => $request->date,
                 'total_amount' => 0, // will update later
                 'notes' => $request->notes,
-                'created_at' => $request->date . ' ' . date('H:i:s'),
             ]);
 
             $totalQuantity = 0;
 
             foreach ($request->items as $itemData) {
-                $product = Product::findOrFail($itemData['product_id']);
+                $product = Product::query()->lockForUpdate()->findOrFail($itemData['product_id']);
                 $quantity = $itemData['quantity'];
                 $price = $itemData['price'];
                 $total = $quantity * $price;
@@ -153,11 +158,12 @@ class PurchaseController extends Controller
                 // Log product transaction
                 $product->transactions()->create([
                     'type' => 'purchase',
+                    'transaction_date' => $request->date,
                     'quantity' => $quantity,
                     'balance_after' => $product->stock,
                     'related_id' => $purchase->id,
                     'related_type' => Purchase::class,
-                    'notes' => 'فاتورة مشتريات رقم ' . $invoiceNumber,
+                    'notes' => 'فاتورة مشتريات رقم '.$invoiceNumber,
                 ]);
             }
 
@@ -166,7 +172,7 @@ class PurchaseController extends Controller
             // Register the transaction in the ledger
             $paidAmount = $request->paid_amount ?: 0;
             $debtAdded = $totalAmount - $paidAmount;
-            
+
             $supplier->balance += $debtAdded;
             $supplier->save();
 
@@ -177,8 +183,15 @@ class PurchaseController extends Controller
                 'total_amount' => $totalAmount,
                 'paid_amount' => $paidAmount,
                 'balance_after' => $supplier->balance,
-                'notes' => 'فاتورة مشتريات رقم ' . $invoiceNumber . ($request->notes ? ' - ' . $request->notes : ''),
+                'source_type' => Purchase::class,
+                'source_id' => $purchase->id,
+                'notes' => 'فاتورة مشتريات رقم '.$invoiceNumber.($request->notes ? ' - '.$request->notes : ''),
             ]);
+
+            app(AccountingService::class)->recalculateParty($supplier);
+            Product::whereIn('id', collect($request->items)->pluck('product_id')->unique())
+                ->get()
+                ->each(fn (Product $product) => app(InventoryService::class)->recalculateProduct($product));
         });
 
         return back()->with('success', 'تم تسجيل فاتورة المشتريات بنجاح');
@@ -189,12 +202,12 @@ class PurchaseController extends Controller
      */
     public function show(Request $request, Purchase $purchase)
     {
-        $purchase->load(['items.product', 'supplier']);
-        
+        $purchase->load(['items.product', 'supplier', 'ledgerTransaction']);
+
         if ($request->wantsJson() || $request->ajax()) {
-            $transaction = $purchase->supplier->transactions()
+            $transaction = $purchase->ledgerTransaction ?: $purchase->supplier->transactions()
                 ->where('type', 'purchase')
-                ->where('notes', 'like', '%رقم ' . $purchase->invoice_number . '%')
+                ->where('notes', 'like', '%رقم '.$purchase->invoice_number.'%')
                 ->first();
 
             $paid_cash = $transaction ? $transaction->paid_amount : 0;
@@ -212,16 +225,16 @@ class PurchaseController extends Controller
                 $transactionData = [
                     'paid_cash' => $paid_cash,
                     'paid_from_balance' => $paid_from_balance,
-                    'remaining_from_this' => max(0, $remaining_from_this)
+                    'remaining_from_this' => max(0, $remaining_from_this),
                 ];
             }
-            
+
             return response()->json([
                 'id' => $purchase->id,
                 'invoice_number' => $purchase->invoice_number,
                 'supplier_id' => $purchase->supplier_id,
                 'supplier_name' => $purchase->supplier->name,
-                'date' => $purchase->created_at->format('Y-m-d'),
+                'date' => $purchase->invoice_date?->format('Y-m-d') ?? $purchase->created_at->format('Y-m-d'),
                 'notes' => $purchase->notes,
                 'total_amount' => $purchase->total_amount,
                 'items' => $purchase->items->map(function ($item) {
@@ -234,7 +247,7 @@ class PurchaseController extends Controller
                         'total' => $item->total,
                     ];
                 }),
-                'transaction' => $transactionData
+                'transaction' => $transactionData,
             ]);
         }
 
@@ -246,6 +259,7 @@ class PurchaseController extends Controller
         $purchase->load(['items.product', 'supplier']);
         $suppliers = Supplier::orderBy('name')->get();
         $products = Product::orderBy('name')->get();
+
         return view('purchases.edit', compact('purchase', 'suppliers', 'products'));
     }
 
@@ -267,11 +281,16 @@ class PurchaseController extends Controller
 
         DB::transaction(function () use ($request, $purchase) {
             $purchase->load(['items', 'supplier']);
-            
+            $oldSupplier = $purchase->supplier;
+            $affectedProductIds = $purchase->items->pluck('product_id')
+                ->merge(collect($request->items)->pluck('product_id'))
+                ->unique();
+            Product::query()->whereIn('id', $affectedProductIds)->orderBy('id')->lockForUpdate()->get();
+
             // 1. FIND OLD TRANSACTION TO PRESERVE PAID AMOUNT
-            $oldTransaction = $purchase->supplier->transactions()
+            $oldTransaction = $purchase->ledgerTransaction()->first() ?: $purchase->supplier->transactions()
                 ->where('type', 'purchase')
-                ->where('notes', 'like', '%رقم ' . $purchase->invoice_number . '%')
+                ->where('notes', 'like', '%رقم '.$purchase->invoice_number.'%')
                 ->first();
 
             // Preserve the original paid_amount — do NOT re-apply it as a new payment.
@@ -298,19 +317,19 @@ class PurchaseController extends Controller
                 $item->product->decrement('stock', $item->quantity);
             }
             $purchase->items()->delete();
-            
+
             // Delete old product transactions for this purchase
-            \App\Models\ProductTransaction::where('related_type', Purchase::class)
+            ProductTransaction::where('related_type', Purchase::class)
                 ->where('related_id', $purchase->id)
                 ->delete();
-            
+
             // 3. IF SUPPLIER CHANGED, load the new supplier
-            $supplier = Supplier::findOrFail($request->supplier_id);
-            
+            $supplier = Supplier::query()->lockForUpdate()->findOrFail($request->supplier_id);
+
             // 4. UPDATE PURCHASE METADATA
             $purchase->update([
                 'supplier_id' => $supplier->id,
-                'date' => $request->date,
+                'invoice_date' => $request->date,
                 'notes' => $request->notes,
             ]);
 
@@ -319,7 +338,7 @@ class PurchaseController extends Controller
             $totalQuantity = 0;
 
             foreach ($request->items as $itemData) {
-                $product = Product::findOrFail($itemData['product_id']);
+                $product = Product::query()->lockForUpdate()->findOrFail($itemData['product_id']);
                 $quantity = $itemData['quantity'];
                 $price = $itemData['price'];
                 $total = $quantity * $price;
@@ -341,11 +360,12 @@ class PurchaseController extends Controller
                 // Log product transaction
                 $product->transactions()->create([
                     'type' => 'purchase',
+                    'transaction_date' => $request->date,
                     'quantity' => $quantity,
                     'balance_after' => $product->stock,
                     'related_id' => $purchase->id,
                     'related_type' => Purchase::class,
-                    'notes' => 'تعديل فاتورة مشتريات رقم ' . $purchase->invoice_number,
+                    'notes' => 'تعديل فاتورة مشتريات رقم '.$purchase->invoice_number,
                 ]);
             }
 
@@ -353,7 +373,7 @@ class PurchaseController extends Controller
 
             // 6. REGISTER NEW TRANSACTION (with preserved or updated paid_amount)
             $debtAdded = $totalAmount - $paidAmount;
-            
+
             $supplier->balance += $debtAdded;
             $supplier->save();
 
@@ -364,8 +384,16 @@ class PurchaseController extends Controller
                 'total_amount' => $totalAmount,
                 'paid_amount' => $paidAmount,
                 'balance_after' => $supplier->balance,
-                'notes' => 'فاتورة مشتريات رقم ' . $purchase->invoice_number . ($request->notes ? ' - ' . $request->notes : ''),
+                'source_type' => Purchase::class,
+                'source_id' => $purchase->id,
+                'notes' => 'فاتورة مشتريات رقم '.$purchase->invoice_number.($request->notes ? ' - '.$request->notes : ''),
             ]);
+
+            collect([$oldSupplier, $supplier])
+                ->unique('id')
+                ->each(fn (Supplier $party) => app(AccountingService::class)->recalculateParty($party));
+            Product::whereIn('id', $affectedProductIds)->get()
+                ->each(fn (Product $product) => app(InventoryService::class)->recalculateProduct($product));
         });
 
         return back()->with('success', 'تم تعديل فاتورة المشتريات بنجاح');
@@ -375,11 +403,12 @@ class PurchaseController extends Controller
     {
         DB::transaction(function () use ($purchase) {
             $purchase->load(['items', 'supplier']);
-            
+            $affectedProductIds = $purchase->items->pluck('product_id')->unique();
+
             // Find related transaction using exact note format
-            $transaction = $purchase->supplier->transactions()
+            $transaction = $purchase->ledgerTransaction()->first() ?: $purchase->supplier->transactions()
                 ->where('type', 'purchase')
-                ->where('notes', 'like', '%رقم ' . $purchase->invoice_number . '%')
+                ->where('notes', 'like', '%رقم '.$purchase->invoice_number.'%')
                 ->first();
 
             // Reverse supplier balance
@@ -399,10 +428,14 @@ class PurchaseController extends Controller
             $purchase->items()->delete();
 
             // Delete product transactions
-            \App\Models\ProductTransaction::where('related_type', Purchase::class)
+            ProductTransaction::where('related_type', Purchase::class)
                 ->where('related_id', $purchase->id)
                 ->delete();
             $purchase->delete();
+
+            app(AccountingService::class)->recalculateParty($purchase->supplier);
+            Product::whereIn('id', $affectedProductIds)->get()
+                ->each(fn (Product $product) => app(InventoryService::class)->recalculateProduct($product));
         });
 
         return back()->with('success', 'تم حذف الفاتورة واسترجاع أرصدة المخزن والمورد بنجاح');

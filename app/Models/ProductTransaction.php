@@ -12,11 +12,16 @@ class ProductTransaction extends Model
     protected $fillable = [
         'product_id',
         'type',
+        'transaction_date',
         'quantity',
         'balance_after',
         'related_id',
         'related_type',
         'notes',
+    ];
+
+    protected $casts = [
+        'transaction_date' => 'date',
     ];
 
     public function product()

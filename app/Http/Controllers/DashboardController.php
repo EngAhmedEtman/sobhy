@@ -9,7 +9,6 @@ use App\Models\Sale;
 use App\Models\Supplier;
 use App\Models\Transaction;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -19,7 +18,7 @@ class DashboardController extends Controller
         $startOfMonth = Carbon::now()->startOfMonth();
 
         // Sales Metrics
-        $todaySales = Sale::whereDate('created_at', $today)
+        $todaySales = Sale::whereDate('invoice_date', $today)
             ->selectRaw('COUNT(*) as aggregate_count, COALESCE(SUM(total_amount), 0) as aggregate_total')
             ->first();
         $todaySalesCount = (int) $todaySales->aggregate_count;
@@ -27,7 +26,7 @@ class DashboardController extends Controller
         $monthSalesTotal = Sale::where('created_at', '>=', $startOfMonth)->sum('total_amount');
 
         // Purchases Metrics
-        $todayPurchases = Purchase::whereDate('created_at', $today)
+        $todayPurchases = Purchase::whereDate('invoice_date', $today)
             ->selectRaw('COUNT(*) as aggregate_count, COALESCE(SUM(total_amount), 0) as aggregate_total')
             ->first();
         $todayPurchasesCount = (int) $todayPurchases->aggregate_count;
@@ -39,9 +38,9 @@ class DashboardController extends Controller
         $todayCashIn = Transaction::whereDate('transaction_date', $today)
             ->where(function ($q) {
                 $q->where('type', 'payment_received')
-                  ->orWhere(function ($sub) {
-                      $sub->where('type', 'sale')->where('paid_amount', '>', 0);
-                  });
+                    ->orWhere(function ($sub) {
+                        $sub->where('type', 'sale')->where('paid_amount', '>', 0);
+                    });
             })
             ->sum('paid_amount');
 
@@ -49,12 +48,12 @@ class DashboardController extends Controller
         $todayCashOut = Transaction::whereDate('transaction_date', $today)
             ->where(function ($q) {
                 $q->where('type', 'payment_made')
-                  ->orWhere(function ($sub) {
-                      $sub->where('type', 'purchase')->where('paid_amount', '>', 0);
-                  })
-                  ->orWhere(function ($sub) {
-                      $sub->where('type', 'return_sale')->where('paid_amount', '>', 0);
-                  });
+                    ->orWhere(function ($sub) {
+                        $sub->where('type', 'purchase')->where('paid_amount', '>', 0);
+                    })
+                    ->orWhere(function ($sub) {
+                        $sub->where('type', 'return_sale')->where('paid_amount', '>', 0);
+                    });
             })
             ->sum('paid_amount');
 

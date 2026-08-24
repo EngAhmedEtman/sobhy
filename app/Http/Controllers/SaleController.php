@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Sale;
-use App\Models\SaleItem;
 use App\Models\Customer;
 use App\Models\Product;
+use App\Models\ProductTransaction;
+use App\Models\Sale;
+use App\Models\SaleItem;
+use App\Models\Transaction;
+use App\Services\AccountingService;
+use App\Services\InventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -16,16 +20,16 @@ class SaleController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Sale::with(['customer', 'items.product']);
+        $query = Sale::with(['customer', 'items.product', 'ledgerTransaction']);
 
         if ($request->filled('search')) {
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('invoice_number', 'like', "%{$search}%")
-                  ->orWhere('notes', 'like', "%{$search}%")
-                  ->orWhereHas('customer', function ($cq) use ($search) {
-                      $cq->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhere('notes', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function ($cq) use ($search) {
+                        $cq->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -41,11 +45,11 @@ class SaleController extends Controller
         }
 
         if ($request->filled('start_date')) {
-            $query->whereDate('created_at', '>=', $request->start_date);
+            $query->whereDate('invoice_date', '>=', $request->start_date);
         }
 
         if ($request->filled('end_date')) {
-            $query->whereDate('created_at', '<=', $request->end_date);
+            $query->whereDate('invoice_date', '<=', $request->end_date);
         }
 
         if ($request->filled('min_amount')) {
@@ -58,13 +62,13 @@ class SaleController extends Controller
 
         $sortBy = $request->get('sort_by', 'latest');
         if ($sortBy === 'oldest') {
-            $query->orderBy('created_at', 'asc')->orderBy('id', 'asc');
+            $query->orderBy('invoice_date', 'asc')->orderBy('id', 'asc');
         } elseif ($sortBy === 'amount_desc') {
             $query->orderBy('total_amount', 'desc');
         } elseif ($sortBy === 'amount_asc') {
             $query->orderBy('total_amount', 'asc');
         } else {
-            $query->orderBy('created_at', 'desc')->orderBy('id', 'desc');
+            $query->orderBy('invoice_date', 'desc')->orderBy('id', 'desc');
         }
 
         $sales = $query->paginate(20)->withQueryString();
@@ -75,7 +79,7 @@ class SaleController extends Controller
 
         $customers = Customer::orderBy('name')->get(['id', 'name', 'balance']);
         $products = Product::orderBy('name')->get(['id', 'name', 'stock']);
-        
+
         return view('sales.index', compact('sales', 'customers', 'products'));
     }
 
@@ -86,6 +90,7 @@ class SaleController extends Controller
     {
         $customers = Customer::orderBy('name')->get();
         $products = Product::orderBy('name')->get();
+
         return view('sales.create', compact('customers', 'products'));
     }
 
@@ -109,29 +114,30 @@ class SaleController extends Controller
         ]);
 
         DB::transaction(function () use ($request) {
-            $customer = Customer::findOrFail($request->customer_id);
+            $customer = Customer::query()->lockForUpdate()->findOrFail($request->customer_id);
             $totalAmount = 0;
 
             // Generate invoice number safely
             $lastSale = Sale::withTrashed()->orderBy('id', 'desc')->first();
             $nextId = $lastSale ? ($lastSale->id + 1) : 1;
             do {
-                $invoiceNumber = 'INV-' . str_pad($nextId, 6, '0', STR_PAD_LEFT);
+                $invoiceNumber = 'INV-'.str_pad($nextId, 6, '0', STR_PAD_LEFT);
                 $nextId++;
             } while (Sale::withTrashed()->where('invoice_number', $invoiceNumber)->exists());
 
             $sale = Sale::create([
                 'customer_id' => $customer->id,
                 'invoice_number' => $invoiceNumber,
+                'invoice_date' => $request->date,
                 'total_amount' => 0, // will update later
                 'notes' => $request->notes,
-                'created_at' => $request->date . ' ' . date('H:i:s'),
             ]);
 
             $totalQuantity = 0;
 
-            foreach ($request->items as $itemData) {
-                $product = Product::findOrFail($itemData['product_id']);
+            foreach ($request->items as $index => $itemData) {
+                $product = Product::query()->lockForUpdate()->findOrFail($itemData['product_id']);
+                app(InventoryService::class)->assertAvailable($product, $itemData['quantity'], "items.$index.quantity");
                 $quantity = $itemData['quantity'];
                 $price = $itemData['price'];
                 $total = $quantity * $price;
@@ -153,11 +159,12 @@ class SaleController extends Controller
                 // Log product transaction
                 $product->transactions()->create([
                     'type' => 'sale',
+                    'transaction_date' => $request->date,
                     'quantity' => $quantity,
                     'balance_after' => $product->stock,
                     'related_id' => $sale->id,
                     'related_type' => Sale::class,
-                    'notes' => 'فاتورة مبيعات رقم ' . $invoiceNumber,
+                    'notes' => 'فاتورة مبيعات رقم '.$invoiceNumber,
                 ]);
             }
 
@@ -166,7 +173,7 @@ class SaleController extends Controller
             // Register the transaction in the ledger
             $paidAmount = $request->paid_amount ?: 0;
             $debtAdded = $totalAmount - $paidAmount;
-            
+
             $customer->balance += $debtAdded;
             $customer->save();
 
@@ -177,8 +184,15 @@ class SaleController extends Controller
                 'total_amount' => $totalAmount,
                 'paid_amount' => $paidAmount,
                 'balance_after' => $customer->balance,
-                'notes' => 'فاتورة مبيعات رقم ' . $invoiceNumber . ($request->notes ? ' - ' . $request->notes : ''),
+                'source_type' => Sale::class,
+                'source_id' => $sale->id,
+                'notes' => 'فاتورة مبيعات رقم '.$invoiceNumber.($request->notes ? ' - '.$request->notes : ''),
             ]);
+
+            app(AccountingService::class)->recalculateParty($customer);
+            Product::whereIn('id', collect($request->items)->pluck('product_id')->unique())
+                ->get()
+                ->each(fn (Product $product) => app(InventoryService::class)->recalculateProduct($product));
         });
 
         return back()->with('success', 'تم تسجيل فاتورة المبيعات بنجاح');
@@ -189,12 +203,12 @@ class SaleController extends Controller
      */
     public function show(Request $request, Sale $sale)
     {
-        $sale->load(['items.product', 'customer']);
-        
+        $sale->load(['items.product', 'customer', 'ledgerTransaction']);
+
         if ($request->wantsJson() || $request->ajax()) {
-            $transaction = $sale->customer->transactions()
+            $transaction = $sale->ledgerTransaction ?: $sale->customer->transactions()
                 ->where('type', 'sale')
-                ->where('notes', 'like', '%رقم ' . $sale->invoice_number . '%')
+                ->where('notes', 'like', '%رقم '.$sale->invoice_number.'%')
                 ->first();
 
             $paid_cash = $transaction ? $transaction->paid_amount : 0;
@@ -212,16 +226,16 @@ class SaleController extends Controller
                 $transactionData = [
                     'paid_cash' => $paid_cash,
                     'paid_from_balance' => $paid_from_balance,
-                    'remaining_from_this' => max(0, $remaining_from_this)
+                    'remaining_from_this' => max(0, $remaining_from_this),
                 ];
             }
-            
+
             return response()->json([
                 'id' => $sale->id,
                 'invoice_number' => $sale->invoice_number,
                 'customer_id' => $sale->customer_id,
                 'customer_name' => $sale->customer->name,
-                'date' => $sale->created_at->format('Y-m-d'),
+                'date' => $sale->invoice_date?->format('Y-m-d') ?? $sale->created_at->format('Y-m-d'),
                 'notes' => $sale->notes,
                 'total_amount' => $sale->total_amount,
                 'items' => $sale->items->map(function ($item) {
@@ -234,7 +248,7 @@ class SaleController extends Controller
                         'total' => $item->total,
                     ];
                 }),
-                'transaction' => $transactionData
+                'transaction' => $transactionData,
             ]);
         }
 
@@ -246,6 +260,7 @@ class SaleController extends Controller
         $sale->load(['items.product', 'customer']);
         $customers = Customer::orderBy('name')->get();
         $products = Product::orderBy('name')->get();
+
         return view('sales.edit', compact('sale', 'customers', 'products'));
     }
 
@@ -267,11 +282,16 @@ class SaleController extends Controller
 
         DB::transaction(function () use ($request, $sale) {
             $sale->load(['items', 'customer']);
-            
+            $oldCustomer = $sale->customer;
+            $affectedProductIds = $sale->items->pluck('product_id')
+                ->merge(collect($request->items)->pluck('product_id'))
+                ->unique();
+            Product::query()->whereIn('id', $affectedProductIds)->orderBy('id')->lockForUpdate()->get();
+
             // 1. FIND OLD TRANSACTION TO PRESERVE PAID AMOUNT
-            $oldTransaction = $sale->customer->transactions()
+            $oldTransaction = $sale->ledgerTransaction()->first() ?: $sale->customer->transactions()
                 ->where('type', 'sale')
-                ->where('notes', 'like', '%رقم ' . $sale->invoice_number . '%')
+                ->where('notes', 'like', '%رقم '.$sale->invoice_number.'%')
                 ->first();
 
             // Preserve the original paid_amount — do NOT re-apply it as a new payment.
@@ -298,19 +318,19 @@ class SaleController extends Controller
                 $item->product->increment('stock', $item->quantity);
             }
             $sale->items()->delete();
-            
+
             // Delete product transactions
-            \App\Models\ProductTransaction::where('related_type', Sale::class)
+            ProductTransaction::where('related_type', Sale::class)
                 ->where('related_id', $sale->id)
                 ->delete();
-            
+
             // 3. IF CUSTOMER CHANGED, load the new customer
-            $customer = Customer::findOrFail($request->customer_id);
-            
+            $customer = Customer::query()->lockForUpdate()->findOrFail($request->customer_id);
+
             // 4. UPDATE SALE METADATA
             $sale->update([
                 'customer_id' => $customer->id,
-                'date' => $request->date,
+                'invoice_date' => $request->date,
                 'notes' => $request->notes,
             ]);
 
@@ -318,8 +338,9 @@ class SaleController extends Controller
             $totalAmount = 0;
             $totalQuantity = 0;
 
-            foreach ($request->items as $itemData) {
-                $product = Product::findOrFail($itemData['product_id']);
+            foreach ($request->items as $index => $itemData) {
+                $product = Product::query()->lockForUpdate()->findOrFail($itemData['product_id']);
+                app(InventoryService::class)->assertAvailable($product, $itemData['quantity'], "items.$index.quantity");
                 $quantity = $itemData['quantity'];
                 $price = $itemData['price'];
                 $total = $quantity * $price;
@@ -341,11 +362,12 @@ class SaleController extends Controller
                 // Log product transaction
                 $product->transactions()->create([
                     'type' => 'sale',
+                    'transaction_date' => $request->date,
                     'quantity' => $quantity,
                     'balance_after' => $product->stock,
                     'related_id' => $sale->id,
                     'related_type' => Sale::class,
-                    'notes' => 'تعديل فاتورة مبيعات رقم ' . $sale->invoice_number,
+                    'notes' => 'تعديل فاتورة مبيعات رقم '.$sale->invoice_number,
                 ]);
             }
 
@@ -353,7 +375,7 @@ class SaleController extends Controller
 
             // 6. REGISTER NEW TRANSACTION (with preserved or updated paid_amount)
             $debtAdded = $totalAmount - $paidAmount;
-            
+
             $customer->balance += $debtAdded;
             $customer->save();
 
@@ -364,21 +386,31 @@ class SaleController extends Controller
                 'total_amount' => $totalAmount,
                 'paid_amount' => $paidAmount,
                 'balance_after' => $customer->balance,
-                'notes' => 'فاتورة مبيعات رقم ' . $sale->invoice_number . ($request->notes ? ' - ' . $request->notes : ''),
+                'source_type' => Sale::class,
+                'source_id' => $sale->id,
+                'notes' => 'فاتورة مبيعات رقم '.$sale->invoice_number.($request->notes ? ' - '.$request->notes : ''),
             ]);
+
+            collect([$oldCustomer, $customer])
+                ->unique('id')
+                ->each(fn (Customer $party) => app(AccountingService::class)->recalculateParty($party));
+            Product::whereIn('id', $affectedProductIds)->get()
+                ->each(fn (Product $product) => app(InventoryService::class)->recalculateProduct($product));
         });
 
         return back()->with('success', 'تم تعديل فاتورة المبيعات بنجاح');
     }
+
     public function destroy(Sale $sale)
     {
         DB::transaction(function () use ($sale) {
             $sale->load(['items', 'customer']);
-            
+            $affectedProductIds = $sale->items->pluck('product_id')->unique();
+
             // Find related transaction using exact note format
-            $transaction = $sale->customer->transactions()
+            $transaction = $sale->ledgerTransaction()->first() ?: $sale->customer->transactions()
                 ->where('type', 'sale')
-                ->where('notes', 'like', '%رقم ' . $sale->invoice_number . '%')
+                ->where('notes', 'like', '%رقم '.$sale->invoice_number.'%')
                 ->first();
 
             // Reverse customer balance
@@ -396,12 +428,16 @@ class SaleController extends Controller
             }
 
             $sale->items()->delete();
-            
+
             // Delete product transactions
-            \App\Models\ProductTransaction::where('related_type', Sale::class)
+            ProductTransaction::where('related_type', Sale::class)
                 ->where('related_id', $sale->id)
                 ->delete();
             $sale->delete();
+
+            app(AccountingService::class)->recalculateParty($sale->customer);
+            Product::whereIn('id', $affectedProductIds)->get()
+                ->each(fn (Product $product) => app(InventoryService::class)->recalculateProduct($product));
         });
 
         return back()->with('success', 'تم حذف فاتورة المبيعات واسترجاع أرصدة المخزن والعميل بنجاح');

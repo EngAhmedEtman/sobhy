@@ -2,222 +2,165 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
+use App\Models\ProductTransaction;
+use App\Models\Supplier;
 use App\Models\Transaction;
+use App\Services\AccountingService;
+use App\Services\InventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class TransactionController extends Controller
 {
-    /**
-     * Show the specified transaction details.
-     */
+    private const EDITABLE_TYPES = [
+        'payment_received',
+        'payment_made',
+        'payment_sent',
+        'return_sale',
+        'return_purchase',
+    ];
+
     public function show(Transaction $transaction)
     {
-        $transaction->load(['product']);
-        $transactionable = $transaction->transactionable;
-        
-        $typeLabels = [
-            'purchase' => 'فاتورة مشتريات',
-            'sale' => 'فاتورة مبيعات',
-            'payment_received' => 'سداد دفعة من عميل',
-            'payment_made' => 'سداد دفعة لمورد',
-            'payment_sent' => 'سداد دفعة لمورد',
-            'return_sale' => 'مرتجع مبيعات',
-            'return_purchase' => 'مرتجع مشتريات',
-            'initial_balance' => 'رصيد افتتاحي',
-        ];
+        $this->authorizeRead($transaction);
+        $transaction->load(['product', 'transactionable']);
 
         return response()->json([
             'id' => $transaction->id,
             'type' => $transaction->type,
-            'type_label' => $typeLabels[$transaction->type] ?? $transaction->type,
-            'transaction_date' => $transaction->transaction_date ? $transaction->transaction_date->format('Y-m-d') : '',
-            'amount' => in_array($transaction->type, ['payment_received', 'payment_made', 'payment_sent']) ? $transaction->paid_amount : $transaction->total_amount,
+            'type_label' => $transaction->type_name,
+            'transaction_date' => $transaction->transaction_date?->format('Y-m-d') ?? '',
+            'amount' => in_array($transaction->type, ['payment_received', 'payment_made', 'payment_sent'], true)
+                ? $transaction->paid_amount
+                : $transaction->total_amount,
             'quantity' => $transaction->quantity,
             'unit_price' => $transaction->unit_price,
             'notes' => $transaction->notes,
             'balance_after' => $transaction->balance_after,
-            'product_name' => $transaction->product ? $transaction->product->name : null,
-            'party_name' => $transactionable->name ?? '-',
+            'product_name' => $transaction->product?->name,
+            'party_name' => $transaction->transactionable?->name ?? '-',
         ]);
     }
 
-    /**
-     * Print the specified transaction.
-     */
     public function print(Transaction $transaction)
     {
-        $transaction->load(['product']);
+        $this->authorizeRead($transaction);
+        $transaction->load(['product', 'transactionable']);
         $transactionable = $transaction->transactionable;
+
         return view('print.transaction', compact('transaction', 'transactionable'));
     }
 
-    /**
-     * Update the specified transaction.
-     */
     public function update(Request $request, Transaction $transaction)
     {
-        // For simplicity and safety, we only allow updating specific fields for payments and returns.
-        // It's dangerous to change the product of a return, so we assume product_id is fixed, only quantity/amount/date/notes change.
-        
-        $request->validate([
-            'amount' => 'required|numeric|min:0',
+        $this->ensureEditable($transaction);
+        $this->authorizeMutation($transaction);
+
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0.01',
             'date' => 'required|date|before_or_equal:today',
-            'notes' => 'nullable|string',
-            'quantity' => 'nullable|numeric|min:0',
-        ], [
-            'amount.required' => 'يرجى إدخال المبلغ',
-            'date.required' => 'يرجى تحديد التاريخ',
-            'date.before_or_equal' => 'لا يمكن تسجيل تاريخ في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
+            'notes' => 'nullable|string|max:255',
+            'quantity' => in_array($transaction->type, ['return_sale', 'return_purchase'], true)
+                ? 'required|numeric|min:0.01'
+                : 'nullable|numeric|min:0.01',
         ]);
 
-        DB::transaction(function () use ($request, $transaction) {
-            // Revert the stock effect of the OLD transaction
-            $this->revertStockEffect($transaction);
+        DB::transaction(function () use ($validated, $transaction) {
+            $transaction = Transaction::query()->lockForUpdate()->findOrFail($transaction->id);
+            $party = $transaction->transactionable()->lockForUpdate()->firstOrFail();
+            $isPayment = in_array($transaction->type, ['payment_received', 'payment_made', 'payment_sent'], true);
 
-            // Update the transaction details
-            if (in_array($transaction->type, ['payment_received', 'payment_made', 'payment_sent'])) {
-                $transaction->paid_amount = $request->amount;
-            } else {
-                $transaction->total_amount = $request->amount;
+            $transaction->forceFill([
+                'paid_amount' => $isPayment ? $validated['amount'] : $transaction->paid_amount,
+                'total_amount' => $isPayment ? $transaction->total_amount : $validated['amount'],
+                'quantity' => $isPayment ? $transaction->quantity : $validated['quantity'],
+                'unit_price' => $isPayment ? $transaction->unit_price : $validated['amount'] / $validated['quantity'],
+                'transaction_date' => $validated['date'],
+                'notes' => $validated['notes'] ?? null,
+            ])->save();
+
+            app(AccountingService::class)->recalculateParty($party);
+
+            if (! $isPayment && $transaction->product_id) {
+                $product = $transaction->product()->lockForUpdate()->firstOrFail();
+                ProductTransaction::query()->updateOrCreate(
+                    [
+                        'related_type' => Transaction::class,
+                        'related_id' => $transaction->id,
+                    ],
+                    [
+                        'product_id' => $product->id,
+                        'type' => $transaction->type,
+                        'transaction_date' => $validated['date'],
+                        'quantity' => $validated['quantity'],
+                        'balance_after' => $product->stock,
+                        'notes' => $transaction->notes,
+                    ]
+                );
+                app(InventoryService::class)->recalculateProduct($product);
             }
-            
-            if ($request->has('quantity') && in_array($transaction->type, ['return_sale', 'return_purchase', 'sale', 'purchase'])) {
-                $transaction->quantity = $request->quantity;
-                if ($request->quantity > 0) {
-                    $transaction->unit_price = $request->amount / $request->quantity;
-                }
-            }
-
-            $transaction->transaction_date = $request->date;
-            if ($request->has('notes')) {
-                $transaction->notes = $request->notes;
-            }
-
-            $transaction->save();
-
-            // Apply the new stock effect
-            $this->applyStockEffect($transaction);
-
-            // Recalculate ledger for the customer/supplier
-            $this->recalculateLedger($transaction->transactionable);
         });
 
-        return back()->with('success', 'تم تعديل العملية بنجاح');
+        return back()->with('success', 'تم تعديل العملية وإعادة احتساب الحساب والمخزون بنجاح');
     }
 
-    /**
-     * Remove the specified transaction from storage.
-     */
     public function destroy(Transaction $transaction)
     {
+        $this->ensureEditable($transaction);
+        $this->authorizeMutation($transaction);
+
         DB::transaction(function () use ($transaction) {
-            // Revert stock effect
-            $this->revertStockEffect($transaction);
-            
-            $transactionable = $transaction->transactionable;
-            
-            // Delete the transaction
+            $transaction = Transaction::query()->lockForUpdate()->findOrFail($transaction->id);
+            $party = $transaction->transactionable()->lockForUpdate()->firstOrFail();
+            $product = $transaction->product_id
+                ? $transaction->product()->lockForUpdate()->first()
+                : null;
+
+            ProductTransaction::query()
+                ->where('related_type', Transaction::class)
+                ->where('related_id', $transaction->id)
+                ->delete();
             $transaction->delete();
 
-            // Recalculate ledger
-            if ($transactionable) {
-                $this->recalculateLedger($transactionable);
+            app(AccountingService::class)->recalculateParty($party);
+            if ($product) {
+                app(InventoryService::class)->recalculateProduct($product);
             }
         });
 
-        return back()->with('success', 'تم حذف العملية بنجاح');
+        return back()->with('success', 'تم حذف العملية وإعادة احتساب الحساب والمخزون بنجاح');
     }
 
-    /**
-     * Revert the effect this transaction had on product stock.
-     */
-    private function revertStockEffect(Transaction $transaction)
+    private function ensureEditable(Transaction $transaction): void
     {
-        if (!$transaction->product_id || !$transaction->quantity) {
-            return;
-        }
-
-        $product = $transaction->product;
-        if (!$product) return;
-
-        if ($transaction->type === 'return_sale') {
-            // return_sale originally INCREASED stock. To revert, DECREASE.
-            $product->decrement('stock', $transaction->quantity);
-        } elseif ($transaction->type === 'return_purchase') {
-            // return_purchase originally DECREASED stock. To revert, INCREASE.
-            $product->increment('stock', $transaction->quantity);
-        } elseif ($transaction->type === 'sale') {
-            // sale originally DECREASED stock. To revert, INCREASE.
-            $product->increment('stock', $transaction->quantity);
-        } elseif ($transaction->type === 'purchase') {
-            // purchase originally INCREASED stock. To revert, DECREASE.
-            $product->decrement('stock', $transaction->quantity);
+        if (! in_array($transaction->type, self::EDITABLE_TYPES, true)) {
+            throw ValidationException::withMessages([
+                'transaction' => 'قيود الفواتير لا تُعدّل أو تُحذف منفردة؛ عدّل الفاتورة نفسها للحفاظ على سلامة الحسابات والمخزون.',
+            ]);
         }
     }
 
-    /**
-     * Apply the effect this transaction has on product stock.
-     */
-    private function applyStockEffect(Transaction $transaction)
+    private function authorizeMutation(Transaction $transaction): void
     {
-        if (!$transaction->product_id || !$transaction->quantity) {
-            return;
-        }
+        $permission = match ($transaction->transactionable_type) {
+            Customer::class => 'customers.update',
+            Supplier::class => 'suppliers.update',
+            default => null,
+        };
 
-        $product = $transaction->product;
-        if (!$product) return;
-
-        if ($transaction->type === 'return_sale') {
-            // return_sale INCREASES stock.
-            $product->increment('stock', $transaction->quantity);
-        } elseif ($transaction->type === 'return_purchase') {
-            // return_purchase DECREASES stock.
-            $product->decrement('stock', $transaction->quantity);
-        } elseif ($transaction->type === 'sale') {
-            // sale DECREASES stock.
-            $product->decrement('stock', $transaction->quantity);
-        } elseif ($transaction->type === 'purchase') {
-            // purchase INCREASES stock.
-            $product->increment('stock', $transaction->quantity);
-        }
+        abort_unless($permission && auth()->user()?->hasPermission($permission), 403);
     }
 
-    /**
-     * Recalculate the entire ledger (balance) for a Customer or Supplier.
-     */
-    private function recalculateLedger($transactionable)
+    private function authorizeRead(Transaction $transaction): void
     {
-        $transactions = $transactionable->transactions()
-            ->orderBy('transaction_date', 'asc')
-            ->orderBy('id', 'asc')
-            ->get();
+        $permission = match ($transaction->transactionable_type) {
+            Customer::class => 'customers.view',
+            Supplier::class => 'suppliers.view',
+            default => null,
+        };
 
-        $runningBalance = 0;
-
-        foreach ($transactions as $t) {
-            // Increases to balance (Customer debt increases, Supplier credit increases)
-            if (in_array($t->type, ['sale', 'purchase'])) {
-                $runningBalance += $t->total_amount;
-            } 
-            // Decreases to balance
-            elseif (in_array($t->type, ['payment_received', 'payment_made', 'payment_sent'])) {
-                $runningBalance -= $t->paid_amount;
-            } 
-            elseif (in_array($t->type, ['return_sale', 'return_purchase'])) {
-                $runningBalance -= $t->total_amount;
-            }
-
-            // Update balance_after if it has changed
-            if ($t->balance_after != $runningBalance) {
-                // Use DB query to avoid triggering model events
-                DB::table('transactions')
-                    ->where('id', $t->id)
-                    ->update(['balance_after' => $runningBalance]);
-            }
-        }
-
-        // Update the main balance on the customer/supplier model
-        $transactionable->update(['balance' => $runningBalance]);
+        abort_unless($permission && auth()->user()?->hasPermission($permission), 403);
     }
 }

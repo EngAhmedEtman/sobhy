@@ -9,7 +9,7 @@
                     <a href="{{ route('customers.show', $sale->customer_id) }}" class="hover:underline">{{ $sale->customer->name }}</a>
                 </h4>
             </div>
-            <span class="text-[0.7rem] font-bold text-slate-400 font-mono" dir="ltr">{{ $sale->created_at->format('Y-m-d') }}</span>
+            <span class="text-[0.7rem] font-bold text-slate-400 font-mono" dir="ltr">{{ ($sale->invoice_date ?? $sale->created_at)->format('Y-m-d') }}</span>
         </div>
 
         <!-- Products -->
@@ -65,7 +65,7 @@
             @forelse($sales as $sale)
             <tr class="hover:bg-slate-50/60 transition-colors group">
                 <td class="px-4 py-2.5 text-[0.8rem] font-bold text-primary-700 border-b border-slate-50 align-middle text-center font-mono">{{ $sale->invoice_number }}</td>
-                <td class="px-4 py-2.5 text-[0.8rem] text-slate-600 border-b border-slate-50 align-middle text-center font-mono" dir="ltr">{{ $sale->created_at->format('Y-m-d') }}</td>
+                <td class="px-4 py-2.5 text-[0.8rem] text-slate-600 border-b border-slate-50 align-middle text-center font-mono" dir="ltr">{{ ($sale->invoice_date ?? $sale->created_at)->format('Y-m-d') }}</td>
                 <td class="px-4 py-2.5 text-[0.8rem] font-bold text-slate-700 border-b border-slate-50 align-middle text-center">
                     <a href="{{ route('customers.show', $sale->customer_id) }}" class="hover:underline hover:text-primary-600">{{ $sale->customer->name }}</a>
                 </td>

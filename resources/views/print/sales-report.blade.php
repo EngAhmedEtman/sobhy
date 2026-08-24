@@ -144,7 +144,7 @@
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
                                         <td style="font-weight: 800; font-family: 'Cairo', sans-serif; direction: ltr;">INV-{{ str_pad($sale->id, 6, '0', STR_PAD_LEFT) }}</td>
-                                        <td style="font-family: 'Cairo', sans-serif; direction: ltr;">{{ $sale->created_at->format('Y-m-d') }}</td>
+                                        <td style="font-family: 'Cairo', sans-serif; direction: ltr;">{{ ($sale->invoice_date ?? $sale->created_at)->format('Y-m-d') }}</td>
                                         <td style="font-weight: 700; text-align: right; padding-right: 6px;">{{ $sale->customer->name ?? 'عميل نقدي' }}</td>
                                         <td style="text-align: right; padding-right: 6px; font-size: 9.5px; color: #475569;">{{ $itemsSummary ?: '---' }}</td>
                                         <td style="direction: ltr; font-family: 'Cairo', sans-serif; font-weight: 800;">{{ format_amount($sale->total_amount) }} ج.م</td>

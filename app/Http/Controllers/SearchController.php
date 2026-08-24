@@ -30,19 +30,19 @@ class SearchController extends Controller
 
         // 1. Customers
         $customers = Customer::where(function ($query) use ($q) {
-                $query->where('name', 'like', "%{$q}%")
-                      ->orWhere('phone', 'like', "%{$q}%")
-                      ->orWhere('notes', 'like', "%{$q}%");
-            })
+            $query->where('name', 'like', "%{$q}%")
+                ->orWhere('phone', 'like', "%{$q}%")
+                ->orWhere('notes', 'like', "%{$q}%");
+        })
             ->take(5)
             ->get()
             ->map(function ($c) {
                 return [
                     'id' => $c->id,
                     'title' => $c->name,
-                    'subtitle' => $c->phone ? 'هاتف: ' . $c->phone : 'عميل مسجل',
+                    'subtitle' => $c->phone ? 'هاتف: '.$c->phone : 'عميل مسجل',
                     'balance' => $c->balance,
-                    'balance_text' => $c->balance == 0 ? 'خالص' : ($c->balance > 0 ? number_format($c->balance, 0) . ' ج.م (مطلوب منه)' : number_format(abs($c->balance), 0) . ' ج.م (له عندنا)'),
+                    'balance_text' => $c->balance == 0 ? 'خالص' : ($c->balance > 0 ? number_format($c->balance, 0).' ج.م (مطلوب منه)' : number_format(abs($c->balance), 0).' ج.م (له عندنا)'),
                     'balance_type' => $c->balance == 0 ? 'zero' : ($c->balance > 0 ? 'debt' : 'credit'),
                     'url' => route('customers.show', $c->id),
                     'category' => 'العملاء',
@@ -51,19 +51,19 @@ class SearchController extends Controller
 
         // 2. Suppliers
         $suppliers = Supplier::where(function ($query) use ($q) {
-                $query->where('name', 'like', "%{$q}%")
-                      ->orWhere('phone', 'like', "%{$q}%")
-                      ->orWhere('notes', 'like', "%{$q}%");
-            })
+            $query->where('name', 'like', "%{$q}%")
+                ->orWhere('phone', 'like', "%{$q}%")
+                ->orWhere('notes', 'like', "%{$q}%");
+        })
             ->take(5)
             ->get()
             ->map(function ($s) {
                 return [
                     'id' => $s->id,
                     'title' => $s->name,
-                    'subtitle' => $s->phone ? 'هاتف: ' . $s->phone : 'مورد مسجل',
+                    'subtitle' => $s->phone ? 'هاتف: '.$s->phone : 'مورد مسجل',
                     'balance' => $s->balance,
-                    'balance_text' => $s->balance == 0 ? 'خالص' : ($s->balance > 0 ? number_format($s->balance, 0) . ' ج.م (له علينا)' : number_format(abs($s->balance), 0) . ' ج.م (لنا عنده)'),
+                    'balance_text' => $s->balance == 0 ? 'خالص' : ($s->balance > 0 ? number_format($s->balance, 0).' ج.م (له علينا)' : number_format(abs($s->balance), 0).' ج.م (لنا عنده)'),
                     'balance_type' => $s->balance == 0 ? 'zero' : ($s->balance > 0 ? 'supplier_liability' : 'supplier_debit'),
                     'url' => route('suppliers.show', $s->id),
                     'category' => 'الموردين',
@@ -72,16 +72,16 @@ class SearchController extends Controller
 
         // 3. Products
         $products = Product::where(function ($query) use ($q) {
-                $query->where('name', 'like', "%{$q}%")
-                      ->orWhere('notes', 'like', "%{$q}%");
-            })
+            $query->where('name', 'like', "%{$q}%")
+                ->orWhere('notes', 'like', "%{$q}%");
+        })
             ->take(5)
             ->get()
             ->map(function ($p) {
                 return [
                     'id' => $p->id,
                     'title' => $p->name,
-                    'subtitle' => 'الرصيد بالمخزن: ' . number_format($p->stock, 0) . ' ' . ($p->unit ?? 'ك'),
+                    'subtitle' => 'الرصيد بالمخزن: '.number_format($p->stock, 0).' '.($p->unit ?? 'ك'),
                     'url' => route('products.index'),
                     'category' => 'المنتجات والمخزون',
                 ];
@@ -91,10 +91,10 @@ class SearchController extends Controller
         $sales = Sale::with('customer')
             ->where(function ($query) use ($q) {
                 $query->where('invoice_number', 'like', "%{$q}%")
-                      ->orWhere('notes', 'like', "%{$q}%")
-                      ->orWhereHas('customer', function ($cq) use ($q) {
-                          $cq->where('name', 'like', "%{$q}%")->orWhere('phone', 'like', "%{$q}%");
-                      });
+                    ->orWhere('notes', 'like', "%{$q}%")
+                    ->orWhereHas('customer', function ($cq) use ($q) {
+                        $cq->where('name', 'like', "%{$q}%")->orWhere('phone', 'like', "%{$q}%");
+                    });
             })
             ->orderBy('id', 'desc')
             ->take(5)
@@ -102,9 +102,9 @@ class SearchController extends Controller
             ->map(function ($sale) {
                 return [
                     'id' => $sale->id,
-                    'title' => 'فاتورة مبيعات #' . $sale->invoice_number,
-                    'subtitle' => ($sale->customer ? $sale->customer->name : 'عميل نقدي') . ' - ' . number_format($sale->total_amount, 0) . ' ج.م',
-                    'date' => $sale->created_at ? $sale->created_at->format('Y-m-d') : '',
+                    'title' => 'فاتورة مبيعات #'.$sale->invoice_number,
+                    'subtitle' => ($sale->customer ? $sale->customer->name : 'عميل نقدي').' - '.number_format($sale->total_amount, 0).' ج.م',
+                    'date' => ($sale->invoice_date ?? $sale->created_at)?->format('Y-m-d') ?? '',
                     'url' => route('print.sale', $sale->id),
                     'category' => 'فواتير المبيعات',
                 ];
@@ -114,10 +114,10 @@ class SearchController extends Controller
         $purchases = Purchase::with('supplier')
             ->where(function ($query) use ($q) {
                 $query->where('invoice_number', 'like', "%{$q}%")
-                      ->orWhere('notes', 'like', "%{$q}%")
-                      ->orWhereHas('supplier', function ($sq) use ($q) {
-                          $sq->where('name', 'like', "%{$q}%")->orWhere('phone', 'like', "%{$q}%");
-                      });
+                    ->orWhere('notes', 'like', "%{$q}%")
+                    ->orWhereHas('supplier', function ($sq) use ($q) {
+                        $sq->where('name', 'like', "%{$q}%")->orWhere('phone', 'like', "%{$q}%");
+                    });
             })
             ->orderBy('id', 'desc')
             ->take(5)
@@ -125,9 +125,9 @@ class SearchController extends Controller
             ->map(function ($purchase) {
                 return [
                     'id' => $purchase->id,
-                    'title' => 'فاتورة مشتريات #' . $purchase->invoice_number,
-                    'subtitle' => ($purchase->supplier ? $purchase->supplier->name : 'مورد نقدي') . ' - ' . number_format($purchase->total_amount, 0) . ' ج.م',
-                    'date' => $purchase->created_at ? $purchase->created_at->format('Y-m-d') : '',
+                    'title' => 'فاتورة مشتريات #'.$purchase->invoice_number,
+                    'subtitle' => ($purchase->supplier ? $purchase->supplier->name : 'مورد نقدي').' - '.number_format($purchase->total_amount, 0).' ج.م',
+                    'date' => ($purchase->invoice_date ?? $purchase->created_at)?->format('Y-m-d') ?? '',
                     'url' => route('print.purchase', $purchase->id),
                     'category' => 'فواتير المشتريات',
                 ];
@@ -153,10 +153,11 @@ class SearchController extends Controller
                     'sale' => 'عملية بيع',
                     'purchase' => 'عملية شراء',
                 ];
+
                 return [
                     'id' => $t->id,
-                    'title' => ($typeLabels[$t->type] ?? 'عملية') . ' #' . str_pad($t->id, 4, '0', STR_PAD_LEFT),
-                    'subtitle' => ($t->transactionable->name ?? '---') . ' - ' . number_format($t->total_amount > 0 ? $t->total_amount : $t->paid_amount, 0) . ' ج.م',
+                    'title' => ($typeLabels[$t->type] ?? 'عملية').' #'.str_pad($t->id, 4, '0', STR_PAD_LEFT),
+                    'subtitle' => ($t->transactionable->name ?? '---').' - '.number_format($t->total_amount > 0 ? $t->total_amount : $t->paid_amount, 0).' ج.م',
                     'url' => route('transactions.print', $t->id),
                     'category' => 'الإيصالات والعمليات',
                 ];

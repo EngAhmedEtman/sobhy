@@ -89,8 +89,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/api/global-search', [App\Http\Controllers\SearchController::class, 'globalSearch'])->name('api.global-search');
 
     // ─── Print Routes ───────────────────────────────────────────────────────────
-    Route::get('/sales/{sale}/print', [App\Http\Controllers\PrintController::class, 'sale'])->name('print.sale');
-    Route::get('/purchases/{purchase}/print', [App\Http\Controllers\PrintController::class, 'purchase'])->name('print.purchase');
+    Route::get('/sales/{sale}/print', [App\Http\Controllers\PrintController::class, 'sale'])->name('print.sale')->middleware('permission:sales.view');
+    Route::get('/purchases/{purchase}/print', [App\Http\Controllers\PrintController::class, 'purchase'])->name('print.purchase')->middleware('permission:purchases.view');
     Route::get('/customers/{customer}/print', [App\Http\Controllers\PrintController::class, 'customerStatement'])->name('print.customer')->middleware('permission:customers.view');
     Route::get('/suppliers/{supplier}/print', [App\Http\Controllers\PrintController::class, 'supplierStatement'])->name('print.supplier')->middleware('permission:suppliers.view');
     Route::get('/print/customers-report', [App\Http\Controllers\PrintController::class, 'customersReport'])->name('print.customers-report')->middleware('permission:reports.view');
@@ -99,11 +99,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/print/purchases-report', [App\Http\Controllers\PrintController::class, 'purchasesReport'])->name('print.purchases-report')->middleware('permission:reports.view');
 
     // ─── Customer & Supplier Payments and Returns ────────────────────────────────
-    Route::post('/customers/{id}/payment', [CustomerController::class, 'storePayment'])->name('customers.payment')->middleware('permission:customers.view');
-    Route::post('/customers/{id}/return', [CustomerController::class, 'storeReturn'])->name('customers.return')->middleware('permission:customers.view');
+    Route::post('/customers/{id}/payment', [CustomerController::class, 'storePayment'])->name('customers.payment')->middleware('permission:customers.update');
+    Route::post('/customers/{id}/return', [CustomerController::class, 'storeReturn'])->name('customers.return')->middleware('permission:customers.update');
 
-    Route::post('/suppliers/{id}/payment', [SupplierController::class, 'storePayment'])->name('suppliers.payment')->middleware('permission:suppliers.view');
-    Route::post('/suppliers/{id}/return', [SupplierController::class, 'storeReturn'])->name('suppliers.return')->middleware('permission:suppliers.view');
+    Route::post('/suppliers/{id}/payment', [SupplierController::class, 'storePayment'])->name('suppliers.payment')->middleware('permission:suppliers.update');
+    Route::post('/suppliers/{id}/return', [SupplierController::class, 'storeReturn'])->name('suppliers.return')->middleware('permission:suppliers.update');
 
     // ─── Profile Routes ─────────────────────────────────────────────────────────
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
