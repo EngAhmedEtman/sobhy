@@ -16,7 +16,7 @@ class SearchController extends Controller
 {
     public function globalSearch(Request $request)
     {
-        $query = trim((string) $request->input('q', ''));
+        $query = mb_substr(trim((string) $request->input('q', '')), 0, 100);
 
         if ($query === '') {
             return response()->json($this->emptyResponse());

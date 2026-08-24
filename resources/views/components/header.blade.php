@@ -680,6 +680,7 @@
                 const q = this.query.trim();
 
                 if (q.length === 0) {
+                    if (this.searchRequestController) this.searchRequestController.abort();
                     this.isOpen = false;
                     this.loading = false;
                     this.results = { pages: [], customers: [], suppliers: [], products: [], sales: [], purchases: [], transactions: [], total_count: 0 };
@@ -709,6 +710,7 @@
                         return res.json();
                     })
                     .then(data => {
+                        if (q !== this.query.trim()) return;
                         this.results = data;
                         this.loading = false;
                     })
