@@ -138,16 +138,22 @@
                             @endCanPermission
                         </div>
 
-                        @if($role->users_count == 0)
-                            @canPermission('roles.delete')
-                            <button type="button" 
-                                    @click="deleteId = '{{ $role->id }}'; showDeleteModal = true"
-                                    class="p-1.5 rounded border border-slate-200 text-slate-400 hover:text-danger-600 hover:border-danger-200 hover:bg-danger-50 transition-colors"
-                                    title="حذف الدور">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
-                            @endCanPermission
-                        @endif
+                        @canPermission('roles.delete')
+                            @if($role->users_count == 0)
+                                <button type="button" 
+                                        @click="deleteId = '{{ $role->id }}'; showDeleteModal = true"
+                                        class="p-1.5 rounded border border-slate-200 text-slate-400 hover:text-danger-600 hover:border-danger-200 hover:bg-danger-50 transition-colors"
+                                        title="حذف الدور">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            @else
+                                <button type="button" disabled
+                                        class="p-1.5 rounded border border-slate-100 text-slate-300 bg-slate-50 cursor-not-allowed"
+                                        title="لا يمكن حذف الدور لارتباطه بمستخدمين">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            @endif
+                        @endCanPermission
                     </div>
                 </div>
             @endforeach
