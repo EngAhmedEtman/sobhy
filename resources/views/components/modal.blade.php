@@ -51,7 +51,7 @@ $maxWidthClass = match ($maxWidth) {
             class="fixed inset-0 z-[9999] overflow-y-auto"
             style="display: none;"
         >
-            <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="show = false">
+            <div class="flex items-start justify-center min-h-screen pt-10 sm:pt-16 p-4 text-center" @click.self="show = false">
                 <!-- Backdrop -->
                 <div
                     x-show="show"

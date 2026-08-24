@@ -151,7 +151,7 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
          x-cloak
-         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen"
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-start justify-center p-4 pt-10 sm:pt-16 min-h-screen"
          @click.self="showSupportModal = false">
         
         <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 p-5 sm:p-6 overflow-hidden text-right z-10"

@@ -368,7 +368,7 @@
 
         <!-- Payment Modal (Wide Layout with Live Balance Indicator) -->
         <div x-show="showPaymentModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="showPaymentModal = false">
+            <div class="flex items-start justify-center min-h-screen pt-10 sm:pt-16 p-4 text-center" @click.self="showPaymentModal = false">
                 <div x-show="showPaymentModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showPaymentModal = false"></div>
                 <div x-show="showPaymentModal" 
                      @click.outside="showPaymentModal = false"
@@ -472,7 +472,7 @@
 
         <!-- Return Modal (Wide Layout with Live Price Hint and Balance Projection) -->
         <div x-show="showReturnModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="showReturnModal = false">
+            <div class="flex items-start justify-center min-h-screen pt-10 sm:pt-16 p-4 text-center" @click.self="showReturnModal = false">
                 <div x-show="showReturnModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showReturnModal = false"></div>
                 <div x-show="showReturnModal" 
                      @click.outside="showReturnModal = false"
@@ -756,7 +756,7 @@
 
         <!-- Edit Transaction Modal -->
         <div x-show="editTransactionModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="editTransactionModal = false">
+            <div class="flex items-start justify-center min-h-screen pt-10 sm:pt-16 p-4 text-center" @click.self="editTransactionModal = false">
                 <div x-show="editTransactionModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="editTransactionModal = false"></div>
                 <div x-show="editTransactionModal" @click.outside="editTransactionModal = false" x-transition class="relative w-full max-w-md p-5 sm:p-6 text-right transition-all transform bg-white shadow-2xl rounded-2xl z-10">
                     <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">

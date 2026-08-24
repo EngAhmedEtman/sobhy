@@ -44,7 +44,7 @@
     @open-print-report.window="initModal()"
     x-show="showPrintReportModal" x-cloak class="fixed inset-0 z-[60] overflow-y-auto">
     
-    <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="showPrintReportModal = false">
+    <div class="flex items-start justify-center min-h-screen pt-10 sm:pt-16 p-4 text-center" @click.self="showPrintReportModal = false">
         <div x-show="showPrintReportModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showPrintReportModal = false"></div>
         <div x-show="showPrintReportModal" @click.outside="showPrintReportModal = false" x-transition class="relative w-full max-w-md p-5 sm:p-6 text-right transition-all transform bg-white shadow-2xl rounded-2xl z-10">
             <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">

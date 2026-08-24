@@ -299,7 +299,7 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
              x-cloak 
-             class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 min-h-screen">
+             class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-start justify-center p-4 pt-10 sm:pt-16 min-h-screen">
             
             <div x-show="showExportModal" 
                  x-transition:enter="transition ease-out duration-200"
@@ -368,7 +368,7 @@
 
         <!-- Single Centralized Delete Purchase Modal -->
         <div x-show="showDeleteModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
-            <div class="flex items-center justify-center min-h-screen p-4 text-center" @click.self="showDeleteModal = false">
+            <div class="flex items-start justify-center min-h-screen pt-10 sm:pt-16 p-4 text-center" @click.self="showDeleteModal = false">
                 <div x-show="showDeleteModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showDeleteModal = false"></div>
                 <div x-show="showDeleteModal" @click.outside="showDeleteModal = false" x-transition class="relative w-full max-w-md p-6 text-center whitespace-normal break-words transition-all transform bg-white shadow-2xl rounded-2xl z-10" dir="rtl">
                     <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-4 border border-rose-100 shadow-sm">

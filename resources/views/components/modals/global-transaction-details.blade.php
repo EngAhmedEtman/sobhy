@@ -8,7 +8,7 @@
         aria-modal="true"
         aria-labelledby="global-transaction-modal-title"
     >
-        <div class="flex min-h-full items-center justify-center p-3 sm:p-5">
+        <div class="flex min-h-full items-start justify-center p-3 sm:p-5 sm:pt-10">
             <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="closeTransactionModal()"></div>
 
             <div class="relative z-10 w-full max-w-2xl overflow-hidden rounded-2xl bg-white text-right shadow-2xl" @click.stop>
