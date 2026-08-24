@@ -19,18 +19,24 @@
 
             <!-- Quick Action Buttons -->
             <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                @if(auth()->user()->hasPermission('sales.create'))
                 <button type="button" @click="$dispatch('create-sale')" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-primary-600 rounded-xl hover:bg-primary-700 shadow-sm shadow-primary-600/20 transition-all cursor-pointer">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                     <span>فاتورة بيع</span>
                 </button>
+                @endif
+                @if(auth()->user()->hasPermission('purchases.create'))
                 <button type="button" @click="$dispatch('create-purchase')" class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl border border-slate-200 transition-all cursor-pointer">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                     <span>فاتورة شراء</span>
                 </button>
+                @endif
+                @if(auth()->user()->hasPermission('debts.view'))
                 <a href="{{ route('debts.index') }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 rounded-xl border border-slate-200 transition-all">
                     <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h3a2 2 0 012 2v10m-6 0a2 2 0 002 2h3a2 2 0 002-2V11a2 2 0 012-2h3a2 2 0 012 2v8a2 2 0 01-2 2h-3l-1-1z" /></svg>
                     <span>المديونيات</span>
                 </a>
+                @endif
             </div>
         </div>
 
