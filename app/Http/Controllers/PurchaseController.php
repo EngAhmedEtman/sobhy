@@ -21,6 +21,15 @@ class PurchaseController extends Controller
     public function index(Request $request)
     {
         $query = Purchase::with(['supplier', 'items.product', 'ledgerTransaction']);
+        $query->addSelect([
+            'latest_party_invoice_id' => Purchase::query()
+                ->from('purchases as party_purchases')
+                ->select('party_purchases.id')
+                ->whereColumn('party_purchases.supplier_id', 'purchases.supplier_id')
+                ->whereNull('party_purchases.deleted_at')
+                ->orderByDesc('party_purchases.id')
+                ->limit(1),
+        ]);
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -237,6 +246,7 @@ class PurchaseController extends Controller
                 'date' => $purchase->invoice_date?->format('Y-m-d') ?? $purchase->created_at->format('Y-m-d'),
                 'notes' => $purchase->notes,
                 'total_amount' => $purchase->total_amount,
+                'can_edit' => $purchase->id === $purchase->supplier->purchases()->max('id'),
                 'items' => $purchase->items->map(function ($item) {
                     return [
                         'id' => $item->id,

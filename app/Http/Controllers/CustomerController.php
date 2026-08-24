@@ -146,8 +146,9 @@ class CustomerController extends Controller
         $totalPayments = $customer->transactions()->where('type', 'payment_received')->sum('paid_amount');
 
         $products = Product::all(['id', 'name', 'stock']);
+        $latestSaleId = $customer->sales()->max('id');
 
-        return view('customers.show', compact('customer', 'transactions', 'totalsales', 'totalPayments', 'products'));
+        return view('customers.show', compact('customer', 'transactions', 'totalsales', 'totalPayments', 'products', 'latestSaleId'));
     }
 
     public function storePayment(Request $request, $id)

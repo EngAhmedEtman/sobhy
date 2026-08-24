@@ -21,6 +21,15 @@ class SaleController extends Controller
     public function index(Request $request)
     {
         $query = Sale::with(['customer', 'items.product', 'ledgerTransaction']);
+        $query->addSelect([
+            'latest_party_invoice_id' => Sale::query()
+                ->from('sales as party_sales')
+                ->select('party_sales.id')
+                ->whereColumn('party_sales.customer_id', 'sales.customer_id')
+                ->whereNull('party_sales.deleted_at')
+                ->orderByDesc('party_sales.id')
+                ->limit(1),
+        ]);
 
         if ($request->filled('search')) {
             $search = trim($request->search);
@@ -238,6 +247,7 @@ class SaleController extends Controller
                 'date' => $sale->invoice_date?->format('Y-m-d') ?? $sale->created_at->format('Y-m-d'),
                 'notes' => $sale->notes,
                 'total_amount' => $sale->total_amount,
+                'can_edit' => $sale->id === $sale->customer->sales()->max('id'),
                 'items' => $sale->items->map(function ($item) {
                     return [
                         'id' => $item->id,

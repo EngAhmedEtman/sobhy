@@ -163,9 +163,46 @@ class SearchController extends Controller
                 ];
             });
 
-        $totalCount = $customers->count() + $suppliers->count() + $products->count() + $sales->count() + $purchases->count() + $transactions->count();
+        // 7. Pages Search
+        $systemPages = [
+            ['title' => 'لوحة التحكم', 'url' => route('dashboard'), 'keywords' => ['لوحة التحكم', 'الرئيسية', 'داشبورد', 'dashboard']],
+            ['title' => 'إدارة العملاء', 'url' => route('customers.index'), 'keywords' => ['العملاء', 'عملاء', 'زبائن', 'customers']],
+            ['title' => 'إدارة الموردين', 'url' => route('suppliers.index'), 'keywords' => ['الموردين', 'موردين', 'تجار', 'suppliers']],
+            ['title' => 'إدارة المنتجات', 'url' => route('products.index'), 'keywords' => ['المنتجات', 'منتجات', 'اصناف', 'أصناف', 'مخزن', 'products']],
+            ['title' => 'فواتير المبيعات', 'url' => route('sales.index'), 'keywords' => ['المبيعات', 'مبيعات', 'بيع', 'sales']],
+            ['title' => 'فواتير المشتريات', 'url' => route('purchases.index'), 'keywords' => ['المشتريات', 'مشتريات', 'شراء', 'purchases']],
+            ['title' => 'الديون والأرصدة', 'url' => route('debts.index'), 'keywords' => ['الديون', 'ديون', 'ارصدة', 'أرصدة', 'debts']],
+            ['title' => 'التقارير الشاملة', 'url' => route('reports.index'), 'keywords' => ['التقارير', 'تقارير', 'احصائيات', 'reports']],
+            ['title' => 'إعدادات النظام', 'url' => route('settings.index'), 'keywords' => ['الاعدادات', 'إعدادات', 'ضبط', 'settings']],
+            ['title' => 'إدارة المستخدمين', 'url' => route('users.index'), 'keywords' => ['المستخدمين', 'مستخدمين', 'users']],
+            ['title' => 'الأدوار والصلاحيات', 'url' => route('roles.index'), 'keywords' => ['الصلاحيات', 'صلاحيات', 'ادوار', 'أدوار', 'roles']],
+        ];
+
+        $pages = collect();
+        $searchLower = mb_strtolower($q);
+        foreach ($systemPages as $page) {
+            $match = false;
+            foreach ($page['keywords'] as $keyword) {
+                if (mb_strpos($keyword, $searchLower) !== false) {
+                    $match = true;
+                    break;
+                }
+            }
+            if ($match || mb_strpos(mb_strtolower($page['title']), $searchLower) !== false) {
+                $pages->push([
+                    'id' => 'page_' . md5($page['url']),
+                    'title' => $page['title'],
+                    'subtitle' => 'صفحة في النظام',
+                    'url' => $page['url'],
+                    'category' => 'صفحات النظام'
+                ]);
+            }
+        }
+
+        $totalCount = $customers->count() + $suppliers->count() + $products->count() + $sales->count() + $purchases->count() + $transactions->count() + $pages->count();
 
         return response()->json([
+            'pages' => $pages,
             'customers' => $customers,
             'suppliers' => $suppliers,
             'products' => $products,
@@ -176,3 +213,4 @@ class SearchController extends Controller
         ]);
     }
 }
+

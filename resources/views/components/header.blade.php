@@ -52,7 +52,6 @@
                     <button type="button" x-show="query.length > 0" @click="clearSearch()" aria-label="مسح البحث" class="text-slate-400 hover:text-slate-600 p-0.5 rounded">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
-                    <span x-show="query.length === 0" class="hidden lg:inline-block text-[0.65rem] font-bold text-slate-400 bg-slate-200/70 px-1.5 py-0.5 rounded border border-slate-200 select-none pointer-events-none">Ctrl+K</span>
                 </div>
             </div>
 
@@ -88,6 +87,32 @@
                         <p class="font-bold text-slate-600">لا توجد نتائج مطابقة</p>
                         <p class="text-[0.7rem] text-slate-400 mt-0.5">تأكد من كتابة الاسم أو رقم الهاتف أو رقم الفاتورة بشكل صحيح</p>
                     </div>
+
+                    <!-- Pages Section -->
+                    <template x-if="!loading && results.pages && results.pages.length > 0">
+                        <div class="pt-2">
+                            <h4 class="text-[0.7rem] font-bold text-slate-400 uppercase tracking-wider px-2 mb-1.5 flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span>صفحات النظام</span>
+                            </h4>
+                            <div class="space-y-1">
+                                <template x-for="item in results.pages" :key="item.id">
+                                    <a :href="item.url" class="flex items-center justify-between p-2 rounded-xl hover:bg-indigo-50/50 transition-colors group">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <div class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 font-bold flex items-center justify-center text-xs shrink-0">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                            </div>
+                                            <div class="min-w-0">
+                                                <p class="text-xs font-bold text-slate-800 group-hover:text-indigo-600 truncate" x-text="item.title"></p>
+                                                <p class="text-[0.65rem] text-slate-400" x-text="item.subtitle"></p>
+                                            </div>
+                                        </div>
+                                        <span class="text-[0.7rem] font-bold text-indigo-600 group-hover:underline">انتقال</span>
+                                    </a>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
 
                     <!-- Customers Section -->
                     <template x-if="!loading && results.customers && results.customers.length > 0">
@@ -460,6 +485,24 @@
                 <div x-show="!loading && query.trim().length > 0 && results.total_count === 0" class="py-8 text-center text-xs text-slate-400">
                     <p class="font-bold text-slate-600">لا توجد نتائج مطابقة</p>
                 </div>
+
+                <!-- Pages Section -->
+                <template x-if="!loading && results.pages && results.pages.length > 0">
+                    <div class="pt-2">
+                        <h4 class="text-[0.7rem] font-bold text-slate-400 mb-1.5">صفحات النظام</h4>
+                        <div class="space-y-1">
+                            <template x-for="item in results.pages" :key="item.id">
+                                <a :href="item.url" class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-bold text-slate-800 truncate" x-text="item.title"></p>
+                                        <p class="text-[0.65rem] text-slate-400" x-text="item.subtitle"></p>
+                                    </div>
+                                    <span class="text-[0.7rem] font-bold text-indigo-600">انتقال</span>
+                                </a>
+                            </template>
+                        </div>
+                    </div>
+                </template>
 
                 <!-- Customers Section -->
                 <template x-if="!loading && results.customers && results.customers.length > 0">

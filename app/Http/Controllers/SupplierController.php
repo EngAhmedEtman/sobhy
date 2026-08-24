@@ -146,8 +146,9 @@ class SupplierController extends Controller
         $totalPayments = $supplier->transactions()->where('type', 'payment_made')->sum('paid_amount');
 
         $products = Product::all(['id', 'name', 'stock']);
+        $latestPurchaseId = $supplier->purchases()->max('id');
 
-        return view('suppliers.show', compact('supplier', 'transactions', 'totalPurchases', 'totalPayments', 'products'));
+        return view('suppliers.show', compact('supplier', 'transactions', 'totalPurchases', 'totalPayments', 'products', 'latestPurchaseId'));
     }
 
     public function storePayment(Request $request, $id)

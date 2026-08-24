@@ -249,6 +249,51 @@ class AccountingIntegrityTest extends TestCase
             ->assertViewHas('cashProfit', 200);
     }
 
+    public function test_only_each_partys_latest_invoice_is_marked_as_editable(): void
+    {
+        $firstCustomer = Customer::create(['name' => 'First Customer', 'balance' => 0, 'opening_balance' => 0]);
+        $secondCustomer = Customer::create(['name' => 'Second Customer', 'balance' => 0, 'opening_balance' => 0]);
+        $firstSupplier = Supplier::create(['name' => 'First Supplier', 'balance' => 0, 'opening_balance' => 0]);
+        $secondSupplier = Supplier::create(['name' => 'Second Supplier', 'balance' => 0, 'opening_balance' => 0]);
+        $product = Product::create(['name' => 'Steel', 'stock' => 100, 'opening_stock' => 100]);
+        $date = Carbon::today()->toDateString();
+
+        foreach ([$firstCustomer, $firstCustomer, $secondCustomer] as $customer) {
+            $this->post(route('sales.store'), [
+                'customer_id' => $customer->id,
+                'date' => $date,
+                'items' => [['product_id' => $product->id, 'quantity' => 1, 'price' => 10]],
+                'paid_amount' => 10,
+            ])->assertSessionHasNoErrors();
+        }
+
+        foreach ([$firstSupplier, $firstSupplier, $secondSupplier] as $supplier) {
+            $this->postPurchase($supplier, $product, $date, 1, 10, 10);
+        }
+
+        [$oldSale, $latestFirstCustomerSale, $latestSecondCustomerSale] = Sale::orderBy('id')->get();
+        [$oldPurchase, $latestFirstSupplierPurchase, $latestSecondSupplierPurchase] = Purchase::orderBy('id')->get();
+
+        $this->get(route('sales.index'))->assertOk()->assertViewHas('sales', function ($sales) use ($oldSale, $latestFirstCustomerSale, $latestSecondCustomerSale) {
+            $byId = $sales->getCollection()->keyBy('id');
+
+            return (int) $byId[$oldSale->id]->latest_party_invoice_id === $latestFirstCustomerSale->id
+                && (int) $byId[$latestFirstCustomerSale->id]->latest_party_invoice_id === $latestFirstCustomerSale->id
+                && (int) $byId[$latestSecondCustomerSale->id]->latest_party_invoice_id === $latestSecondCustomerSale->id;
+        });
+
+        $this->get(route('purchases.index'))->assertOk()->assertViewHas('purchases', function ($purchases) use ($oldPurchase, $latestFirstSupplierPurchase, $latestSecondSupplierPurchase) {
+            $byId = $purchases->getCollection()->keyBy('id');
+
+            return (int) $byId[$oldPurchase->id]->latest_party_invoice_id === $latestFirstSupplierPurchase->id
+                && (int) $byId[$latestFirstSupplierPurchase->id]->latest_party_invoice_id === $latestFirstSupplierPurchase->id
+                && (int) $byId[$latestSecondSupplierPurchase->id]->latest_party_invoice_id === $latestSecondSupplierPurchase->id;
+        });
+
+        $this->getJson(route('sales.show', $oldSale))->assertJsonPath('can_edit', false);
+        $this->getJson(route('sales.show', $latestFirstCustomerSale))->assertJsonPath('can_edit', true);
+    }
+
     private function postPurchase(Supplier $supplier, Product $product, string $date, float $quantity, float $price, float $paid): void
     {
         $this->post(route('purchases.store'), [
