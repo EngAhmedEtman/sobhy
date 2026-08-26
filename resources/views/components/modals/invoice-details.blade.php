@@ -90,7 +90,10 @@
                             <div class="border border-slate-200 rounded-xl bg-white">
                                 <!-- Desktop Header -->
                                 <div class="hidden sm:grid sm:grid-cols-12 gap-2 bg-slate-50 border-b border-slate-200 px-4 py-2 text-[0.7rem] font-bold text-slate-500 uppercase text-center rounded-t-xl">
-                                    <div class="sm:col-span-5 text-right">المنتج</div>
+                                    <div class="sm:col-span-5 text-right flex items-center gap-2">
+                                        <div class="w-[28px] shrink-0 text-center">#</div>
+                                        <div>المنتج</div>
+                                    </div>
                                     <div class="sm:col-span-2">الكمية</div>
                                     <div class="sm:col-span-2">السعر</div>
                                     <div class="sm:col-span-3 text-left">الإجمالي</div>
@@ -98,14 +101,17 @@
                                 
                                 <!-- Items Body -->
                                 <div class="divide-y divide-slate-100">
-                                    <template x-for="item in details.items">
+                                    <template x-for="(item, index) in details.items">
                                         <div class="p-3 sm:p-4 hover:bg-slate-50/50 transition-colors">
                                             <!-- Row Container -->
                                             <div class="flex flex-col sm:grid sm:grid-cols-12 gap-2 items-start sm:items-center">
                                                 
-                                                <!-- Product (Row 1 on mobile) -->
-                                                <div class="w-full sm:col-span-5 text-right font-medium text-slate-800 text-sm">
-                                                    <span x-text="item.product_name"></span>
+                                                <!-- Index & Product (Row 1 on mobile) -->
+                                                <div class="w-full sm:col-span-5 flex items-center gap-2 text-right font-medium text-slate-800 text-sm">
+                                                    <div class="w-[28px] shrink-0 flex items-center justify-center">
+                                                        <span class="text-[0.65rem] font-bold text-slate-400 bg-slate-100 px-1.5 py-1 rounded-md" x-text="index + 1"></span>
+                                                    </div>
+                                                    <span x-text="item.product_name" class="truncate"></span>
                                                 </div>
 
                                                 <!-- Details (Row 2 on mobile) -->

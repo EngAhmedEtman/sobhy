@@ -93,15 +93,23 @@
                         <h4 class="mb-2 text-sm font-black text-slate-800">الأصناف</h4>
                         <div class="overflow-hidden rounded-xl border border-slate-200">
                             <div class="hidden grid-cols-12 gap-2 border-b border-slate-200 bg-slate-50 px-4 py-2 text-center text-xs font-bold text-slate-500 sm:grid">
-                                <div class="col-span-5 text-right">المنتج</div>
+                                <div class="col-span-5 text-right flex items-center gap-2">
+                                    <div class="w-[28px] shrink-0 text-center">#</div>
+                                    <div>المنتج</div>
+                                </div>
                                 <div class="col-span-2">الكمية</div>
                                 <div class="col-span-2">السعر</div>
                                 <div class="col-span-3 text-left">الإجمالي</div>
                             </div>
                             <div class="divide-y divide-slate-100">
-                                <template x-for="invoiceItem in invoiceDetails.items" :key="invoiceItem.id">
+                                <template x-for="(invoiceItem, index) in invoiceDetails.items" :key="invoiceItem.id">
                                     <div class="grid grid-cols-1 gap-3 p-3 sm:grid-cols-12 sm:items-center sm:gap-2 sm:p-4">
-                                        <div class="font-bold text-slate-800 sm:col-span-5" x-text="invoiceItem.product_name"></div>
+                                        <div class="font-bold text-slate-800 sm:col-span-5 flex items-center gap-2">
+                                            <div class="w-[28px] shrink-0 flex items-center justify-center">
+                                                <span class="text-[0.65rem] font-bold text-slate-400 bg-slate-100 px-1.5 py-1 rounded-md" x-text="index + 1"></span>
+                                            </div>
+                                            <span x-text="invoiceItem.product_name" class="truncate"></span>
+                                        </div>
                                         <div class="grid grid-cols-3 gap-2 text-center sm:col-span-7">
                                             <div>
                                                 <span class="mb-1 block text-[0.65rem] font-bold text-slate-400 sm:hidden">الكمية</span>
