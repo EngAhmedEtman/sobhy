@@ -9,25 +9,25 @@
     @edit-sale.window="editInvoice($event.detail)"
     @create-sale.window="createInvoice()"
     x-cloak 
-    class="fixed inset-0 z-[70] overflow-y-auto"
+    class="fixed inset-0 z-[70] overflow-hidden"
     style="display: none;">
-    <div class="flex items-start justify-center min-h-screen pt-10 sm:pt-16 p-4 text-center" @click.self="showSaleModal = false">
+    <div class="flex h-full items-center justify-center p-4 text-center" @click.self="showSaleModal = false">
         <div x-show="showSaleModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showSaleModal = false"></div>
-        <div x-show="showSaleModal" @click.outside="showSaleModal = false" x-transition class="relative w-full max-w-6xl p-5 sm:p-6 text-right transition-all transform bg-white shadow-2xl rounded-2xl z-10">
-            <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
+        <div x-show="showSaleModal" @click.outside="showSaleModal = false" x-transition class="relative z-10 flex h-[calc(100dvh-2rem)] max-h-[52rem] w-full max-w-6xl flex-col overflow-hidden rounded-2xl bg-white p-5 text-right shadow-2xl transition-all transform sm:h-[calc(100dvh-4rem)] sm:p-6">
+            <div class="mb-4 flex shrink-0 items-center justify-between border-b border-slate-100 pb-3">
                 <h3 class="text-lg font-bold text-slate-800" x-text="isEdit ? 'تعديل فاتورة مبيعات رقم ' + invoiceNumber : 'فاتورة مبيعات جديدة'"></h3>
                 <button type="button" @click="showSaleModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
 
-            <div x-show="loading" class="py-12 flex justify-center">
+            <div x-show="loading" class="flex flex-1 items-center justify-center py-12">
                 <svg class="animate-spin h-8 w-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             </div>
 
-            <form x-show="!loading" :action="actionUrl" method="POST">
+            <form x-show="!loading" :action="actionUrl" method="POST" class="flex min-h-0 flex-1 flex-col" @submit.prevent="submitForm" novalidate>
                 @csrf
                 <input type="hidden" name="_method" value="PUT" :disabled="!isEdit">
                 
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="grid min-h-0 flex-1 grid-cols-1 grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden lg:grid-cols-12 lg:grid-rows-1 lg:gap-6">
                     
                     <!-- Right Column: Invoice Header Info -->
                     <div class="lg:col-span-4 space-y-4">
@@ -43,7 +43,9 @@
                                              
                                              <button type="button" 
                                                      @click="open = !open" 
-                                                     class="w-full flex items-center justify-between px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 transition-all text-right">
+                                                     data-validation-key="customer_id"
+                                                     class="w-full flex items-center justify-between px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 transition-all text-right"
+                                                     :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['customer_id']}">
                                                  <span class="text-xs font-bold truncate" :class="selectedCustomerId ? 'text-slate-800' : 'text-slate-400'" x-text="selectedCustomerId ? selectedName : 'اختر العميل...'"></span>
                                                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 transition-transform duration-200 shrink-0 mr-1" :class="open ? 'rotate-180 text-primary-600' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -109,8 +111,11 @@
                                                name="date" 
                                                required 
                                                x-model="date" 
+                                               @change="errors['date'] = false"
+                                               data-validation-key="date"
                                                placeholder="YYYY-MM-DD"
                                                class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-center font-bold text-xs cursor-pointer text-slate-800" 
+                                               :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['date']}"
                                                readonly>
                                         <div class="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
@@ -123,13 +128,13 @@
                                 <!-- Paid Amount -->
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5" x-text="isEdit ? 'إجمالي المدفوع في الفاتورة' : 'المدفوع (اختياري)'"></label>
-                                    <input type="number" step="0.01" min="0" x-model="paidAmount" name="paid_amount" placeholder="0.00" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-center text-xs font-bold" dir="ltr">
+                                    <input type="number" step="0.01" min="0" x-model="paidAmount" @input="errors['paid_amount'] = false" name="paid_amount" data-validation-key="paid_amount" placeholder="0.00" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-center text-xs font-bold" :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['paid_amount']}" dir="ltr">
                                 </div>
 
                                 <!-- Notes -->
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 mb-1.5">ملاحظات (اختياري)</label>
-                                    <input type="text" name="notes" x-model="notes" placeholder="ملاحظات..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-xs">
+                                    <input type="text" name="notes" x-model="notes" @input="errors['notes'] = false" data-validation-key="notes" placeholder="ملاحظات..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-xs" :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['notes']}">
                                 </div>
                             </div>
 
@@ -150,17 +155,17 @@
                     </div>
 
                     <!-- Left Column: Items List -->
-                    <div class="lg:col-span-8">
-                        <div class="flex justify-between items-center mb-2">
+                    <div class="flex min-h-0 flex-col lg:col-span-8">
+                        <div class="mb-2 flex shrink-0 items-center justify-between">
                             <h4 class="text-sm font-bold text-slate-800">الأصناف المباعة</h4>
                             <button type="button" @click="addItem()" class="px-3 py-1.5 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 text-xs font-bold flex items-center gap-1 transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                                 إضافة صنف
                             </button>
                         </div>
-                        <div class="border border-slate-200 rounded-xl bg-white shadow-sm">
+                        <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                             <!-- Desktop Header -->
-                            <div class="hidden sm:grid sm:grid-cols-12 gap-2 bg-slate-50 border-b border-slate-200 px-3 py-2 text-[0.7rem] font-bold text-slate-500 uppercase text-center rounded-t-xl">
+                            <div class="hidden shrink-0 sm:grid sm:grid-cols-12 gap-2 bg-slate-50 border-b border-slate-200 px-3 py-2 text-[0.7rem] font-bold text-slate-500 uppercase text-center rounded-t-xl">
                                 <div class="sm:col-span-5 text-right px-1">المنتج</div>
                                 <div class="sm:col-span-2 text-center">الكمية (ك)</div>
                                 <div class="sm:col-span-2 text-center">سعر الكيلو</div>
@@ -169,7 +174,8 @@
                             </div>
                             
                             <!-- Items Body -->
-                            <div class="divide-y divide-slate-100">
+                            <div class="min-h-0 flex-1 divide-y divide-slate-100 overflow-y-auto overscroll-contain"
+                                 @scroll="window.dispatchEvent(new CustomEvent('invoice-items-scroll'))">
                                 <template x-for="(item, index) in items" :key="item.id">
                                     <div class="p-2.5 sm:p-2 hover:bg-slate-50/50 transition-colors">
                                         
@@ -177,17 +183,22 @@
                                         <div class="hidden sm:grid sm:grid-cols-12 gap-2 items-center">
                                             <!-- Product (5 cols) -->
                                             <div class="sm:col-span-5">
-                                                <div x-data="{ open: false, search: '' }" class="relative w-full text-right" :class="open ? 'z-50' : 'z-10'">
+                                                <div x-data="invoiceProductDropdown(240)"
+                                                     @invoice-items-scroll.window="close()"
+                                                     @resize.window="open && position()"
+                                                     class="relative w-full text-right">
                                                     <input type="hidden" :name="'items['+index+'][product_id]'" x-model="item.product_id" required>
                                                     
-                                                    <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 transition-all text-right">
+                                                    <button type="button" x-ref="trigger" @click="toggle()" :data-validation-key="'items.'+index+'.product_id'" class="w-full flex items-center justify-between px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 transition-all text-right"
+                                                            :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['items.'+index+'.product_id']}">
                                                         <span class="text-xs font-medium truncate" :class="item.product_id ? 'text-slate-800' : 'text-slate-400'" x-text="getProduct(item.product_id) ? getProduct(item.product_id).name + ' (متوفر: ' + getProduct(item.product_id).stock + ')' : 'اختر المنتج...'"></span>
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180 text-primary-600' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                                         </svg>
                                                     </button>
 
-                                                    <div x-show="open" @click.outside="open = false" class="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden" style="display: none; min-width: 240px;">
+                                                    <template x-teleport="body">
+                                                    <div x-show="open" x-transition.opacity @click.stop @click.outside="close()" :style="dropdownStyle" class="overflow-hidden rounded-xl border border-slate-200 bg-white text-right shadow-2xl" style="display: none;">
                                                         <div class="p-1.5 border-b border-slate-100 bg-slate-50/90">
                                                             <input type="text" x-model="search" placeholder="ابحث عن المنتج..." class="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs focus:outline-none focus:border-primary-500" @click.stop>
                                                         </div>
@@ -210,17 +221,18 @@
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    </template>
                                                 </div>
                                             </div>
 
                                             <!-- Quantity (2 cols) -->
                                             <div class="sm:col-span-2">
-                                                <input type="number" step="0.01" :name="'items['+index+'][quantity]'" x-model="item.quantity" min="0.01" required placeholder="0" class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-primary-500 focus:ring-1 text-center bg-white" dir="ltr">
+                                                <input type="number" step="0.01" :name="'items['+index+'][quantity]'" x-model="item.quantity" @input="errors['items.'+index+'.quantity'] = false" :data-validation-key="'items.'+index+'.quantity'" min="0.01" required placeholder="0" class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-primary-500 focus:ring-1 text-center bg-white" :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['items.'+index+'.quantity']}" dir="ltr">
                                             </div>
 
                                             <!-- Price (2 cols) -->
                                             <div class="sm:col-span-2">
-                                                <input type="number" step="0.01" :name="'items['+index+'][price]'" x-model="item.price" min="0" required placeholder="0.00" class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-primary-500 focus:ring-1 text-center bg-white" dir="ltr">
+                                                <input type="number" step="0.01" :name="'items['+index+'][price]'" x-model="item.price" @input="errors['items.'+index+'.price'] = false" :data-validation-key="'items.'+index+'.price'" min="0.01" required placeholder="0.00" class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-primary-500 focus:ring-1 text-center bg-white" :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['items.'+index+'.price']}" dir="ltr">
                                             </div>
 
                                             <!-- Total (2 cols) -->
@@ -242,15 +254,20 @@
                                         <!-- Mobile Layout -->
                                         <div class="sm:hidden space-y-2">
                                             <div class="flex items-center gap-2">
-                                                <div x-data="{ open: false, search: '' }" class="relative flex-1 text-right" :class="open ? 'z-50' : 'z-10'">
+                                                <div x-data="invoiceProductDropdown()"
+                                                     @invoice-items-scroll.window="close()"
+                                                     @resize.window="open && position()"
+                                                     class="relative flex-1 text-right">
                                                     <input type="hidden" :name="'items['+index+'][product_id]'" x-model="item.product_id" required>
                                                     
-                                                    <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-2.5 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 text-right">
+                                                    <button type="button" x-ref="trigger" @click="toggle()" :data-validation-key="'items.'+index+'.product_id'" class="w-full flex items-center justify-between px-2.5 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 text-right"
+                                                            :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['items.'+index+'.product_id']}">
                                                         <span class="text-xs font-bold truncate" :class="item.product_id ? 'text-slate-800' : 'text-slate-400'" x-text="getProduct(item.product_id) ? getProduct(item.product_id).name + ' (متوفر: ' + getProduct(item.product_id).stock + ')' : 'اختر المنتج...'"></span>
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                                                     </button>
 
-                                                    <div x-show="open" @click.outside="open = false" class="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden" style="display: none; min-width: 220px;">
+                                                    <template x-teleport="body">
+                                                    <div x-show="open" x-transition.opacity @click.stop @click.outside="close()" :style="dropdownStyle" class="overflow-hidden rounded-xl border border-slate-200 bg-white text-right shadow-2xl" style="display: none;">
                                                         <div class="p-1.5 border-b border-slate-100 bg-slate-50/90">
                                                             <input type="text" x-model="search" placeholder="ابحث عن المنتج..." class="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs focus:outline-none focus:border-primary-500" @click.stop>
                                                         </div>
@@ -270,6 +287,7 @@
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    </template>
                                                 </div>
 
                                                 <button type="button" @click="removeItem(item.id)" class="p-2 text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-lg shrink-0 border border-rose-100" title="حذف الصنف">
@@ -280,11 +298,11 @@
                                             <div class="grid grid-cols-3 gap-2">
                                                 <div>
                                                     <label class="block text-[0.65rem] font-bold text-slate-500 mb-1 text-center">الكمية (ك)</label>
-                                                    <input type="number" step="0.01" :name="'items['+index+'][quantity]'" x-model="item.quantity" min="0.01" required class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-center bg-white" dir="ltr">
+                                                    <input type="number" step="0.01" :name="'items['+index+'][quantity]'" x-model="item.quantity" @input="errors['items.'+index+'.quantity'] = false" :data-validation-key="'items.'+index+'.quantity'" min="0.01" required class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-center bg-white" :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['items.'+index+'.quantity']}" dir="ltr">
                                                 </div>
                                                 <div>
                                                     <label class="block text-[0.65rem] font-bold text-slate-500 mb-1 text-center">سعر الكيلو</label>
-                                                    <input type="number" step="0.01" :name="'items['+index+'][price]'" x-model="item.price" min="0" required class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-center bg-white" dir="ltr">
+                                                    <input type="number" step="0.01" :name="'items['+index+'][price]'" x-model="item.price" @input="errors['items.'+index+'.price'] = false" :data-validation-key="'items.'+index+'.price'" min="0.01" required class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-center bg-white" :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['items.'+index+'.price']}" dir="ltr">
                                                 </div>
                                                 <div>
                                                     <label class="block text-[0.65rem] font-bold text-slate-500 mb-1 text-center">الإجمالي</label>
@@ -306,7 +324,7 @@
                             </div>
 
                             <!-- Footer Total -->
-                            <div class="bg-slate-50 border-t border-slate-200 px-4 py-3 flex justify-between items-center rounded-b-xl">
+                            <div class="flex shrink-0 items-center justify-between rounded-b-xl border-t border-slate-200 bg-slate-50 px-4 py-3">
                                 <span class="text-sm font-bold text-slate-600">إجمالي الفاتورة:</span>
                                 <span class="text-lg font-black text-primary-600" dir="ltr" x-text="total.toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م'"></span>
                             </div>
@@ -314,7 +332,7 @@
                     </div>
                 </div> <!-- End of Grid -->
                     
-                <div class="mt-6 flex gap-3 pt-4 border-t border-slate-100">
+                <div class="mt-4 flex shrink-0 gap-3 border-t border-slate-100 pt-4">
                     <button type="submit" class="w-full sm:w-auto px-6 py-2.5 text-sm font-bold text-white bg-primary-600 rounded-xl hover:bg-primary-700 shadow-sm shadow-primary-600/20" x-text="isEdit ? 'حفظ التعديلات' : 'حفظ الفاتورة'"></button>
                     <button type="button" @click="showSaleModal = false" class="w-full sm:w-auto px-6 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">إلغاء</button>
                 </div>
@@ -329,7 +347,7 @@
             products: config.products || [],
             customers: config.customers || [],
             fixedCustomer: config.fixedCustomer || null,
-            
+
             showSaleModal: false,
             isEdit: false,
             loading: false,
@@ -346,6 +364,87 @@
             originalPaidAmount: 0,
             date: new Date().toISOString().split('T')[0],
             notes: '',
+            errors: {},
+
+            showValidationError(field, message) {
+                this.errors = { [field]: true };
+                window.showToast(message, 'error');
+
+                this.$nextTick(() => {
+                    const target = Array.from(this.$root.querySelectorAll('[data-validation-key]'))
+                        .find(element => element.dataset.validationKey === field && element.offsetParent !== null);
+
+                    if (!target) return;
+
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                    window.setTimeout(() => target.focus({ preventScroll: true }), 250);
+                });
+
+                return false;
+            },
+
+            submitForm(e) {
+                this.errors = {};
+
+                if (!this.selectedCustomerId) {
+                    return this.showValidationError('customer_id', 'يرجى تحديد العميل');
+                }
+
+                if (!this.date) {
+                    return this.showValidationError('date', 'يرجى تحديد تاريخ الفاتورة');
+                }
+
+                const invoiceDate = new Date(`${this.date}T00:00:00`);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                if (Number.isNaN(invoiceDate.getTime())) {
+                    return this.showValidationError('date', 'تاريخ الفاتورة غير صحيح');
+                }
+
+                if (invoiceDate > today) {
+                    return this.showValidationError('date', 'لا يمكن تسجيل تاريخ فاتورة في المستقبل');
+                }
+
+                if (this.paidAmount !== '' && this.paidAmount !== null &&
+                    (!Number.isFinite(Number(this.paidAmount)) || Number(this.paidAmount) < 0)) {
+                    return this.showValidationError('paid_amount', 'قيمة المدفوع يجب أن تكون صفراً أو أكبر');
+                }
+
+                const trimmedNotes = String(this.notes ?? '').trim();
+                if (trimmedNotes.length > 255) {
+                    return this.showValidationError('notes', 'الملاحظات يجب ألا تزيد عن 255 حرفاً');
+                }
+
+                if (/^[0-9٠-٩۰-۹]+$/.test(trimmedNotes)) {
+                    return this.showValidationError('notes', 'الملاحظات يجب ألا تتكون من أرقام فقط');
+                }
+
+                if (this.items.length === 0) {
+                    window.showToast('يجب إضافة منتج واحد على الأقل للفاتورة', 'error');
+                    return false;
+                }
+
+                for (let index = 0; index < this.items.length; index++) {
+                    const item = this.items[index];
+                    const rowNumber = index + 1;
+
+                    if (!item.product_id) {
+                        return this.showValidationError(`items.${index}.product_id`, `يرجى تحديد المنتج في الصنف رقم ${rowNumber}`);
+                    }
+
+                    if (!Number.isFinite(Number(item.quantity)) || Number(item.quantity) <= 0) {
+                        return this.showValidationError(`items.${index}.quantity`, `كمية الصنف رقم ${rowNumber} يجب أن تكون أكبر من صفر`);
+                    }
+
+                    if (!Number.isFinite(Number(item.price)) || Number(item.price) <= 0) {
+                        return this.showValidationError(`items.${index}.price`, `سعر الصنف رقم ${rowNumber} يجب أن يكون أكبر من صفر`);
+                    }
+                }
+
+                this.loading = true;
+                e.target.submit();
+            },
             
             get actionUrl() {
                 return this.isEdit ? `/sales/${this.invoiceId}` : '/sales';
@@ -368,6 +467,7 @@
             onSelectCustomer(entity) {
                 this.selectedCustomerId = entity.id;
                 this.selectedName = entity.name;
+                this.errors['customer_id'] = false;
                 
                 this.items.forEach(item => {
                     if (item.product_id) {
@@ -378,6 +478,8 @@
 
             onSelectProduct(item, product) {
                 item.product_id = product.id;
+                let idx = this.items.indexOf(item);
+                if(idx > -1) this.errors[`items.${idx}.product_id`] = false;
                 this.fetchItemPriceInfo(item, this.selectedCustomerId);
             },
 
@@ -418,6 +520,7 @@
                 this.originalPaidAmount = 0;
                 this.date = new Date().toISOString().split('T')[0];
                 this.notes = '';
+                this.errors = {};
                 
                 this.showSaleModal = true;
             },
@@ -439,6 +542,7 @@
                     this.selectedName = details.customer_name;
                     this.date = details.date;
                     this.notes = details.notes || '';
+                    this.errors = {};
                     this.paidAmount = details.transaction ? details.transaction.paid_amount : 0;
                     this.originalCustomerId = details.customer_id;
                     this.originalTotal = Number(details.total_amount) || 0;
@@ -454,7 +558,7 @@
                     }));
                 } catch(e) {
                     console.error(e);
-                    alert('حدث خطأ أثناء جلب الفاتورة للتعديل');
+                    window.showToast('حدث خطأ أثناء جلب الفاتورة للتعديل', 'error');
                     this.showSaleModal = false;
                 } finally {
                     this.loading = false;
