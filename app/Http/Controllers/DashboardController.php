@@ -14,6 +14,32 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        $user = auth()->user();
+
+        if (! $user->hasPermission('dashboard.view')) {
+            $redirects = [
+                'sales.view' => 'sales.index',
+                'purchases.view' => 'purchases.index',
+                'products.view' => 'products.index',
+                'customers.view' => 'customers.index',
+                'suppliers.view' => 'suppliers.index',
+                'debts.view' => 'debts.index',
+                'reports.view' => 'reports.index',
+                'users.view' => 'users.index',
+                'roles.view' => 'roles.index',
+                'settings.manage' => 'settings.index',
+            ];
+
+            foreach ($redirects as $permission => $route) {
+                if ($user->hasPermission($permission)) {
+                    return redirect()->route($route);
+                }
+            }
+
+            // If no permissions at all, just abort or return an empty page.
+            abort(403, 'ليس لديك صلاحية لعرض أي صفحة في النظام.');
+        }
+
         $today = Carbon::today();
         $startOfMonth = Carbon::now()->startOfMonth();
 

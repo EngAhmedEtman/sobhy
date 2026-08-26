@@ -142,6 +142,11 @@
                                 <label class="block text-sm font-medium text-slate-700 mb-1">اسم المنتج <span class="text-danger-500">*</span></label>
                                 <input type="text" name="name" x-model="editData.name" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-base">
                             </div>
+                            <div x-show="!editData.hasOpening">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">إضافة رصيد افتتاحي (كيلو)</label>
+                                <input type="number" step="0.01" min="0" name="stock" placeholder="0" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-base" dir="ltr">
+                                <p class="text-xs text-slate-500 mt-1">بما أن المنتج ليس له رصيد افتتاحي، يمكنك إضافته الآن ولن تتمكن من تعديله لاحقاً.</p>
+                            </div>
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1">ملاحظات (اختياري)</label>
                                 <textarea name="notes" x-model="editData.notes" rows="2" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-sm"></textarea>

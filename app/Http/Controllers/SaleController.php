@@ -114,7 +114,7 @@ class SaleController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.price' => 'required|numeric|min:0',
+            'items.*.price' => 'required|numeric|min:0.01',
             'paid_amount' => 'nullable|numeric|min:0',
             'notes' => ['nullable', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
         ], [
@@ -127,7 +127,9 @@ class SaleController extends Controller
             'items.*.product_id.required' => 'يرجى تحديد المنتج',
             'items.*.product_id.exists' => 'المنتج المحدد غير موجود',
             'items.*.quantity.required' => 'يرجى تحديد الكمية',
+            'items.*.quantity.min' => 'يجب أن تكون كمية المنتج أكبر من صفر',
             'items.*.price.required' => 'يرجى تحديد السعر',
+            'items.*.price.min' => 'يجب أن يكون سعر المنتج أكبر من صفر (لا يمكن إضافة منتج بدون قيمة)',
             'notes.regex' => 'الملاحظات يجب ألا تتكون من أرقام فقط',
         ]);
 
@@ -294,7 +296,7 @@ class SaleController extends Controller
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.price' => 'required|numeric|min:0',
+            'items.*.price' => 'required|numeric|min:0.01',
         ], [
             'customer_id.required' => 'يرجى تحديد العميل',
             'customer_id.exists' => 'العميل المحدد غير موجود',
@@ -305,7 +307,9 @@ class SaleController extends Controller
             'items.*.product_id.required' => 'يرجى تحديد المنتج',
             'items.*.product_id.exists' => 'المنتج المحدد غير موجود',
             'items.*.quantity.required' => 'يرجى تحديد الكمية',
+            'items.*.quantity.min' => 'يجب أن تكون كمية المنتج أكبر من صفر',
             'items.*.price.required' => 'يرجى تحديد السعر',
+            'items.*.price.min' => 'يجب أن يكون سعر المنتج أكبر من صفر (لا يمكن إضافة منتج بدون قيمة)',
             'notes.regex' => 'الملاحظات يجب ألا تتكون من أرقام فقط',
         ]);
 
