@@ -5,9 +5,77 @@
         showAddModal: false, 
         showEditModal: false, 
         showDeleteModal: false,
-        search: '',
+        search: '{{ request('search') }}',
+        stock_status: '{{ request('stock_status', '') }}',
+        min_stock: '{{ request('min_stock', '') }}',
+        max_stock: '{{ request('max_stock', '') }}',
+        sort_by: '{{ request('sort_by', 'latest') }}',
+        showFilters: false,
+        loading: false,
         editData: { id: '', name: '', notes: '', hasOpening: false },
-        deleteId: '' 
+        deleteId: '',
+        
+        get activeFiltersCount() {
+            let count = 0;
+            if (this.stock_status !== '') count++;
+            if (this.min_stock !== '') count++;
+            if (this.max_stock !== '') count++;
+            if (this.sort_by !== 'latest') count++;
+            return count;
+        },
+
+        fetchData(url = null) {
+            this.loading = true;
+            let endpoint = url || '{{ route('products.index') }}';
+            let urlObj = new URL(endpoint, window.location.origin);
+            
+            if (!url) {
+                if (this.search) urlObj.searchParams.set('search', this.search);
+                else urlObj.searchParams.delete('search');
+                
+                if (this.stock_status) urlObj.searchParams.set('stock_status', this.stock_status);
+                else urlObj.searchParams.delete('stock_status');
+
+                if (this.min_stock) urlObj.searchParams.set('min_stock', this.min_stock);
+                else urlObj.searchParams.delete('min_stock');
+
+                if (this.max_stock) urlObj.searchParams.set('max_stock', this.max_stock);
+                else urlObj.searchParams.delete('max_stock');
+                
+                if (this.sort_by && this.sort_by !== 'latest') urlObj.searchParams.set('sort_by', this.sort_by);
+                else urlObj.searchParams.delete('sort_by');
+            }
+            urlObj.searchParams.set('ajax', '1');
+
+            fetch(urlObj.toString(), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                let wrapper = document.getElementById('productsTableWrapper');
+                if (wrapper) wrapper.innerHTML = html;
+                this.loading = false;
+            })
+            .catch(() => {
+                this.loading = false;
+            });
+        },
+
+        resetFilters() {
+            this.search = '';
+            this.stock_status = '';
+            this.min_stock = '';
+            this.max_stock = '';
+            this.sort_by = 'latest';
+            this.fetchData();
+        }
+    }"
+    @click="if ($event.target.closest('.ajax-pagination a')) {
+        $event.preventDefault();
+        fetchData($event.target.closest('.ajax-pagination a').href);
     }">
         
         <!-- Header & Add Button -->
@@ -31,65 +99,113 @@
             @endif
         </div>
 
-        <!-- Desktop Table -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-center border-collapse whitespace-nowrap">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">#</th>
-                            <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">اسم المنتج</th>
-                            <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">الرصيد المتبقي</th>
-                            <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">ملاحظات</th>
-                            <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($products as $product)
-                        <tr class="hover:bg-slate-50/60 transition-colors group">
-                            <td class="px-4 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100 align-middle text-center font-medium">{{ $loop->iteration }}</td>
-                            <td class="px-4 py-3 text-[0.85rem] font-bold text-primary-700 border-b border-slate-100 align-middle text-center">
-                                <a href="{{ route('products.show', $product->id) }}" class="hover:underline">{{ $product->name }}</a>
-                            </td>
-                            <td class="px-4 py-3 text-[0.85rem] font-bold text-slate-700 border-b border-slate-100 align-middle text-center" dir="ltr">
-                                {{ format_quantity($product->stock) }} <span class="text-xs text-slate-500 font-normal">كيلو</span>
-                            </td>
-                            <td class="px-4 py-3 text-[0.8rem] text-slate-600 border-b border-slate-100 align-middle text-center">{{ $product->notes ?? '-' }}</td>
-                            <td class="px-4 py-3 border-b border-slate-100 align-middle text-center">
-                                <div class="flex items-center justify-center gap-2">
-                                    <a href="{{ route('products.show', $product->id) }}" class="p-1.5 rounded border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all" title="سجل حركات المنتج">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                    </a>
-                                    @if(auth()->user()?->hasPermission('products.update'))
-                                    <button @click="editData = { id: '{{ $product->id }}', name: '{{ addslashes($product->name) }}', notes: '{{ addslashes($product->notes ?? '') }}', hasOpening: {{ $product->transactions_count > 0 ? 'true' : 'false' }} }; showEditModal = true" class="p-1.5 rounded border border-slate-200 bg-white text-blue-600 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 shadow-sm transition-all" title="تعديل">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                                    </button>
-                                    @endif
-                                    @if(auth()->user()?->hasPermission('products.delete'))
-                                    <button @click="deleteId = '{{ $product->id }}'; showDeleteModal = true" class="p-1.5 rounded border border-slate-200 bg-white text-danger-600 hover:text-danger-700 hover:border-danger-300 hover:bg-danger-50 shadow-sm transition-all" title="حذف">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-danger-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                    </button>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="5" class="px-4 py-8 text-sm text-slate-500 text-center">
-                                لا يوجد منتجات مضافة حتى الآن.
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+        <!-- Search & Filter Card -->
+        <div class="bg-white rounded-xl p-3 sm:p-4 border border-slate-100 shadow-sm mb-4">
+            <div class="flex flex-col sm:flex-row items-center gap-2.5">
+                <!-- Search Bar -->
+                <div class="relative flex-1 w-full">
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" 
+                           x-model="search" 
+                           @input.debounce.300ms="fetchData()" 
+                           placeholder="بحث باسم المنتج أو الملاحظات..." 
+                           class="w-full pr-9 pl-9 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-400 text-xs sm:text-sm font-medium text-slate-800 transition-all placeholder:text-slate-400">
+                    <button x-show="search.length > 0" 
+                            @click="search = ''; fetchData()" 
+                            type="button" 
+                            class="absolute inset-y-0 left-0 flex items-center pl-2.5 text-slate-400 hover:text-slate-600"
+                            style="display: none;">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Advanced Filters Toggle Button -->
+                <button @click="showFilters = !showFilters" 
+                        type="button" 
+                        class="w-full sm:w-auto px-3.5 py-2 border rounded-lg font-bold text-xs flex items-center justify-center gap-2 transition-all shrink-0"
+                        :class="showFilters || activeFiltersCount > 0 ? 'bg-primary-50 border-primary-300 text-primary-700 shadow-sm' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                    <span>تصفية متقدمة</span>
+                    <span x-show="activeFiltersCount > 0" x-text="activeFiltersCount" class="w-4 h-4 rounded-full bg-primary-600 text-white text-[0.6rem] flex items-center justify-center font-black" style="display: none;"></span>
+                    <svg class="w-3.5 h-3.5 transition-transform duration-300 ease-in-out" :class="showFilters ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </button>
+            </div>
+
+            <!-- Collapsible Advanced Filters Drawer -->
+            <div x-show="showFilters" 
+                 x-collapse.duration.300ms
+                 x-cloak 
+                 class="pt-3 mt-3 border-t border-slate-100"
+                 style="display: none;">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+                    <!-- Stock Status Filter -->
+                    <div class="flex flex-col">
+                        <label class="block text-[0.72rem] font-bold text-slate-600 mb-1 truncate">حالة الرصيد</label>
+                        <select x-model="stock_status" @change="fetchData()" class="w-full h-9 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 box-border">
+                            <option value="">جميع المنتجات</option>
+                            <option value="in_stock">متوفر في المخزن</option>
+                            <option value="out_of_stock">رصيد نفذ</option>
+                        </select>
+                    </div>
+
+                    <!-- Min Stock -->
+                    <div class="flex flex-col">
+                        <label class="block text-[0.72rem] font-bold text-slate-600 mb-1 truncate">من كمية</label>
+                        <input type="number" min="0" step="any" x-model="min_stock" @input.debounce.400ms="fetchData()" placeholder="0" class="w-full h-9 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 font-mono box-border" dir="ltr">
+                    </div>
+
+                    <!-- Max Stock -->
+                    <div class="flex flex-col">
+                        <label class="block text-[0.72rem] font-bold text-slate-600 mb-1 truncate">إلى كمية</label>
+                        <input type="number" min="0" step="any" x-model="max_stock" @input.debounce.400ms="fetchData()" placeholder="" class="w-full h-9 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 font-mono box-border" dir="ltr">
+                    </div>
+
+                    <!-- Sorting Filter -->
+                    <div class="flex flex-col">
+                        <label class="block text-[0.72rem] font-bold text-slate-600 mb-1 truncate">الترتيب حسب</label>
+                        <select x-model="sort_by" @change="fetchData()" class="w-full h-9 px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:bg-white focus:outline-none focus:border-primary-500 box-border">
+                            <option value="latest">الأحدث إضافة</option>
+                            <option value="oldest">الأقدم إضافة</option>
+                            <option value="stock_desc">الأعلى رصيداً</option>
+                            <option value="stock_asc">الأقل رصيداً</option>
+                            <option value="name_asc">الاسم (أ-ي)</option>
+                            <option value="name_desc">الاسم (ي-أ)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Filter Actions Row -->
+                <div class="flex justify-end items-center gap-2 mt-3 pt-3 border-t border-slate-100">
+                    <button x-show="activeFiltersCount > 0" 
+                            @click="resetFilters()" 
+                            type="button" 
+                            class="px-3 py-1.5 text-[0.75rem] font-bold text-slate-500 hover:text-danger-600 hover:bg-danger-50 rounded-lg transition-colors flex items-center gap-1.5"
+                            style="display: none;">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        مسح الفلاتر
+                    </button>
+                </div>
             </div>
         </div>
 
-        @if($products->hasPages())
-            <div class="mt-4">
-                {{ $products->links() }}
+        <div class="relative min-h-[400px]">
+            <!-- Loading Overlay -->
+            <div x-show="loading" 
+                 x-transition.opacity 
+                 class="absolute inset-0 z-20 bg-white/60 backdrop-blur-sm rounded-2xl flex items-center justify-center"
+                 style="display: none;">
+                <div class="flex flex-col items-center gap-3">
+                    <svg class="animate-spin h-8 w-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <span class="text-sm font-bold text-primary-800">جاري التحديث...</span>
+                </div>
             </div>
-        @endif
+
+            <div id="productsTableWrapper" class="bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden transition-opacity duration-300" :class="loading ? 'opacity-40' : 'opacity-100'">
+                @include('products._table', ['products' => $products])
+            </div>
+        </div>
 
         <!-- Add Modal -->
         <div x-show="showAddModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">

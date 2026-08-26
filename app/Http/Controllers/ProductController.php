@@ -9,11 +9,56 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $products = Product::withCount(['transactions' => function ($query) {
+        $query = Product::withCount(['transactions' => function ($query) {
             $query->where('type', 'رصيد افتتاحي');
-        }])->orderBy('id', 'desc')->paginate(20);
+        }]);
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('notes', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('stock_status')) {
+            if ($request->stock_status === 'in_stock') {
+                $query->where('stock', '>', 0);
+            } elseif ($request->stock_status === 'out_of_stock') {
+                $query->where('stock', '<=', 0);
+            }
+        }
+
+        if ($request->filled('min_stock')) {
+            $query->where('stock', '>=', $request->min_stock);
+        }
+
+        if ($request->filled('max_stock')) {
+            $query->where('stock', '<=', $request->max_stock);
+        }
+
+        $sortBy = $request->get('sort_by', 'latest');
+        if ($sortBy === 'oldest') {
+            $query->orderBy('id', 'asc');
+        } elseif ($sortBy === 'stock_desc') {
+            $query->orderBy('stock', 'desc');
+        } elseif ($sortBy === 'stock_asc') {
+            $query->orderBy('stock', 'asc');
+        } elseif ($sortBy === 'name_asc') {
+            $query->orderBy('name', 'asc');
+        } elseif ($sortBy === 'name_desc') {
+            $query->orderBy('name', 'desc');
+        } else {
+            $query->orderBy('id', 'desc');
+        }
+
+        $products = $query->paginate(20)->withQueryString();
+
+        if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest' || $request->has('ajax')) {
+            return view('products._table', compact('products'))->render();
+        }
 
         return view('products.index', compact('products'));
     }

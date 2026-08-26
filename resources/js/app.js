@@ -57,6 +57,83 @@ window.invoiceProductDropdown = (minimumWidth = 220) => ({
     },
 });
 
+window.debtPage = ({ endpoint, initialTab, initialSearch, labels }) => ({
+    tab: initialTab,
+    search: initialSearch,
+    labels,
+    loading: false,
+    requestController: null,
+
+    get activeLabel() {
+        return this.labels[this.tab] || this.labels.customers_due_from;
+    },
+
+    selectTab(tab) {
+        if (!this.labels[tab]) return;
+
+        this.tab = tab;
+        this.search = '';
+        this.fetchData();
+    },
+
+    restoreFromUrl() {
+        const url = new URL(window.location.href);
+        const requestedTab = url.searchParams.get('tab') || 'customers_due_from';
+
+        this.tab = this.labels[requestedTab] ? requestedTab : 'customers_due_from';
+        this.search = url.searchParams.get('search') || '';
+        this.fetchData(url.toString(), false);
+    },
+
+    fetchData(url = null, updateHistory = true) {
+        this.requestController?.abort();
+
+        const requestUrl = new URL(url || endpoint, window.location.origin);
+        if (!url) {
+            requestUrl.searchParams.set('tab', this.tab);
+            requestUrl.searchParams.delete('page');
+
+            if (this.search.trim()) requestUrl.searchParams.set('search', this.search.trim());
+            else requestUrl.searchParams.delete('search');
+        }
+        requestUrl.searchParams.set('ajax', '1');
+
+        const historyUrl = new URL(requestUrl);
+        historyUrl.searchParams.delete('ajax');
+
+        const controller = new AbortController();
+        this.requestController = controller;
+        this.loading = true;
+
+        fetch(requestUrl.toString(), {
+            signal: controller.signal,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                Accept: 'text/html',
+            },
+        })
+            .then((response) => {
+                if (!response.ok) throw new Error('Failed to load debts');
+                return response.text();
+            })
+            .then((html) => {
+                document.getElementById('debtsContent').innerHTML = html;
+                if (updateHistory) window.history.pushState({}, '', historyUrl);
+            })
+            .catch((error) => {
+                if (error.name !== 'AbortError') {
+                    window.showToast?.('تعذر تحميل المديونيات، حاول مرة أخرى.', 'error');
+                }
+            })
+            .finally(() => {
+                if (this.requestController === controller) {
+                    this.requestController = null;
+                    this.loading = false;
+                }
+            });
+    },
+});
+
 Alpine.store('toast', {
     visible: false,
     message: '',

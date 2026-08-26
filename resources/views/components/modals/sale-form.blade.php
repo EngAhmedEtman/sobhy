@@ -165,24 +165,30 @@
                         </div>
                         <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                             <!-- Desktop Header -->
-                            <div class="hidden shrink-0 sm:grid sm:grid-cols-12 gap-2 bg-slate-50 border-b border-slate-200 px-3 py-2 text-[0.7rem] font-bold text-slate-500 uppercase text-center rounded-t-xl">
-                                <div class="sm:col-span-5 text-right px-1">المنتج</div>
-                                <div class="sm:col-span-2 text-center">الكمية (ك)</div>
-                                <div class="sm:col-span-2 text-center">سعر الكيلو</div>
-                                <div class="sm:col-span-2 text-center">الإجمالي</div>
-                                <div class="sm:col-span-1 text-center">حذف</div>
+                            <div class="hidden shrink-0 sm:flex items-center gap-2 bg-slate-50 border-b border-slate-200 px-3 py-2 text-[0.7rem] font-bold text-slate-500 uppercase text-center rounded-t-xl">
+                                <div class="w-[28px] shrink-0 text-center">#</div>
+                                <div class="flex-1 text-right px-1">المنتج</div>
+                                <div class="w-[90px] shrink-0 text-center">الكمية (ك)</div>
+                                <div class="w-[90px] shrink-0 text-center">سعر الكيلو</div>
+                                <div class="w-[90px] shrink-0 text-center">الإجمالي</div>
+                                <div class="w-[28px] shrink-0 text-center">حذف</div>
                             </div>
                             
                             <!-- Items Body -->
                             <div class="min-h-0 flex-1 divide-y divide-slate-100 overflow-y-auto overscroll-contain"
                                  @scroll="window.dispatchEvent(new CustomEvent('invoice-items-scroll'))">
                                 <template x-for="(item, index) in items" :key="item.id">
-                                    <div class="p-2.5 sm:p-2 hover:bg-slate-50/50 transition-colors">
+                                    <div class="p-2.5 sm:p-2 hover:bg-slate-50/50 transition-colors relative">
                                         
-                                        <!-- Desktop Row (grid-cols-12) -->
-                                        <div class="hidden sm:grid sm:grid-cols-12 gap-2 items-center">
-                                            <!-- Product (5 cols) -->
-                                            <div class="sm:col-span-5">
+                                        <!-- Desktop Row -->
+                                        <div class="hidden sm:flex items-center gap-2">
+                                            <!-- Index -->
+                                            <div class="w-[28px] shrink-0 text-center">
+                                                <span class="text-[0.65rem] font-bold text-slate-400 bg-slate-100 px-1.5 py-1 rounded-md" x-text="index + 1"></span>
+                                            </div>
+                                            
+                                            <!-- Product -->
+                                            <div class="flex-1">
                                                 <div x-data="invoiceProductDropdown(240)"
                                                      @invoice-items-scroll.window="close()"
                                                      @resize.window="open && position()"
@@ -225,26 +231,26 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Quantity (2 cols) -->
-                                            <div class="sm:col-span-2">
+                                            <!-- Quantity -->
+                                            <div class="w-[90px] shrink-0">
                                                 <input type="number" step="0.01" :name="'items['+index+'][quantity]'" x-model="item.quantity" @input="errors['items.'+index+'.quantity'] = false" :data-validation-key="'items.'+index+'.quantity'" min="0.01" required placeholder="0" class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-primary-500 focus:ring-1 text-center bg-white" :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['items.'+index+'.quantity']}" dir="ltr">
                                             </div>
 
-                                            <!-- Price (2 cols) -->
-                                            <div class="sm:col-span-2">
+                                            <!-- Price -->
+                                            <div class="w-[90px] shrink-0">
                                                 <input type="number" step="0.01" :name="'items['+index+'][price]'" x-model="item.price" @input="errors['items.'+index+'.price'] = false" :data-validation-key="'items.'+index+'.price'" min="0.01" required placeholder="0.00" class="w-full px-2 py-1.5 border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:border-primary-500 focus:ring-1 text-center bg-white" :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['items.'+index+'.price']}" dir="ltr">
                                             </div>
 
-                                            <!-- Total (2 cols) -->
-                                            <div class="sm:col-span-2 text-center">
+                                            <!-- Total -->
+                                            <div class="w-[90px] shrink-0 text-center">
                                                 <div class="text-xs font-bold text-slate-800 py-1.5 rounded-lg text-center" dir="ltr">
                                                     <span x-text="Number((parseFloat(item.quantity || 0) * parseFloat(item.price || 0)).toFixed(2)).toLocaleString('en-US')"></span>
                                                     <span class="text-[0.65rem] text-slate-400 font-normal">ج.م</span>
                                                 </div>
                                             </div>
 
-                                            <!-- Delete Button (1 col) -->
-                                            <div class="sm:col-span-1 flex justify-center">
+                                            <!-- Delete Button -->
+                                            <div class="w-[28px] shrink-0 flex justify-center">
                                                 <button type="button" @click="removeItem(item.id)" class="p-1 rounded border border-slate-200 bg-white text-slate-400 hover:text-rose-600 hover:border-rose-200 hover:bg-rose-50 shadow-sm transition-all inline-flex items-center justify-center" title="حذف الصنف">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                 </button>
@@ -254,6 +260,9 @@
                                         <!-- Mobile Layout -->
                                         <div class="sm:hidden space-y-2">
                                             <div class="flex items-center gap-2">
+                                                <div class="shrink-0 flex items-center justify-center">
+                                                    <span class="text-[0.7rem] font-bold text-slate-400 bg-slate-100 px-1.5 py-1 rounded-md" x-text="index + 1"></span>
+                                                </div>
                                                 <div x-data="invoiceProductDropdown()"
                                                      @invoice-items-scroll.window="close()"
                                                      @resize.window="open && position()"

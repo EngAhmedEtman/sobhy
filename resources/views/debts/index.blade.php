@@ -1,149 +1,71 @@
 <x-layouts.app title="المديونيات">
     <x-slot:breadcrumb>المديونيات</x-slot:breadcrumb>
 
-    <div x-data="{ tab: '{{ request('tab', 'customers') }}' }">
-        <!-- Header & Tabs -->
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+    <div
+        x-data="debtPage({
+            endpoint: {{ Illuminate\Support\Js::from(route('debts.index')) }},
+            initialTab: {{ Illuminate\Support\Js::from($tab) }},
+            initialSearch: {{ Illuminate\Support\Js::from($search) }},
+            labels: {{ Illuminate\Support\Js::from($tabLabels) }}
+        })"
+        @popstate.window="restoreFromUrl()"
+        @click="if ($event.target.closest('.ajax-pagination a')) {
+            $event.preventDefault();
+            fetchData($event.target.closest('.ajax-pagination a').href);
+        }"
+    >
+        <div class="mb-5 flex flex-col gap-4 xl:flex-row xl:items-center">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 sm:h-12 sm:w-12">
+                    <svg class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                 </div>
                 <div>
-                    <h2 class="text-lg sm:text-2xl font-black text-slate-800">إدارة المديونيات</h2>
-                    <p class="text-slate-500 text-xs sm:text-sm mt-0.5">متابعة المبالغ المستحقة لك وعليك</p>
+                    <h1 class="text-lg font-black text-slate-800 sm:text-2xl">المديونيات والأرصدة</h1>
+                    <p class="mt-0.5 text-xs text-slate-500 sm:text-sm">اعرف بسهولة المبالغ المطلوبة لنا والمستحقة علينا</p>
                 </div>
             </div>
 
-            <!-- Tab Buttons -->
-            <div class="flex bg-slate-200/60 p-1 rounded-xl w-full sm:w-auto">
-                <button @click="tab = 'customers'" :class="{'bg-white text-primary-700 shadow-sm font-bold': tab === 'customers', 'text-slate-500 hover:text-slate-700 font-medium': tab !== 'customers'}" class="flex-1 sm:flex-none px-4 sm:px-6 py-2 rounded-lg text-sm transition-all">
-                    مديونيات لي (العملاء)
-                </button>
-                <button @click="tab = 'suppliers'" :class="{'bg-white text-primary-700 shadow-sm font-bold': tab === 'suppliers', 'text-slate-500 hover:text-slate-700 font-medium': tab !== 'suppliers'}" class="flex-1 sm:flex-none px-4 sm:px-6 py-2 rounded-lg text-sm transition-all">
-                    مديونيات علي (التجار)
-                </button>
-            </div>
+            <form action="{{ route('debts.index') }}" method="GET" class="w-full xl:mr-auto xl:w-80" @submit.prevent="fetchData()">
+                <input type="hidden" name="tab" value="{{ $tab }}" :value="tab">
+                <label for="debt-search" class="sr-only">البحث في التبويب الحالي</label>
+                <div class="flex h-10 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm focus-within:border-primary-400 focus-within:ring-2 focus-within:ring-primary-100">
+                    <input id="debt-search" name="search" x-model="search" type="search" maxlength="100" placeholder="ابحث بالاسم أو رقم الهاتف" class="h-full min-w-0 flex-1 border-0 bg-transparent px-3 text-sm text-slate-700 placeholder:text-slate-400 focus:ring-0">
+                    <button type="submit" :disabled="loading" class="shrink-0 bg-primary-600 px-4 text-sm font-bold text-white transition-colors hover:bg-primary-700 disabled:cursor-wait disabled:opacity-60">بحث</button>
+                </div>
+                <p class="mt-1.5 text-[0.7rem] font-medium text-slate-400" x-text="'البحث داخل: ' + activeLabel"></p>
+            </form>
         </div>
 
-        <!-- Customers Tab -->
-        <div x-show="tab === 'customers'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
-            
-            <!-- Mobile Cards -->
-            <div class="sm:hidden space-y-3 mb-6">
-                @forelse($customers as $customer)
-                <div class="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="min-w-0">
-                            <a href="{{ route('customers.show', $customer->id) }}" class="text-base font-bold text-primary-700 hover:underline block truncate">{{ $customer->name }}</a>
-                            @if($customer->phone)<p class="text-xs text-slate-500 mt-0.5" dir="ltr">{{ $customer->phone }}</p>@endif
-                        </div>
-                        <div class="flex items-center gap-1.5 shrink-0">
-                            <a href="{{ route('customers.show', $customer->id) }}" class="p-1.5 px-3 text-xs font-bold rounded-lg border border-primary-200 bg-primary-50 text-primary-700 hover:bg-primary-600 hover:text-white transition-all">
-                                سداد / عرض
-                            </a>
-                        </div>
-                    </div>
-                    <div class="flex justify-between items-center pt-2 border-t border-slate-50">
-                        <span class="text-xs text-slate-500">المبلغ المستحق لك:</span>
-                        <span class="text-lg font-black text-danger-600" dir="ltr">{{ number_format($customer->balance, 0) }} <span class="text-xs text-danger-400">ج.م</span></span>
-                    </div>
+        <nav class="mb-5 grid grid-cols-2 gap-1 rounded-lg bg-slate-200/70 p-1 lg:grid-cols-4" aria-label="أنواع المديونيات">
+            @foreach($tabs as $tabKey => $tabDetails)
+                <a
+                    href="{{ route('debts.index', ['tab' => $tabKey]) }}"
+                    @click.prevent="selectTab('{{ $tabKey }}')"
+                    :class="tab === '{{ $tabKey }}' ? 'bg-white font-bold text-primary-700 shadow-sm' : 'font-semibold text-slate-600 hover:bg-white/60 hover:text-slate-800'"
+                    :aria-current="tab === '{{ $tabKey }}' ? 'page' : null"
+                    class="flex min-h-10 items-center justify-center rounded-md px-2 py-2 text-center text-xs transition-colors sm:text-sm"
+                >
+                    {{ $tabDetails['label'] }}
+                </a>
+            @endforeach
+        </nav>
+
+        <div class="relative" :aria-busy="loading">
+            <div x-show="loading" x-cloak class="absolute inset-0 z-10 flex min-h-40 items-center justify-center bg-slate-50/70" aria-live="polite">
+                <div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 shadow-sm">
+                    <svg class="h-4 w-4 animate-spin text-primary-600" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4Z"></path>
+                    </svg>
+                    جاري التحميل
                 </div>
-                @empty
-                <div class="bg-white rounded-xl border border-slate-100 p-8 text-center text-sm text-slate-500">لا يوجد مديونيات مستحقة على العملاء.</div>
-                @endforelse
             </div>
 
-            <!-- Desktop Table -->
-            <div class="hidden sm:block bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-center border-collapse whitespace-nowrap">
-                        <thead class="bg-slate-50">
-                            <tr>
-                                <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">اسم العميل</th>
-                                <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">رقم الهاتف</th>
-                                <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">الرصيد المتبقي عليه</th>
-                                <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($customers as $customer)
-                            <tr class="hover:bg-slate-50/60 transition-colors group">
-                                <td class="px-4 py-3 text-[0.85rem] font-bold text-primary-700 border-b border-slate-100 align-middle text-center"><a href="{{ route('customers.show', $customer->id) }}" class="hover:underline">{{ $customer->name }}</a></td>
-                                <td class="px-4 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100 align-middle text-center" dir="ltr">{{ $customer->phone ?? '-' }}</td>
-                                <td class="px-4 py-3 text-[0.85rem] font-bold text-danger-600 border-b border-slate-100 align-middle text-center" dir="ltr">{{ number_format($customer->balance, 0) }} <span class="text-xs text-danger-400">ج.م</span></td>
-                                <td class="px-4 py-3 border-b border-slate-100 align-middle text-center">
-                                    <a href="{{ route('customers.show', $customer->id) }}" class="px-4 py-1.5 text-xs font-bold rounded-lg border border-primary-200 bg-primary-50 text-primary-700 hover:bg-primary-600 hover:text-white transition-all inline-block">سداد المديونية</a>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr><td colspan="4" class="px-4 py-8 text-sm text-slate-500 text-center">لا يوجد مديونيات مستحقة على العملاء.</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+            <div id="debtsContent" :class="{ 'pointer-events-none opacity-50': loading }">
+                @include('debts._content')
             </div>
         </div>
-
-        <!-- Suppliers Tab -->
-        <div x-show="tab === 'suppliers'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
-            
-            <!-- Mobile Cards -->
-            <div class="sm:hidden space-y-3 mb-6">
-                @forelse($suppliers as $supplier)
-                <div class="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="min-w-0">
-                            <a href="{{ route('suppliers.show', $supplier->id) }}" class="text-base font-bold text-primary-700 hover:underline block truncate">{{ $supplier->name }}</a>
-                            @if($supplier->phone)<p class="text-xs text-slate-500 mt-0.5" dir="ltr">{{ $supplier->phone }}</p>@endif
-                        </div>
-                        <div class="flex items-center gap-1.5 shrink-0">
-                            <a href="{{ route('suppliers.show', $supplier->id) }}" class="p-1.5 px-3 text-xs font-bold rounded-lg border border-primary-200 bg-primary-50 text-primary-700 hover:bg-primary-600 hover:text-white transition-all">
-                                سداد / عرض
-                            </a>
-                        </div>
-                    </div>
-                    <div class="flex justify-between items-center pt-2 border-t border-slate-50">
-                        <span class="text-xs text-slate-500">المبلغ المستحق له:</span>
-                        <span class="text-lg font-black text-danger-600" dir="ltr">{{ number_format($supplier->balance, 0) }} <span class="text-xs text-danger-400">ج.م</span></span>
-                    </div>
-                </div>
-                @empty
-                <div class="bg-white rounded-xl border border-slate-100 p-8 text-center text-sm text-slate-500">لا يوجد ديون مستحقة للتجار.</div>
-                @endforelse
-            </div>
-
-            <!-- Desktop Table -->
-            <div class="hidden sm:block bg-white rounded-2xl shadow-sm border border-slate-100 mb-6 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-center border-collapse whitespace-nowrap">
-                        <thead class="bg-slate-50">
-                            <tr>
-                                <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">اسم المورد</th>
-                                <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">رقم الهاتف</th>
-                                <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">المبلغ المستحق له</th>
-                                <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($suppliers as $supplier)
-                            <tr class="hover:bg-slate-50/60 transition-colors group">
-                                <td class="px-4 py-3 text-[0.85rem] font-bold text-primary-700 border-b border-slate-100 align-middle text-center"><a href="{{ route('suppliers.show', $supplier->id) }}" class="hover:underline">{{ $supplier->name }}</a></td>
-                                <td class="px-4 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100 align-middle text-center" dir="ltr">{{ $supplier->phone ?? '-' }}</td>
-                                <td class="px-4 py-3 text-[0.85rem] font-bold text-danger-600 border-b border-slate-100 align-middle text-center" dir="ltr">{{ number_format($supplier->balance, 0) }} <span class="text-xs text-danger-400">ج.م</span></td>
-                                <td class="px-4 py-3 border-b border-slate-100 align-middle text-center">
-                                    <a href="{{ route('suppliers.show', $supplier->id) }}" class="px-4 py-1.5 text-xs font-bold rounded-lg border border-primary-200 bg-primary-50 text-primary-700 hover:bg-primary-600 hover:text-white transition-all inline-block">سداد الديون</a>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr><td colspan="4" class="px-4 py-8 text-sm text-slate-500 text-center">لا يوجد ديون مستحقة للتجار.</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
     </div>
 </x-layouts.app>
