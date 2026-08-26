@@ -3,16 +3,16 @@
     x-show="invoiceModalOpen"
     x-cloak
     @keydown.escape.window="closeInvoiceModal()"
-    class="fixed inset-0 z-[100] overflow-y-auto"
+    class="fixed inset-0 z-[100] overflow-hidden"
     role="dialog"
     aria-modal="true"
     aria-labelledby="global-invoice-modal-title"
 >
-    <div class="flex min-h-full items-start justify-center p-3 sm:p-5 sm:pt-10">
+    <div class="flex h-full items-center justify-center p-3 sm:p-5">
         <div x-show="invoiceModalOpen" x-transition.opacity class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="closeInvoiceModal()"></div>
 
-        <div x-show="invoiceModalOpen" x-transition @click.stop class="relative z-10 w-full max-w-5xl overflow-hidden rounded-2xl bg-white text-right shadow-2xl">
-            <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-6">
+        <div x-show="invoiceModalOpen" x-transition @click.stop class="relative z-10 flex h-[calc(100dvh-1.5rem)] max-h-[52rem] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white text-right shadow-2xl sm:h-[calc(100dvh-2.5rem)]">
+            <div class="flex shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-6">
                 <div>
                     <h3 id="global-invoice-modal-title" class="text-base font-black text-slate-800 sm:text-lg" x-text="invoiceType === 'sale' ? 'تفاصيل فاتورة المبيعات' : 'تفاصيل فاتورة المشتريات'"></h3>
                     <p x-show="invoiceDetails" class="mt-0.5 text-xs text-slate-400" x-text="`رقم الفاتورة: ${invoiceDetails?.invoice_number || ''}`"></p>
@@ -35,19 +35,19 @@
                 </div>
             </div>
 
-            <div x-show="invoiceLoading" class="flex min-h-64 items-center justify-center py-16">
+            <div x-show="invoiceLoading" class="flex min-h-64 flex-1 items-center justify-center py-16">
                 <div class="text-center">
                     <svg class="mx-auto h-9 w-9 animate-spin text-primary-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                     <p class="mt-3 text-sm font-bold text-slate-500">جارٍ تحميل الفاتورة...</p>
                 </div>
             </div>
 
-            <div x-show="!invoiceLoading && invoiceError" class="p-6 sm:p-10">
+            <div x-show="!invoiceLoading && invoiceError" class="flex-1 overflow-y-auto p-6 sm:p-10">
                 <div class="rounded-xl border border-red-100 bg-red-50 p-5 text-center text-sm font-bold text-red-700" x-text="invoiceError"></div>
             </div>
 
             <template x-if="!invoiceLoading && invoiceDetails">
-                <div class="grid max-h-[75vh] grid-cols-1 gap-5 overflow-y-auto p-4 sm:p-6 lg:grid-cols-12">
+                <div class="grid min-h-0 flex-1 grid-cols-1 grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden p-4 sm:p-6 lg:grid-cols-12 lg:grid-rows-1 lg:gap-5">
                     <aside class="space-y-4 lg:col-span-4">
                         <div class="space-y-4 rounded-xl border border-slate-100 bg-slate-50 p-4">
                             <div>
@@ -89,10 +89,10 @@
                         </div>
                     </aside>
 
-                    <section class="lg:col-span-8">
-                        <h4 class="mb-2 text-sm font-black text-slate-800">الأصناف</h4>
-                        <div class="overflow-hidden rounded-xl border border-slate-200">
-                            <div class="hidden grid-cols-12 gap-2 border-b border-slate-200 bg-slate-50 px-4 py-2 text-center text-xs font-bold text-slate-500 sm:grid">
+                    <section class="flex min-h-0 flex-col lg:col-span-8">
+                        <h4 class="mb-2 shrink-0 text-sm font-black text-slate-800">الأصناف</h4>
+                        <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200">
+                            <div class="hidden shrink-0 grid-cols-12 gap-2 border-b border-slate-200 bg-slate-50 px-4 py-2 text-center text-xs font-bold text-slate-500 sm:grid">
                                 <div class="col-span-5 text-right flex items-center gap-2">
                                     <div class="w-[28px] shrink-0 text-center">#</div>
                                     <div>المنتج</div>
@@ -101,33 +101,49 @@
                                 <div class="col-span-2">السعر</div>
                                 <div class="col-span-3 text-left">الإجمالي</div>
                             </div>
-                            <div class="divide-y divide-slate-100">
+                            <div class="min-h-0 flex-1 divide-y divide-slate-100 overflow-y-auto overscroll-contain" data-invoice-items-scroll aria-label="قائمة أصناف الفاتورة">
                                 <template x-for="(invoiceItem, index) in invoiceDetails.items" :key="invoiceItem.id">
-                                    <div class="grid grid-cols-1 gap-3 p-3 sm:grid-cols-12 sm:items-center sm:gap-2 sm:p-4">
-                                        <div class="font-bold text-slate-800 sm:col-span-5 flex items-center gap-2">
-                                            <div class="w-[28px] shrink-0 flex items-center justify-center">
-                                                <span class="text-[0.65rem] font-bold text-slate-400 bg-slate-100 px-1.5 py-1 rounded-md" x-text="index + 1"></span>
+                                    <div class="p-3 sm:p-4">
+                                        <div class="hidden grid-cols-12 items-center gap-2 sm:grid">
+                                            <div class="col-span-5 flex min-w-0 items-center gap-2 font-bold text-slate-800">
+                                                <div class="flex w-[28px] shrink-0 items-center justify-center">
+                                                    <span class="text-[0.65rem] font-bold text-slate-400 bg-slate-100 px-1.5 py-1 rounded-md" x-text="index + 1"></span>
+                                                </div>
+                                                <span x-text="invoiceItem.product_name" class="truncate"></span>
                                             </div>
-                                            <span x-text="invoiceItem.product_name" class="truncate"></span>
+                                            <div class="col-span-2 text-center">
+                                                <span class="inline-flex items-baseline gap-1 text-sm text-slate-600" dir="ltr"><span x-text="invoiceItem.quantity"></span><span>ك</span></span>
+                                            </div>
+                                            <div class="col-span-2 text-center text-sm text-slate-600" dir="ltr" x-text="Number(invoiceItem.unit_price || 0).toLocaleString()"></div>
+                                            <div class="col-span-3 text-left text-sm font-black text-slate-800" dir="ltr" x-text="Number(invoiceItem.total || 0).toLocaleString()"></div>
                                         </div>
-                                        <div class="grid grid-cols-3 gap-2 text-center sm:col-span-7">
+
+                                        <div class="sm:hidden">
+                                            <div class="flex min-w-0 items-center gap-2 font-bold text-slate-800">
+                                                <div class="flex w-[28px] shrink-0 items-center justify-center">
+                                                    <span class="text-[0.65rem] font-bold text-slate-400 bg-slate-100 px-1.5 py-1 rounded-md" x-text="index + 1"></span>
+                                                </div>
+                                                <span x-text="invoiceItem.product_name" class="truncate"></span>
+                                            </div>
+                                            <div class="mt-2 grid grid-cols-3 gap-2 text-center">
                                             <div>
                                                 <span class="mb-1 block text-[0.65rem] font-bold text-slate-400 sm:hidden">الكمية</span>
-                                                <span class="text-sm text-slate-600" dir="ltr" x-text="invoiceItem.quantity"></span>
+                                                    <span class="inline-flex items-baseline gap-1 rounded-lg bg-slate-50 px-2 py-1 text-sm text-slate-600" dir="ltr"><span x-text="invoiceItem.quantity"></span><span>ك</span></span>
                                             </div>
                                             <div>
                                                 <span class="mb-1 block text-[0.65rem] font-bold text-slate-400 sm:hidden">السعر</span>
-                                                <span class="text-sm text-slate-600" dir="ltr" x-text="Number(invoiceItem.unit_price || 0).toLocaleString()"></span>
+                                                    <span class="block rounded-lg bg-slate-50 px-2 py-1 text-sm text-slate-600" dir="ltr" x-text="Number(invoiceItem.unit_price || 0).toLocaleString()"></span>
                                             </div>
-                                            <div class="sm:text-left">
+                                                <div>
                                                 <span class="mb-1 block text-[0.65rem] font-bold text-slate-400 sm:hidden">الإجمالي</span>
-                                                <span class="text-sm font-black text-slate-800" dir="ltr" x-text="Number(invoiceItem.total || 0).toLocaleString()"></span>
+                                                    <span class="block rounded-lg bg-slate-100 px-2 py-1 text-sm font-black text-slate-800" dir="ltr" x-text="Number(invoiceItem.total || 0).toLocaleString()"></span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </template>
                             </div>
-                            <div class="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-4 py-3">
+                            <div class="flex shrink-0 items-center justify-between border-t border-slate-200 bg-slate-50 px-4 py-3">
                                 <span class="text-sm font-black text-slate-600">إجمالي الفاتورة</span>
                                 <span class="text-lg font-black text-red-600" dir="ltr" x-text="`${Number(invoiceDetails.total_amount || 0).toLocaleString()} ج.م`"></span>
                             </div>
