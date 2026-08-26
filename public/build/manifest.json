@@ -1,0 +1,29 @@
+{
+  "node_modules/@fontsource-variable/cairo/files/cairo-arabic-wght-normal.woff2": {
+    "file": "assets/cairo-arabic-wght-normal-CJWMIGCx.woff2",
+    "src": "node_modules/@fontsource-variable/cairo/files/cairo-arabic-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/cairo/files/cairo-latin-ext-wght-normal.woff2": {
+    "file": "assets/cairo-latin-ext-wght-normal-at8nfxId.woff2",
+    "src": "node_modules/@fontsource-variable/cairo/files/cairo-latin-ext-wght-normal.woff2"
+  },
+  "node_modules/@fontsource-variable/cairo/files/cairo-latin-wght-normal.woff2": {
+    "file": "assets/cairo-latin-wght-normal-PfPtmrPZ.woff2",
+    "src": "node_modules/@fontsource-variable/cairo/files/cairo-latin-wght-normal.woff2"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-rRZkrCjl.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-DiBudiR8.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  }
+}
