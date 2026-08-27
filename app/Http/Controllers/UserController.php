@@ -21,13 +21,14 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
+            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u', 'unique:users,name'],
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
             'role_id' => 'nullable|exists:roles,id',
         ], [
             'name.required' => 'يرجى إدخال اسم المستخدم',
             'name.regex' => 'اسم المستخدم يجب ألا يتكون من أرقام فقط',
+            'name.unique' => 'هذا الاسم موجود بالفعل، يرجى إدخال اسم مختلف',
         ]);
 
         User::create([
@@ -47,13 +48,14 @@ class UserController extends Controller
         }
 
         $request->validate([
-            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
+            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u', \Illuminate\Validation\Rule::unique('users')->ignore($user->id)],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:6',
             'role_id' => 'nullable|exists:roles,id',
         ], [
             'name.required' => 'يرجى إدخال اسم المستخدم',
             'name.regex' => 'اسم المستخدم يجب ألا يتكون من أرقام فقط',
+            'name.unique' => 'هذا الاسم موجود بالفعل، يرجى إدخال اسم مختلف',
         ]);
 
         $data = [

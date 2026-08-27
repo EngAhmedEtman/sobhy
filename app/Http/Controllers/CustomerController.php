@@ -78,12 +78,13 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
+            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u', 'unique:customers,name'],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+]+$/'],
             'balance' => 'required|numeric',
         ], [
             'name.required' => 'يرجى إدخال اسم العميل',
             'name.regex' => 'اسم العميل يجب ألا يتكون من أرقام فقط',
+            'name.unique' => 'هذا الاسم موجود بالفعل، يرجى إدخال اسم مختلف',
             'phone.regex' => 'رقم الهاتف يجب أن يحتوي على أرقام فقط بدون أحرف',
             'phone.max' => 'رقم الهاتف لا يجب أن يتجاوز 20 رقماً',
             'balance.required' => 'يرجى تحديد الرصيد الافتتاحي',
@@ -102,11 +103,12 @@ class CustomerController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
+            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u', 'unique:customers,name,' . $id],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+]+$/'],
         ], [
             'name.required' => 'يرجى إدخال اسم العميل',
             'name.regex' => 'اسم العميل يجب ألا يتكون من أرقام فقط',
+            'name.unique' => 'هذا الاسم موجود بالفعل، يرجى إدخال اسم مختلف',
             'phone.regex' => 'رقم الهاتف يجب أن يحتوي على أرقام فقط بدون أحرف',
             'phone.max' => 'رقم الهاتف لا يجب أن يتجاوز 20 رقماً',
         ]);
@@ -148,38 +150,106 @@ class CustomerController extends Controller
         $products = Product::all(['id', 'name', 'stock']);
         $latestSaleId = $customer->sales()->max('id');
 
-        return view('customers.show', compact('customer', 'transactions', 'totalsales', 'totalPayments', 'products', 'latestSaleId'));
+        // Fetch sales with remaining amounts for invoice-level payment
+        $unpaidSales = $customer->sales()
+            ->with('ledgerTransaction')
+            ->orderBy('id', 'desc')
+            ->get()
+            ->filter(fn (Sale $sale) => $sale->remaining_amount > 0)
+            ->map(fn (Sale $sale) => [
+                'id' => $sale->id,
+                'invoice_number' => $sale->invoice_number,
+                'total_amount' => (float) $sale->total_amount,
+                'paid_amount' => (float) $sale->paid_amount,
+                'remaining_amount' => (float) $sale->remaining_amount,
+                'date' => $sale->invoice_date?->format('Y-m-d') ?? $sale->created_at->format('Y-m-d'),
+            ])
+            ->values();
+
+        return view('customers.show', compact('customer', 'transactions', 'totalsales', 'totalPayments', 'products', 'latestSaleId', 'unpaidSales'));
     }
 
     public function storePayment(Request $request, $id)
     {
-        $request->validate([
+        $rules = [
             'amount' => 'required|numeric|min:0.01',
             'date' => 'required|date|before_or_equal:today',
             'notes' => ['nullable', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
-        ], [
+            'sale_id' => 'nullable|exists:sales,id',
+        ];
+
+        $messages = [
             'amount.required' => 'يرجى إدخال مبلغ التحصيل',
             'amount.min' => 'مبلغ التحصيل يجب أن يكون أكبر من 0',
             'date.required' => 'يرجى تحديد تاريخ التحصيل',
             'date.before_or_equal' => 'لا يمكن تسجيل تاريخ في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
             'notes.regex' => 'الملاحظات يجب ألا تتكون من أرقام فقط',
-        ]);
+            'sale_id.exists' => 'الفاتورة المحددة غير موجودة',
+        ];
+
+        $request->validate($rules, $messages);
 
         DB::transaction(function () use ($id, $request) {
             $customer = Customer::query()->lockForUpdate()->findOrFail($id);
+            $saleId = $request->sale_id;
+            $sale = null;
+
+            // If invoice-level payment, validate the sale belongs to this customer
+            if ($saleId) {
+                $sale = Sale::where('id', $saleId)
+                    ->where('customer_id', $customer->id)
+                    ->firstOrFail();
+
+                $remaining = $sale->remaining_amount;
+                if ($remaining <= 0) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'sale_id' => 'هذه الفاتورة مسددة بالكامل بالفعل',
+                    ]);
+                }
+
+                if ($request->amount > $remaining) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'amount' => "المبلغ المدخل أكبر من المتبقي على الفاتورة ({$remaining} ج.م)",
+                    ]);
+                }
+            }
+
+            $defaultNotes = $sale
+                ? 'تحصيل دفعة لفاتورة رقم '.$sale->invoice_number
+                : 'تحصيل دفعة نقدية';
+
+            // Create the payment transaction (always deducts from customer balance)
             $customer->transactions()->create([
                 'type' => 'payment_received',
                 'paid_amount' => $request->amount,
                 'total_amount' => 0,
                 'balance_after' => $customer->balance,
                 'transaction_date' => $request->date,
-                'notes' => $request->notes ?? 'تحصيل دفعة نقدية',
+                'source_type' => $sale ? Sale::class : null,
+                'source_id' => $sale?->id,
+                'notes' => $request->notes ?: $defaultNotes,
             ]);
+
+            // If invoice-level payment, also update paid_amount on the sale's ledger transaction
+            if ($sale) {
+                $ledgerTransaction = $sale->ledgerTransaction ?? $customer->transactions()
+                    ->where('type', 'sale')
+                    ->where('notes', 'like', '%رقم '.$sale->invoice_number.'%')
+                    ->first();
+
+                if ($ledgerTransaction) {
+                    $ledgerTransaction->increment('paid_amount', $request->amount);
+                }
+            }
 
             app(AccountingService::class)->recalculateParty($customer);
         });
 
-        return back()->with('success', 'تم تسجيل التحصيل بنجاح');
+        $successMsg = $request->sale_id
+            ? 'تم تسجيل التحصيل على الفاتورة بنجاح'
+            : 'تم تسجيل التحصيل بنجاح';
+
+        return back()->with('success', $successMsg);
     }
 
     public function storeReturn(Request $request, $id)

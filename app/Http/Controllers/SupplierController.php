@@ -78,12 +78,13 @@ class SupplierController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
+            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u', 'unique:suppliers,name'],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+]+$/'],
             'balance' => 'required|numeric',
         ], [
             'name.required' => 'يرجى إدخال اسم المورد',
             'name.regex' => 'اسم المورد يجب ألا يتكون من أرقام فقط',
+            'name.unique' => 'هذا الاسم موجود بالفعل، يرجى إدخال اسم مختلف',
             'phone.regex' => 'رقم الهاتف يجب أن يحتوي على أرقام فقط بدون أحرف',
             'phone.max' => 'رقم الهاتف لا يجب أن يتجاوز 20 رقماً',
             'balance.required' => 'يرجى تحديد الرصيد الافتتاحي',
@@ -102,11 +103,12 @@ class SupplierController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
+            'name' => ['required', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u', 'unique:suppliers,name,' . $id],
             'phone' => ['nullable', 'string', 'max:20', 'regex:/^[0-9+]+$/'],
         ], [
             'name.required' => 'يرجى إدخال اسم المورد',
             'name.regex' => 'اسم المورد يجب ألا يتكون من أرقام فقط',
+            'name.unique' => 'هذا الاسم موجود بالفعل، يرجى إدخال اسم مختلف',
             'phone.regex' => 'رقم الهاتف يجب أن يحتوي على أرقام فقط بدون أحرف',
             'phone.max' => 'رقم الهاتف لا يجب أن يتجاوز 20 رقماً',
         ]);

@@ -116,6 +116,7 @@ class PurchaseController extends Controller
             'items.*.quantity' => 'required|numeric|min:0.01',
             'items.*.price' => 'required|numeric|min:0.01',
             'paid_amount' => 'nullable|numeric|min:0',
+            'cash_withdrawal' => 'nullable|numeric|min:0',
             'notes' => ['nullable', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
         ], [
             'supplier_id.required' => 'يرجى تحديد المورد',
@@ -208,6 +209,21 @@ class PurchaseController extends Controller
                 'notes' => 'فاتورة مشتريات رقم '.$invoiceNumber.($request->notes ? ' - '.$request->notes : ''),
             ]);
 
+            // If cash withdrawal from supplier is requested, create a separate payment_received transaction
+            $cashWithdrawal = (float) ($request->cash_withdrawal ?: 0);
+            if ($cashWithdrawal > 0) {
+                $supplier->transactions()->create([
+                    'type' => 'cash_withdrawal',
+                    'paid_amount' => $cashWithdrawal,
+                    'total_amount' => 0,
+                    'balance_after' => $supplier->balance,
+                    'transaction_date' => $request->date,
+                    'source_type' => Purchase::class,
+                    'source_id' => $purchase->id,
+                    'notes' => 'سحب نقدي مع فاتورة مشتريات رقم '.$invoiceNumber,
+                ]);
+            }
+
             app(AccountingService::class)->recalculateParty($supplier);
             Product::whereIn('id', collect($request->items)->pluck('product_id')->unique())
                 ->get()
@@ -291,6 +307,7 @@ class PurchaseController extends Controller
             'supplier_id' => 'required|exists:suppliers,id',
             'date' => 'required|date|before_or_equal:today',
             'paid_amount' => 'nullable|numeric|min:0',
+            'cash_withdrawal' => 'nullable|numeric|min:0',
             'notes' => ['nullable', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -419,6 +436,21 @@ class PurchaseController extends Controller
                 $supplier->transactions()->create($transactionData);
             }
 
+            // Handle cash withdrawal during update (we create a new payment_received transaction for it if > 0)
+            $cashWithdrawal = (float) ($request->cash_withdrawal ?: 0);
+            if ($cashWithdrawal > 0) {
+                $supplier->transactions()->create([
+                    'type' => 'cash_withdrawal',
+                    'paid_amount' => $cashWithdrawal,
+                    'total_amount' => 0,
+                    'balance_after' => $supplier->balance,
+                    'transaction_date' => $request->date,
+                    'source_type' => Purchase::class,
+                    'source_id' => $purchase->id,
+                    'notes' => 'سحب نقدي مع تعديل فاتورة مشتريات رقم '.$purchase->invoice_number,
+                ]);
+            }
+
             collect([$oldSupplier, $supplier])
                 ->unique('id')
                 ->each(fn (Supplier $party) => app(AccountingService::class)->recalculateParty($party));
@@ -435,19 +467,21 @@ class PurchaseController extends Controller
             $purchase->load(['items', 'supplier']);
             $affectedProductIds = $purchase->items->pluck('product_id')->unique();
 
-            // Find related transaction using exact note format
-            $transaction = $purchase->ledgerTransaction()->first() ?: $purchase->supplier->transactions()
-                ->where('type', 'purchase')
-                ->where('notes', 'like', '%رقم '.$purchase->invoice_number.'%')
-                ->first();
+            // Reverse supplier balance for all transactions linked to this purchase
+            $transactions = Transaction::where('source_type', Purchase::class)
+                ->where('source_id', $purchase->id)
+                ->get();
 
-            // Reverse supplier balance
-            if ($transaction) {
-                // The debt added was total_amount - paid_amount
-                $debtAdded = $transaction->total_amount - $transaction->paid_amount;
-                $purchase->supplier->balance -= $debtAdded;
-                $purchase->supplier->save();
-                $transaction->delete();
+            if ($transactions->isEmpty()) {
+                $legacyTx = $purchase->supplier->transactions()
+                    ->where('type', 'purchase')
+                    ->where('notes', 'like', '%رقم '.$purchase->invoice_number.'%')
+                    ->first();
+                if ($legacyTx) $transactions->push($legacyTx);
+            }
+
+            foreach ($transactions as $tx) {
+                $tx->delete();
             }
 
             // Reverse product stock (since purchasing increases stock, deleting decreases it)

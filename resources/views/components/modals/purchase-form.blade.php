@@ -124,17 +124,24 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 items-start">
                                 <!-- Paid Amount -->
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5" x-text="isEdit ? 'إجمالي المدفوع في الفاتورة' : 'المدفوع (اختياري)'"></label>
-                                    <input type="number" step="0.01" min="0" x-model="paidAmount" @input="errors['paid_amount'] = false" name="paid_amount" data-validation-key="paid_amount" placeholder="0.00" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-center text-xs font-bold" :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['paid_amount']}" dir="ltr">
+                                    <label class="text-xs font-bold text-slate-700 mb-1.5 h-8 flex items-end pb-1" x-text="isEdit ? 'إجمالي المدفوع في الفاتورة' : 'المدفوع (اختياري)'"></label>
+                                    <input type="number" step="0.01" min="0" x-model="paidAmount" @input="errors['paid_amount'] = false" name="paid_amount" data-validation-key="paid_amount" placeholder="0.00" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-center text-xs font-bold relative z-10" :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['paid_amount']}" dir="ltr">
+                                </div>
+
+                                <!-- Cash Withdrawal from Supplier -->
+                                <div>
+                                    <label class="text-xs font-bold text-slate-700 mb-1.5 h-8 flex items-end pb-1">سحب نقدي من المورد</label>
+                                    <input type="number" step="0.01" min="0" x-model="cashWithdrawal" @input="errors['cash_withdrawal'] = false" name="cash_withdrawal" data-validation-key="cash_withdrawal" placeholder="0.00" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-center text-xs font-bold relative z-10" :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['cash_withdrawal']}" dir="ltr">
+                                    <p class="text-[0.65rem] text-slate-400 mt-1">لاسترداد مبلغ نقدي من المورد</p>
                                 </div>
 
                                 <!-- Notes -->
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">ملاحظات (اختياري)</label>
-                                    <input type="text" name="notes" x-model="notes" @input="errors['notes'] = false" data-validation-key="notes" placeholder="ملاحظات..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-xs" :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['notes']}">
+                                    <label class="text-xs font-bold text-slate-700 mb-1.5 h-8 flex items-end pb-1">ملاحظات (اختياري)</label>
+                                    <input type="text" name="notes" x-model="notes" @input="errors['notes'] = false" data-validation-key="notes" placeholder="ملاحظات..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-xs relative z-10" :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['notes']}">
                                 </div>
                             </div>
 
@@ -368,9 +375,11 @@
             selectedSupplierId: config.fixedSupplier ? config.fixedSupplier.id : '',
             selectedName: config.fixedSupplier ? config.fixedSupplier.name : '',
             paidAmount: 0,
+            cashWithdrawal: 0,
             originalSupplierId: null,
             originalTotal: 0,
             originalPaidAmount: 0,
+            originalCashWithdrawal: 0,
             date: new Date().toISOString().split('T')[0],
             notes: '',
             errors: {},
@@ -418,6 +427,11 @@
                 if (this.paidAmount !== '' && this.paidAmount !== null &&
                     (!Number.isFinite(Number(this.paidAmount)) || Number(this.paidAmount) < 0)) {
                     return this.showValidationError('paid_amount', 'قيمة المدفوع يجب أن تكون صفراً أو أكبر');
+                }
+
+                if (this.cashWithdrawal !== '' && this.cashWithdrawal !== null &&
+                    (!Number.isFinite(Number(this.cashWithdrawal)) || Number(this.cashWithdrawal) < 0)) {
+                    return this.showValidationError('cash_withdrawal', 'قيمة السحب النقدي يجب أن تكون صفراً أو أكبر');
                 }
 
                 const trimmedNotes = String(this.notes ?? '').trim();
@@ -524,9 +538,11 @@
                 }
                 
                 this.paidAmount = 0;
+                this.cashWithdrawal = 0;
                 this.originalSupplierId = null;
                 this.originalTotal = 0;
                 this.originalPaidAmount = 0;
+                this.originalCashWithdrawal = 0;
                 this.date = new Date().toISOString().split('T')[0];
                 this.notes = '';
                 this.errors = {};
@@ -595,9 +611,10 @@
                 if (!this.selectedSupplier) return 0;
                 let baseBalance = Number(this.selectedSupplier.balance);
                 if (this.isEdit && this.selectedSupplierId == this.originalSupplierId) {
-                    baseBalance -= this.originalTotal - this.originalPaidAmount;
+                    baseBalance -= (this.originalTotal - this.originalPaidAmount);
+                    baseBalance -= (parseFloat(this.originalCashWithdrawal) || 0);
                 }
-                return baseBalance + this.total - (parseFloat(this.paidAmount) || 0);
+                return baseBalance + this.total - (parseFloat(this.paidAmount) || 0) + (parseFloat(this.cashWithdrawal) || 0);
             },
             
             formatBalance(amount) {

@@ -44,6 +44,7 @@ class AccountingService
             'payment_received', 'payment_made', 'payment_sent' => -$paid,
             'return_sale', 'return_purchase' => -$total + $paid,
             'initial_balance' => $total,
+            'cash_withdrawal' => $paid,
             default => 0,
         };
     }

@@ -54,6 +54,7 @@ if (!function_exists('transaction_type_label')) {
             'adjustment_sub' => 'تسوية بالنقص',
             'initial_balance' => 'رصيد أول المدة',
             'opening_balance' => 'رصيد افتتاحي',
+            'cash_withdrawal' => 'سحب نقدي (من مورد)',
         ];
 
         return $translations[$type] ?? $type;
