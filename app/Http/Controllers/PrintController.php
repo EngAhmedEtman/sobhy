@@ -50,7 +50,7 @@ class PrintController extends Controller
             $invoiceIds = is_array($rawIds) ? $rawIds : explode(',', (string) $rawIds);
             $invoiceIds = array_filter(array_map('intval', $invoiceIds));
 
-            $invoices = Sale::with(['items.product', 'customer', 'transaction'])
+            $invoices = Sale::with(['items.product', 'customer', 'ledgerTransaction'])
                 ->where('customer_id', $customer->id)
                 ->whereIn('id', $invoiceIds)
                 ->orderBy('invoice_date', 'asc')
@@ -145,7 +145,7 @@ class PrintController extends Controller
             $invoiceIds = is_array($rawIds) ? $rawIds : explode(',', (string) $rawIds);
             $invoiceIds = array_filter(array_map('intval', $invoiceIds));
 
-            $invoices = Purchase::with(['items.product', 'supplier', 'transaction'])
+            $invoices = Purchase::with(['items.product', 'supplier', 'ledgerTransaction'])
                 ->where('supplier_id', $supplier->id)
                 ->whereIn('id', $invoiceIds)
                 ->orderBy('invoice_date', 'asc')
