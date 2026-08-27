@@ -150,38 +150,118 @@ class SupplierController extends Controller
         $products = Product::all(['id', 'name', 'stock']);
         $latestPurchaseId = $supplier->purchases()->max('id');
 
-        return view('suppliers.show', compact('supplier', 'transactions', 'totalPurchases', 'totalPayments', 'products', 'latestPurchaseId'));
+        // Fetch purchases with remaining amounts for invoice-level payment
+        $unpaidPurchases = $supplier->purchases()
+            ->with('ledgerTransaction')
+            ->orderBy('id', 'desc')
+            ->get()
+            ->filter(fn (Purchase $purchase) => $purchase->remaining_amount > 0)
+            ->map(fn (Purchase $purchase) => [
+                'id' => $purchase->id,
+                'invoice_number' => $purchase->invoice_number,
+                'total_amount' => (float) $purchase->total_amount,
+                'paid_amount' => (float) $purchase->paid_amount,
+                'remaining_amount' => (float) $purchase->remaining_amount,
+                'date' => $purchase->invoice_date?->format('Y-m-d') ?? $purchase->created_at->format('Y-m-d'),
+            ])
+            ->values();
+
+        return view('suppliers.show', compact('supplier', 'transactions', 'totalPurchases', 'totalPayments', 'products', 'latestPurchaseId', 'unpaidPurchases'));
     }
 
     public function storePayment(Request $request, $id)
     {
-        $request->validate([
+        $rules = [
+            'transaction_type' => 'required|in:payment_made,cash_withdrawal',
             'amount' => 'required|numeric|min:0.01',
             'date' => 'required|date|before_or_equal:today',
             'notes' => ['nullable', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
-        ], [
+            'purchase_id' => 'nullable|exists:purchases,id',
+        ];
+
+        $messages = [
             'amount.required' => 'يرجى إدخال مبلغ السداد',
             'amount.min' => 'مبلغ السداد يجب أن يكون أكبر من 0',
             'date.required' => 'يرجى تحديد تاريخ السداد',
             'date.before_or_equal' => 'لا يمكن تسجيل تاريخ في المستقبل، يجب أن يكون تاريخ اليوم أو تاريخ سابق',
             'notes.regex' => 'الملاحظات يجب ألا تتكون من أرقام فقط',
-        ]);
+            'purchase_id.exists' => 'الفاتورة المحددة غير موجودة',
+        ];
+
+        $request->validate($rules, $messages);
 
         DB::transaction(function () use ($id, $request) {
             $supplier = Supplier::query()->lockForUpdate()->findOrFail($id);
+            $purchaseId = $request->purchase_id;
+            $purchase = null;
+
+            $type = $request->transaction_type;
+            
+            // If it's a cash withdrawal, we ignore purchase linking
+            if ($type === 'cash_withdrawal') {
+                $purchaseId = null;
+                $purchase = null;
+            }
+
+            // If invoice-level payment, validate the purchase belongs to this supplier
+            if ($purchaseId) {
+                $purchase = Purchase::where('id', $purchaseId)
+                    ->where('supplier_id', $supplier->id)
+                    ->firstOrFail();
+
+                $remaining = $purchase->remaining_amount;
+                if ($remaining <= 0) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'purchase_id' => 'هذه الفاتورة مسددة بالكامل بالفعل',
+                    ]);
+                }
+
+                if ($request->amount > $remaining) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'amount' => "المبلغ المدخل أكبر من المتبقي على الفاتورة ({$remaining} ج.م)",
+                    ]);
+                }
+            }
+
+            $defaultNotes = 'سداد دفعة نقدية';
+            if ($type === 'cash_withdrawal') {
+                $defaultNotes = 'سحب نقدي من المورد';
+            } elseif ($purchase) {
+                $defaultNotes = 'سداد دفعة لفاتورة مشتريات رقم '.$purchase->invoice_number;
+            }
+
             $supplier->transactions()->create([
-                'type' => 'payment_made',
+                'type' => $type,
                 'paid_amount' => $request->amount,
                 'total_amount' => 0,
                 'balance_after' => $supplier->balance,
                 'transaction_date' => $request->date,
-                'notes' => $request->notes ?? 'سداد دفعة',
+                'source_type' => $purchase ? Purchase::class : null,
+                'source_id' => $purchase?->id,
+                'notes' => $request->notes ?: $defaultNotes,
             ]);
+
+            // If invoice-level payment, also update paid_amount on the purchase's ledger transaction
+            if ($purchase) {
+                $ledgerTransaction = $purchase->ledgerTransaction ?? $supplier->transactions()
+                    ->where('type', 'purchase')
+                    ->where('notes', 'like', '%رقم '.$purchase->invoice_number.'%')
+                    ->first();
+
+                if ($ledgerTransaction) {
+                    $ledgerTransaction->increment('paid_amount', $request->amount);
+                }
+            }
 
             app(AccountingService::class)->recalculateParty($supplier);
         });
 
-        return back()->with('success', 'تم تسجيل السداد بنجاح');
+        $successMsg = 'تم تسجيل العملية بنجاح';
+        if ($request->transaction_type === 'payment_made' && $request->purchase_id) {
+            $successMsg = 'تم تسجيل السداد على الفاتورة بنجاح';
+        }
+
+        return back()->with('success', $successMsg);
     }
 
     public function storeReturn(Request $request, $id)
