@@ -167,8 +167,9 @@ class SupplierController extends Controller
             ->values();
 
         $invoices = $supplier->purchases()
+            ->with('ledgerTransaction')
             ->orderBy('id', 'desc')
-            ->get(['id', 'invoice_number', 'total_amount', 'paid_amount', 'remaining_amount', 'created_at', 'invoice_date'])
+            ->get()
             ->map(fn (Purchase $purchase) => [
                 'id' => $purchase->id,
                 'invoice_number' => $purchase->invoice_number ?? (string)$purchase->id,

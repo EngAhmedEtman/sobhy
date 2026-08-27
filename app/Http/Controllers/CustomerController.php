@@ -167,8 +167,9 @@ class CustomerController extends Controller
             ->values();
 
         $invoices = $customer->sales()
+            ->with('ledgerTransaction')
             ->orderBy('id', 'desc')
-            ->get(['id', 'invoice_number', 'total_amount', 'paid_amount', 'remaining_amount', 'created_at', 'invoice_date'])
+            ->get()
             ->map(fn (Sale $sale) => [
                 'id' => $sale->id,
                 'invoice_number' => $sale->invoice_number ?? (string)$sale->id,
