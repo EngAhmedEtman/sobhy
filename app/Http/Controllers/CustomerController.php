@@ -172,6 +172,7 @@ class CustomerController extends Controller
     public function storePayment(Request $request, $id)
     {
         $rules = [
+            'transaction_type' => 'required|in:payment_received,cash_withdrawal',
             'amount' => 'required|numeric|min:0.01',
             'date' => 'required|date|before_or_equal:today',
             'notes' => ['nullable', 'string', 'max:255', 'regex:/^(?!\d+$).+$/u'],
@@ -194,6 +195,14 @@ class CustomerController extends Controller
             $saleId = $request->sale_id;
             $sale = null;
 
+            $type = $request->transaction_type;
+            
+            // If it's a cash withdrawal, we ignore invoice linking
+            if ($type === 'cash_withdrawal') {
+                $saleId = null;
+                $sale = null;
+            }
+
             // If invoice-level payment, validate the sale belongs to this customer
             if ($saleId) {
                 $sale = Sale::where('id', $saleId)
@@ -214,13 +223,16 @@ class CustomerController extends Controller
                 }
             }
 
-            $defaultNotes = $sale
-                ? 'تحصيل دفعة لفاتورة رقم '.$sale->invoice_number
-                : 'تحصيل دفعة نقدية';
+            $defaultNotes = 'تحصيل دفعة نقدية';
+            if ($type === 'cash_withdrawal') {
+                $defaultNotes = 'سحب نقدي / صرف للعميل';
+            } elseif ($sale) {
+                $defaultNotes = 'تحصيل دفعة لفاتورة رقم '.$sale->invoice_number;
+            }
 
             // Create the payment transaction (always deducts from customer balance)
             $customer->transactions()->create([
-                'type' => 'payment_received',
+                'type' => $type,
                 'paid_amount' => $request->amount,
                 'total_amount' => 0,
                 'balance_after' => $customer->balance,
@@ -245,9 +257,10 @@ class CustomerController extends Controller
             app(AccountingService::class)->recalculateParty($customer);
         });
 
-        $successMsg = $request->sale_id
-            ? 'تم تسجيل التحصيل على الفاتورة بنجاح'
-            : 'تم تسجيل التحصيل بنجاح';
+        $successMsg = 'تم تسجيل العملية بنجاح';
+        if ($request->transaction_type === 'payment_received' && $request->sale_id) {
+            $successMsg = 'تم تسجيل التحصيل على الفاتورة بنجاح';
+        }
 
         return back()->with('success', $successMsg);
     }

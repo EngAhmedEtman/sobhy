@@ -8,6 +8,16 @@
 
     <div x-data="{ 
         showPaymentModal: false, 
+        unpaidSales: {{ Js::from($unpaidSales) }},
+        showInvoicePaymentModal: false,
+        invoicePaymentId: '',
+        invoicePaymentAmount: '',
+        invoicePaymentDate: '{{ date('Y-m-d') }}',
+        invoicePaymentNotes: '',
+        get selectedInvoiceToPay() {
+            if (!this.invoicePaymentId) return null;
+            return this.unpaidSales.find(s => s.id == this.invoicePaymentId) || null;
+        },
         showReturnModal: false, 
         showDetailsModal: false,
         showPrintModal: false,
@@ -83,7 +93,7 @@
                     @if(auth()->user()?->hasPermission('customers.update'))
                     <button @click="showPaymentModal = true" class="px-3.5 py-2 bg-[#008f50] text-white rounded-lg hover:bg-[#007542] text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                        تسجيل تحصيل
+                        تسجيل سداد / سحب
                     </button>
                     <button @click="showReturnModal = true" class="px-3.5 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
@@ -223,6 +233,11 @@
                             @if((int) $transaction->invoice_id === (int) $latestSaleId && auth()->user()?->hasPermission('sales.update'))
                                 <button type="button" @click="editSale({{ $transaction->invoice_id }})" class="p-1.5 rounded border border-slate-200 bg-white text-blue-600 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                </button>
+                            @endif
+                            @if($transaction->balance_after > 0 && auth()->user()?->hasPermission('customers.update'))
+                                <button type="button" @click="invoicePaymentId = '{{ $transaction->invoice_id }}'; invoicePaymentAmount = '{{ $transaction->balance_after }}'; showInvoicePaymentModal = true" class="p-1.5 rounded border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="تحصيل مبلغ للفاتورة">
+                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                                 </button>
                             @endif
                         @else
@@ -373,37 +388,20 @@
                 <div x-show="showPaymentModal" 
                      @click.outside="showPaymentModal = false"
                      x-data="{
-                         paymentType: 'account',
+                         transactionType: 'payment_received',
                          amount: '',
                          date: '{{ date('Y-m-d') }}',
                          notes: '',
-                         saleId: '',
                          currentBalance: {{ (float)$customer->balance }},
-                         unpaidSales: {{ Js::from($unpaidSales) }},
-                         get selectedSale() {
-                             if (!this.saleId) return null;
-                             return this.unpaidSales.find(s => s.id == this.saleId) || null;
-                         },
                          get newBalance() {
+                             if (this.transactionType === 'cash_withdrawal') {
+                                 return this.currentBalance + (parseFloat(this.amount) || 0);
+                             }
                              return this.currentBalance - (parseFloat(this.amount) || 0);
                          },
-                         get invoiceNewRemaining() {
-                             if (!this.selectedSale) return 0;
-                             return Math.max(0, this.selectedSale.remaining_amount - (parseFloat(this.amount) || 0));
-                         },
-                         get amountExceedsRemaining() {
-                             if (this.paymentType !== 'invoice' || !this.selectedSale) return false;
-                             return (parseFloat(this.amount) || 0) > this.selectedSale.remaining_amount;
-                         },
-                         switchType(type) {
-                             this.paymentType = type;
-                             this.saleId = '';
+                         switchTransactionType(t) {
+                             this.transactionType = t;
                              this.amount = '';
-                         },
-                         formatBalance(val) {
-                             if (!val || val == 0) return '0 ج.م (خالص)';
-                             if (val > 0) return Number(val).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (مطلوب منه)';
-                             return Number(Math.abs(val)).toLocaleString('en-US', {maximumFractionDigits: 2}) + ' ج.م (له عندنا)';
                          }
                      }"
                      x-transition class="relative w-full max-w-2xl p-5 sm:p-6 overflow-hidden text-right transition-all transform bg-white shadow-xl rounded-2xl z-10">
@@ -412,83 +410,40 @@
                             <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                             </div>
-                            <h3 class="text-base sm:text-lg font-bold text-slate-800">تسجيل تحصيل من العميل: {{ $customer->name }}</h3>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-800">تسجيل عملية نقدية للعميل: {{ $customer->name }}</h3>
                         </div>
                         <button type="button" @click="showPaymentModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
                     </div>
 
-                    {{-- Payment Type Toggle --}}
+                    {{-- Transaction Type Toggle --}}
                     <div class="flex items-center gap-2 mb-5 p-1 bg-slate-100 rounded-xl">
-                        <button type="button" @click="switchType('account')"
-                                class="flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5"
-                                :class="paymentType === 'account' ? 'bg-white text-slate-800 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                            تحصيل على الحساب العام
+                        <button type="button" @click="switchTransactionType('payment_received')"
+                                class="flex-1 px-3 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2"
+                                :class="transactionType === 'payment_received' ? 'bg-white text-slate-800 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                            استلام نقدية / تحصيل
                         </button>
-                        <button type="button" @click="switchType('invoice')"
-                                class="flex-1 px-3 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5"
-                                :class="paymentType === 'invoice' ? 'bg-white text-slate-800 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                            تحصيل لحساب فاتورة
+                        <button type="button" @click="switchTransactionType('cash_withdrawal')"
+                                class="flex-1 px-3 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2"
+                                :class="transactionType === 'cash_withdrawal' ? 'bg-white text-slate-800 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                            رد نقدية / صرف للعميل
                         </button>
                     </div>
 
                     <form action="{{ route('customers.payment', $customer->id) }}" method="POST">
                         @csrf
-                        <input type="hidden" name="sale_id" :value="paymentType === 'invoice' ? saleId : ''">
+                        <input type="hidden" name="transaction_type" :value="transactionType">
 
                         <div class="grid grid-cols-1 md:grid-cols-12 gap-5 mb-5">
                             <!-- Main Inputs (7 cols) -->
                             <div class="md:col-span-7 space-y-4">
-
-                                {{-- Invoice selector (only for invoice-level payment) --}}
-                                <div x-show="paymentType === 'invoice'" x-collapse.duration.200ms>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">اختر الفاتورة <span class="text-danger-500">*</span></label>
-                                    <template x-if="unpaidSales.length === 0">
-                                        <div class="px-3 py-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700 font-medium flex items-center gap-2">
-                                            <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
-                                            لا توجد فواتير غير مسددة بالكامل لهذا العميل
-                                        </div>
-                                    </template>
-                                    <template x-if="unpaidSales.length > 0">
-                                        <select x-model="saleId" :required="paymentType === 'invoice'" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 bg-slate-50 text-xs font-bold text-slate-800">
-                                            <option value="">-- اختر فاتورة --</option>
-                                            <template x-for="sale in unpaidSales" :key="sale.id">
-                                                <option :value="sale.id" x-text="sale.invoice_number + ' — إجمالي: ' + Number(sale.total_amount).toLocaleString() + ' — متبقي: ' + Number(sale.remaining_amount).toLocaleString() + ' ج.م (' + sale.date + ')'"></option>
-                                            </template>
-                                        </select>
-                                    </template>
-
-                                    {{-- Selected invoice info card --}}
-                                    <div x-show="selectedSale" x-collapse.duration.200ms class="mt-2.5 p-3 bg-blue-50/70 border border-blue-100 rounded-xl space-y-1.5">
-                                        <div class="flex justify-between items-center text-xs">
-                                            <span class="text-slate-500 font-medium">إجمالي الفاتورة:</span>
-                                            <span class="font-bold text-slate-700" dir="ltr" x-text="selectedSale ? Number(selectedSale.total_amount).toLocaleString() + ' ج.م' : ''"></span>
-                                        </div>
-                                        <div class="flex justify-between items-center text-xs">
-                                            <span class="text-slate-500 font-medium">المدفوع:</span>
-                                            <span class="font-bold text-emerald-600" dir="ltr" x-text="selectedSale ? Number(selectedSale.paid_amount).toLocaleString() + ' ج.م' : ''"></span>
-                                        </div>
-                                        <div class="flex justify-between items-center text-xs pt-1.5 border-t border-blue-200">
-                                            <span class="text-slate-600 font-bold">المتبقي على الفاتورة:</span>
-                                            <span class="font-black text-danger-600" dir="ltr" x-text="selectedSale ? Number(selectedSale.remaining_amount).toLocaleString() + ' ج.م' : ''"></span>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">المبلغ المحصل (ج.م) <span class="text-danger-500">*</span></label>
-                                    <input type="number" step="0.01" name="amount" x-model="amount" min="0.01" 
-                                           :max="paymentType === 'invoice' && selectedSale ? selectedSale.remaining_amount : undefined"
-                                           required placeholder="0.00" class="w-full px-3 py-2.5 border rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-left bg-slate-50 text-base font-bold text-slate-800" 
-                                           :class="amountExceedsRemaining ? 'border-danger-400 ring-2 ring-danger-100' : 'border-slate-200'" dir="ltr">
-                                    <p x-show="amountExceedsRemaining" class="mt-1 text-[0.7rem] text-danger-600 font-bold flex items-center gap-1">
-                                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        <span>المبلغ أكبر من المتبقي على الفاتورة</span>
-                                    </p>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5" x-text="transactionType === 'payment_received' ? 'المبلغ المحصل (ج.م) *' : 'المبلغ المنصرف (ج.م) *'"></label>
+                                    <input type="number" step="0.01" name="amount" x-model="amount" min="0.01" required placeholder="0.00" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-left bg-slate-50 text-base font-bold text-slate-800" dir="ltr">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">تاريخ التحصيل <span class="text-danger-500">*</span></label>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">تاريخ العملية <span class="text-danger-500">*</span></label>
                                     <input type="date" name="date" required x-model="date" max="{{ date('Y-m-d') }}" lang="en" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-left bg-slate-50 text-xs font-bold" dir="ltr">
                                 </div>
                                 <div>
@@ -516,10 +471,91 @@
                                                 </span>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+
+                                <div class="pt-3 border-t border-slate-200">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-xs font-bold text-slate-700">الرصيد المتوقع بعد العملية:</span>
+                                    </div>
+                                    <div class="text-left font-black text-sm sm:text-base" dir="ltr"
+                                         :class="newBalance > 0 ? 'text-rose-600' : (newBalance < 0 ? 'text-emerald-600' : 'text-slate-700')">
+                                        <span x-text="Number(Math.abs(newBalance)).toLocaleString('en-US', {maximumFractionDigits: 2})"></span>
+                                        <span class="text-xs font-normal text-slate-400">ج.م</span>
+                                        <span class="text-[0.65rem] px-1.5 py-0.5 rounded font-bold mr-1"
+                                              :class="newBalance > 0 ? 'bg-rose-100 text-rose-700' : (newBalance < 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700')"
+                                              x-text="newBalance > 0 ? 'مطلوب منه' : (newBalance < 0 ? 'له دائن' : 'خالص')">
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 pt-3 border-t border-slate-100">
+                            <button type="submit" class="w-full sm:w-auto px-6 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-sm transition-all">حفظ العملية</button>
+                            <button type="button" @click="showPaymentModal = false" class="w-full sm:w-auto px-6 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">إلغاء</button>
+                        </div>
+                    </form>
+                </div>
+
+        <!-- Invoice Payment Modal -->
+        <div x-show="showInvoicePaymentModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+            <div class="flex items-start justify-center min-h-screen pt-10 sm:pt-16 p-4 text-center" @click.self="showInvoicePaymentModal = false">
+                <div x-show="showInvoicePaymentModal" x-transition.opacity class="fixed inset-0 transition-opacity bg-slate-900/60 backdrop-blur-sm" @click="showInvoicePaymentModal = false"></div>
+                <div x-show="showInvoicePaymentModal" 
+                     @click.outside="showInvoicePaymentModal = false"
+                     x-transition class="relative w-full max-w-2xl p-5 sm:p-6 overflow-hidden text-right transition-all transform bg-white shadow-xl rounded-2xl z-10">
+                    <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            </div>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-800">
+                                تحصيل لحساب فاتورة 
+                                <span x-text="selectedInvoiceToPay ? 'رقم ' + selectedInvoiceToPay.invoice_number : ''"></span>
+                            </h3>
+                        </div>
+                        <button type="button" @click="showInvoicePaymentModal = false" class="text-slate-400 hover:text-slate-600 p-1"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+                    </div>
+
+                    <form action="{{ route('customers.payment', $customer->id) }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="transaction_type" value="payment_received">
+                        <input type="hidden" name="sale_id" :value="invoicePaymentId">
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 mb-5">
+                            <div class="md:col-span-7 space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">المبلغ المحصل (ج.م) <span class="text-danger-500">*</span></label>
+                                    <input type="number" step="0.01" name="amount" x-model="invoicePaymentAmount" min="0.01" :max="selectedInvoiceToPay ? selectedInvoiceToPay.remaining_amount : ''" required placeholder="0.00" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-left bg-slate-50 text-base font-bold text-slate-800" :class="{'!border-danger-500 !ring-danger-100': (parseFloat(invoicePaymentAmount) || 0) > (selectedInvoiceToPay?.remaining_amount || 0)}" dir="ltr">
+                                    <p x-show="(parseFloat(invoicePaymentAmount) || 0) > (selectedInvoiceToPay?.remaining_amount || 0)" class="text-xs text-danger-500 font-bold mt-1">المبلغ يتجاوز المتبقي على الفاتورة</p>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">تاريخ التحصيل <span class="text-danger-500">*</span></label>
+                                    <input type="date" name="date" required x-model="invoicePaymentDate" max="{{ date('Y-m-d') }}" lang="en" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 text-left bg-slate-50 text-xs font-bold" dir="ltr">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1.5">البيان / ملاحظات (اختياري)</label>
+                                    <input type="text" name="notes" x-model="invoicePaymentNotes" placeholder="تحصيل نقدي، حوالة..." class="w-full px-3 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 bg-slate-50 text-xs">
+                                </div>
+                            </div>
+
+                            <div class="md:col-span-5 flex flex-col justify-between p-3.5 sm:p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-700 flex items-center gap-1.5 mb-3">مؤشر حساب الفاتورة</h4>
+                                    
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between items-center text-xs">
+                                            <span class="text-slate-500">المتبقي على الفاتورة:</span>
+                                            <div class="text-left font-bold text-slate-800" dir="ltr">
+                                                <span x-text="selectedInvoiceToPay ? Number(selectedInvoiceToPay.remaining_amount).toLocaleString('en-US', {maximumFractionDigits: 2}) : '0'"></span>
+                                                <span class="text-[0.7rem] text-slate-400 font-normal">ج.م</span>
+                                            </div>
+                                        </div>
                                         <div class="flex justify-between items-center text-xs">
                                             <span class="text-slate-500">المبلغ المحصل:</span>
                                             <div class="text-left font-bold text-emerald-600" dir="ltr">
-                                                <span x-text="(parseFloat(amount) || 0).toLocaleString('en-US', {maximumFractionDigits: 2})"></span>
+                                                <span x-text="(parseFloat(invoicePaymentAmount) || 0).toLocaleString('en-US', {maximumFractionDigits: 2})"></span>
                                                 <span class="text-[0.7rem] font-normal">ج.م</span>
                                             </div>
                                         </div>
@@ -528,38 +564,20 @@
 
                                 <div class="pt-3 border-t border-slate-200">
                                     <div class="flex justify-between items-center mb-1">
-                                        <span class="text-xs font-bold text-slate-700">الرصيد بعد التحصيل:</span>
-                                        <span class="text-[0.7rem] font-bold px-2 py-0.5 rounded-full"
-                                              :class="newBalance > 0 ? 'bg-rose-100 text-rose-700' : (newBalance < 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700')"
-                                              x-text="newBalance > 0 ? 'مطلوب منه' : (newBalance < 0 ? 'له دائن' : 'خالص')">
-                                        </span>
+                                        <span class="text-xs font-bold text-slate-700">باقي الفاتورة بعد التحصيل:</span>
                                     </div>
                                     <div class="text-left font-black text-sm sm:text-base" dir="ltr"
-                                         :class="newBalance > 0 ? 'text-rose-600' : (newBalance < 0 ? 'text-emerald-600' : 'text-slate-700')">
-                                        <span x-text="Number(Math.abs(newBalance)).toLocaleString('en-US', {maximumFractionDigits: 2})"></span>
+                                         :class="Math.max(0, (selectedInvoiceToPay?.remaining_amount || 0) - (parseFloat(invoicePaymentAmount) || 0)) > 0 ? 'text-amber-600' : 'text-emerald-600'">
+                                        <span x-text="Number(Math.max(0, (selectedInvoiceToPay?.remaining_amount || 0) - (parseFloat(invoicePaymentAmount) || 0))).toLocaleString('en-US', {maximumFractionDigits: 2})"></span>
                                         <span class="text-xs font-normal text-slate-400">ج.م</span>
-                                    </div>
-                                </div>
-
-                                {{-- Invoice remaining after payment (only for invoice-level) --}}
-                                <div x-show="paymentType === 'invoice' && selectedSale" x-collapse.duration.200ms class="pt-3 border-t border-slate-200">
-                                    <div class="flex justify-between items-center mb-1">
-                                        <span class="text-xs font-bold text-slate-700">متبقي الفاتورة بعد التحصيل:</span>
-                                    </div>
-                                    <div class="text-left font-black text-sm" dir="ltr"
-                                         :class="invoiceNewRemaining > 0 ? 'text-amber-600' : 'text-emerald-600'">
-                                        <span x-text="Number(invoiceNewRemaining).toLocaleString('en-US', {maximumFractionDigits: 2})"></span>
-                                        <span class="text-xs font-normal text-slate-400">ج.م</span>
-                                        <span x-show="invoiceNewRemaining <= 0" class="text-[0.65rem] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 font-bold mr-1">مسددة بالكامل</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="flex gap-3 pt-3 border-t border-slate-100">
-                            <button type="submit" :disabled="amountExceedsRemaining || (paymentType === 'invoice' && !saleId)" 
-                                    class="w-full sm:w-auto px-6 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-sm shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all">حفظ التحصيل</button>
-                            <button type="button" @click="showPaymentModal = false" class="w-full sm:w-auto px-6 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">إلغاء</button>
+                            <button type="submit" :disabled="!invoicePaymentId || (parseFloat(invoicePaymentAmount) || 0) > (selectedInvoiceToPay?.remaining_amount || 0)" class="w-full sm:w-auto px-6 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-sm shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed">حفظ التحصيل</button>
+                            <button type="button" @click="showInvoicePaymentModal = false" class="w-full sm:w-auto px-6 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">إلغاء</button>
                         </div>
                     </form>
                 </div>
