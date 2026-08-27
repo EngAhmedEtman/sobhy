@@ -158,7 +158,7 @@ class SupplierController extends Controller
             ->filter(fn (Purchase $purchase) => $purchase->remaining_amount > 0)
             ->map(fn (Purchase $purchase) => [
                 'id' => $purchase->id,
-                'invoice_number' => $purchase->invoice_number,
+                'invoice_number' => $purchase->invoice_number ?? (string)$purchase->id,
                 'total_amount' => (float) $purchase->total_amount,
                 'paid_amount' => (float) $purchase->paid_amount,
                 'remaining_amount' => (float) $purchase->remaining_amount,
@@ -166,7 +166,20 @@ class SupplierController extends Controller
             ])
             ->values();
 
-        return view('suppliers.show', compact('supplier', 'transactions', 'totalPurchases', 'totalPayments', 'products', 'latestPurchaseId', 'unpaidPurchases'));
+        $invoices = $supplier->purchases()
+            ->orderBy('id', 'desc')
+            ->get(['id', 'invoice_number', 'total_amount', 'paid_amount', 'remaining_amount', 'created_at', 'invoice_date'])
+            ->map(fn (Purchase $purchase) => [
+                'id' => $purchase->id,
+                'invoice_number' => $purchase->invoice_number ?? (string)$purchase->id,
+                'total_amount' => (float) $purchase->total_amount,
+                'paid_amount' => (float) $purchase->paid_amount,
+                'remaining_amount' => (float) $purchase->remaining_amount,
+                'date' => $purchase->invoice_date?->format('Y-m-d') ?? $purchase->created_at->format('Y-m-d'),
+            ])
+            ->values();
+
+        return view('suppliers.show', compact('supplier', 'transactions', 'totalPurchases', 'totalPayments', 'products', 'latestPurchaseId', 'unpaidPurchases', 'invoices'));
     }
 
     public function storePayment(Request $request, $id)

@@ -948,7 +948,7 @@
         <x-modals.transaction-details />
 
         <!-- Print Statement Modal -->
-        <x-modals.print-statement :entityId="$supplier->id" type="supplier" />
+        <x-modals.print-statement :entityId="$supplier->id" type="supplier" :invoices="$invoices" />
 
     </div>
 </x-layouts.app>

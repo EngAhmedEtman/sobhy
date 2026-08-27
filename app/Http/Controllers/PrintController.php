@@ -45,6 +45,27 @@ class PrintController extends Controller
         $filter = $request->query('filter', 'all');
         $subtitle = 'كشف حساب شامل لجميع العمليات';
 
+        if ($filter === 'selected_invoices' || $request->filled('invoice_ids')) {
+            $rawIds = $request->query('invoice_ids');
+            $invoiceIds = is_array($rawIds) ? $rawIds : explode(',', (string) $rawIds);
+            $invoiceIds = array_filter(array_map('intval', $invoiceIds));
+
+            $invoices = Sale::with(['items.product', 'customer', 'transaction'])
+                ->where('customer_id', $customer->id)
+                ->whereIn('id', $invoiceIds)
+                ->orderBy('invoice_date', 'asc')
+                ->orderBy('id', 'asc')
+                ->get();
+
+            return view('print.detailed-invoices-statement', [
+                'partyType' => 'customer',
+                'party' => $customer,
+                'invoices' => $invoices,
+                'title' => 'كشف حساب فواتير مبيعات',
+                'subtitle' => 'كشف حساب تفصيلي لـ (' . $invoices->count() . ') فواتير محددة مع تفاصيل المنتجات والبنود',
+            ]);
+        }
+
         if ($filter === 'this_month') {
             $startDate = now()->startOfMonth()->toDateString();
             $endDate = now()->endOfMonth()->toDateString();
@@ -118,6 +139,27 @@ class PrintController extends Controller
 
         $filter = $request->query('filter', 'all');
         $subtitle = 'كشف حساب شامل لجميع العمليات';
+
+        if ($filter === 'selected_invoices' || $request->filled('invoice_ids')) {
+            $rawIds = $request->query('invoice_ids');
+            $invoiceIds = is_array($rawIds) ? $rawIds : explode(',', (string) $rawIds);
+            $invoiceIds = array_filter(array_map('intval', $invoiceIds));
+
+            $invoices = Purchase::with(['items.product', 'supplier', 'transaction'])
+                ->where('supplier_id', $supplier->id)
+                ->whereIn('id', $invoiceIds)
+                ->orderBy('invoice_date', 'asc')
+                ->orderBy('id', 'asc')
+                ->get();
+
+            return view('print.detailed-invoices-statement', [
+                'partyType' => 'supplier',
+                'party' => $supplier,
+                'invoices' => $invoices,
+                'title' => 'كشف حساب فواتير مشتريات',
+                'subtitle' => 'كشف حساب تفصيلي لـ (' . $invoices->count() . ') فواتير محددة مع تفاصيل المنتجات والبنود',
+            ]);
+        }
 
         if ($filter === 'this_month') {
             $startDate = now()->startOfMonth()->toDateString();

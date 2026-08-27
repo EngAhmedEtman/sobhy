@@ -158,7 +158,7 @@ class CustomerController extends Controller
             ->filter(fn (Sale $sale) => $sale->remaining_amount > 0)
             ->map(fn (Sale $sale) => [
                 'id' => $sale->id,
-                'invoice_number' => $sale->invoice_number,
+                'invoice_number' => $sale->invoice_number ?? (string)$sale->id,
                 'total_amount' => (float) $sale->total_amount,
                 'paid_amount' => (float) $sale->paid_amount,
                 'remaining_amount' => (float) $sale->remaining_amount,
@@ -166,7 +166,20 @@ class CustomerController extends Controller
             ])
             ->values();
 
-        return view('customers.show', compact('customer', 'transactions', 'totalsales', 'totalPayments', 'products', 'latestSaleId', 'unpaidSales'));
+        $invoices = $customer->sales()
+            ->orderBy('id', 'desc')
+            ->get(['id', 'invoice_number', 'total_amount', 'paid_amount', 'remaining_amount', 'created_at', 'invoice_date'])
+            ->map(fn (Sale $sale) => [
+                'id' => $sale->id,
+                'invoice_number' => $sale->invoice_number ?? (string)$sale->id,
+                'total_amount' => (float) $sale->total_amount,
+                'paid_amount' => (float) $sale->paid_amount,
+                'remaining_amount' => (float) $sale->remaining_amount,
+                'date' => $sale->invoice_date?->format('Y-m-d') ?? $sale->created_at->format('Y-m-d'),
+            ])
+            ->values();
+
+        return view('customers.show', compact('customer', 'transactions', 'totalsales', 'totalPayments', 'products', 'latestSaleId', 'unpaidSales', 'invoices'));
     }
 
     public function storePayment(Request $request, $id)
