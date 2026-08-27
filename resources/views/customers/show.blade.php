@@ -919,7 +919,7 @@
         <x-modals.transaction-details />
 
         <!-- Print Statement Modal -->
-        <x-modals.print-statement :entityId="$customer->id" type="customer" :invoices="$invoices" />
+        <x-modals.print-statement :entityId="$customer->id" type="customer" :invoices="$invoices" :operations="$operations" />
 
     </div>
 </x-layouts.app>

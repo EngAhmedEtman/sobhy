@@ -45,24 +45,36 @@ class PrintController extends Controller
         $filter = $request->query('filter', 'all');
         $subtitle = 'كشف حساب شامل لجميع العمليات';
 
-        if ($filter === 'selected_invoices' || $request->filled('invoice_ids')) {
-            $rawIds = $request->query('invoice_ids');
-            $invoiceIds = is_array($rawIds) ? $rawIds : explode(',', (string) $rawIds);
-            $invoiceIds = array_filter(array_map('intval', $invoiceIds));
+        if ($filter === 'selected_operations' || $filter === 'selected_invoices' || $request->filled('transaction_ids') || $request->filled('invoice_ids')) {
+            $rawIds = $request->query('transaction_ids') ?: $request->query('invoice_ids');
+            $ids = is_array($rawIds) ? $rawIds : explode(',', (string) $rawIds);
+            $ids = array_filter(array_map('intval', $ids));
 
-            $invoices = Sale::with(['items.product', 'customer', 'ledgerTransaction'])
-                ->where('customer_id', $customer->id)
-                ->whereIn('id', $invoiceIds)
-                ->orderBy('invoice_date', 'asc')
+            $transactions = Transaction::with(['product', 'source.items.product'])
+                ->where('transactionable_type', Customer::class)
+                ->where('transactionable_id', $customer->id)
+                ->whereIn('id', $ids)
+                ->orderBy('transaction_date', 'asc')
                 ->orderBy('id', 'asc')
                 ->get();
+
+            if ($transactions->isEmpty()) {
+                $transactions = Transaction::with(['product', 'source.items.product'])
+                    ->where('transactionable_type', Customer::class)
+                    ->where('transactionable_id', $customer->id)
+                    ->where('source_type', Sale::class)
+                    ->whereIn('source_id', $ids)
+                    ->orderBy('transaction_date', 'asc')
+                    ->orderBy('id', 'asc')
+                    ->get();
+            }
 
             return view('print.detailed-invoices-statement', [
                 'partyType' => 'customer',
                 'party' => $customer,
-                'invoices' => $invoices,
-                'title' => 'كشف حساب فواتير مبيعات',
-                'subtitle' => 'كشف حساب تفصيلي لـ (' . $invoices->count() . ') فواتير محددة مع تفاصيل المنتجات والبنود',
+                'transactions' => $transactions,
+                'title' => 'كشف حساب عمليات وفواتير محددة - ' . $customer->name,
+                'subtitle' => 'كشف حساب تفصيلي لـ (' . $transactions->count() . ') عملية محددة مع تفاصيل المنتجات والبنود',
             ]);
         }
 
@@ -140,24 +152,36 @@ class PrintController extends Controller
         $filter = $request->query('filter', 'all');
         $subtitle = 'كشف حساب شامل لجميع العمليات';
 
-        if ($filter === 'selected_invoices' || $request->filled('invoice_ids')) {
-            $rawIds = $request->query('invoice_ids');
-            $invoiceIds = is_array($rawIds) ? $rawIds : explode(',', (string) $rawIds);
-            $invoiceIds = array_filter(array_map('intval', $invoiceIds));
+        if ($filter === 'selected_operations' || $filter === 'selected_invoices' || $request->filled('transaction_ids') || $request->filled('invoice_ids')) {
+            $rawIds = $request->query('transaction_ids') ?: $request->query('invoice_ids');
+            $ids = is_array($rawIds) ? $rawIds : explode(',', (string) $rawIds);
+            $ids = array_filter(array_map('intval', $ids));
 
-            $invoices = Purchase::with(['items.product', 'supplier', 'ledgerTransaction'])
-                ->where('supplier_id', $supplier->id)
-                ->whereIn('id', $invoiceIds)
-                ->orderBy('invoice_date', 'asc')
+            $transactions = Transaction::with(['product', 'source.items.product'])
+                ->where('transactionable_type', Supplier::class)
+                ->where('transactionable_id', $supplier->id)
+                ->whereIn('id', $ids)
+                ->orderBy('transaction_date', 'asc')
                 ->orderBy('id', 'asc')
                 ->get();
+
+            if ($transactions->isEmpty()) {
+                $transactions = Transaction::with(['product', 'source.items.product'])
+                    ->where('transactionable_type', Supplier::class)
+                    ->where('transactionable_id', $supplier->id)
+                    ->where('source_type', Purchase::class)
+                    ->whereIn('source_id', $ids)
+                    ->orderBy('transaction_date', 'asc')
+                    ->orderBy('id', 'asc')
+                    ->get();
+            }
 
             return view('print.detailed-invoices-statement', [
                 'partyType' => 'supplier',
                 'party' => $supplier,
-                'invoices' => $invoices,
-                'title' => 'كشف حساب فواتير مشتريات',
-                'subtitle' => 'كشف حساب تفصيلي لـ (' . $invoices->count() . ') فواتير محددة مع تفاصيل المنتجات والبنود',
+                'transactions' => $transactions,
+                'title' => 'كشف حساب عمليات وفواتير محددة - ' . $supplier->name,
+                'subtitle' => 'كشف حساب تفصيلي لـ (' . $transactions->count() . ') عملية محددة مع تفاصيل المنتجات والبنود',
             ]);
         }
 

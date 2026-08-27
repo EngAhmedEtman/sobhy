@@ -180,7 +180,42 @@ class SupplierController extends Controller
             ])
             ->values();
 
-        return view('suppliers.show', compact('supplier', 'transactions', 'totalPurchases', 'totalPayments', 'products', 'latestPurchaseId', 'unpaidPurchases', 'invoices'));
+        $operations = $supplier->transactions()
+            ->with(['product'])
+            ->orderBy('transaction_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get()
+            ->map(function (Transaction $t) {
+                $typeLabel = match($t->type) {
+                    'purchase' => 'فاتورة شراء',
+                    'sale' => 'فاتورة بيع',
+                    'return_purchase' => 'مرتجع شراء',
+                    'return_sale' => 'مرتجع بيع',
+                    'payment_made' => 'سداد نقدية للمورد',
+                    'payment_received' => 'تحصيل نقدية',
+                    'cash_withdrawal' => 'سحب نقدية من المورد',
+                    'opening_balance' => 'رصيد افتتاحي',
+                    default => transaction_type_label($t->type)
+                };
+
+                $amount = in_array($t->type, ['payment_made', 'payment_received'])
+                    ? (float)($t->paid_amount ?: $t->total_amount)
+                    : (float)$t->total_amount;
+
+                return [
+                    'id' => $t->id,
+                    'type' => $t->type,
+                    'type_label' => $typeLabel,
+                    'amount' => $amount,
+                    'paid_amount' => (float)$t->paid_amount,
+                    'balance_after' => (float)$t->balance_after,
+                    'date' => $t->transaction_date->format('Y-m-d'),
+                    'notes' => $t->notes ?? '',
+                ];
+            })
+            ->values();
+
+        return view('suppliers.show', compact('supplier', 'transactions', 'totalPurchases', 'totalPayments', 'products', 'latestPurchaseId', 'unpaidPurchases', 'invoices', 'operations'));
     }
 
     public function storePayment(Request $request, $id)

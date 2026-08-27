@@ -69,17 +69,18 @@
         .stat-value.danger { color: #b91c1c; }
         .stat-value.success { color: #15803d; }
         .stat-value.primary { color: #0284c7; }
+        .stat-value.amber { color: #d97706; }
 
-        /* Invoice Container */
-        .invoice-card {
+        /* Operation Card */
+        .op-card {
             border: 1px solid #cbd5e1;
             border-radius: 6px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             overflow: hidden;
             page-break-inside: avoid;
             background: #fff;
         }
-        .invoice-card-header {
+        .op-card-header {
             background: #f1f5f9;
             border-bottom: 1px solid #cbd5e1;
             padding: 6px 10px;
@@ -89,19 +90,25 @@
             flex-wrap: wrap;
             gap: 6px;
         }
-        .inv-title { font-size: 11px; font-weight: 800; color: #0f172a; }
-        .inv-date { font-size: 10px; color: #64748b; font-weight: 600; }
-        .inv-pills { display: flex; gap: 6px; align-items: center; }
-        .inv-pill {
+        .op-card-header.invoice { background: #f0fdf4; border-color: #bbf7d0; }
+        .op-card-header.payment { background: #f0fdfa; border-color: #99f6e4; }
+        .op-card-header.withdrawal { background: #faf5ff; border-color: #e9d5ff; }
+        .op-card-header.return { background: #fffbeb; border-color: #fde68a; }
+
+        .op-title { font-size: 11px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px; }
+        .op-date { font-size: 10px; color: #64748b; font-weight: 600; }
+        .op-pills { display: flex; gap: 6px; align-items: center; }
+        .op-pill {
             font-size: 9.5px;
             padding: 2px 6px;
             border-radius: 4px;
             font-weight: 700;
             direction: ltr;
         }
-        .inv-pill.total { background: #e2e8f0; color: #1e293b; }
-        .inv-pill.paid { background: #dcfce7; color: #166534; }
-        .inv-pill.remaining { background: #fee2e2; color: #991b1b; }
+        .op-pill.total { background: #e2e8f0; color: #1e293b; }
+        .op-pill.paid { background: #dcfce7; color: #166534; }
+        .op-pill.remaining { background: #fee2e2; color: #991b1b; }
+        .op-pill.badge-type { background: #0f172a; color: #fff; }
 
         /* Print Table */
         .print-data-table { width: 100%; border-collapse: collapse; margin: 0; }
@@ -109,12 +116,19 @@
         .print-data-table td { padding: 4px 6px; border: 1px solid #e2e8f0; font-size: 9.5px; text-align: center; color: #1e293b; }
         .print-data-table tr:nth-child(even) { background: #fafafa; }
         
-        .inv-notes {
+        .op-notes {
             padding: 4px 8px;
             background: #fffbeb;
             border-top: 1px dashed #fde68a;
-            font-size: 9px;
+            font-size: 9.5px;
             color: #92400e;
+        }
+        .op-payment-body {
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
         }
 
         /* Grand Total Summary Box */
@@ -128,7 +142,7 @@
             page-break-inside: avoid;
         }
         .grand-summary-title { font-size: 11px; font-weight: 800; color: #0f172a; margin-bottom: 6px; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; }
-        .grand-summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+        .grand-summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
 
         @media print {
             .no-print { display: none !important; }
@@ -153,7 +167,7 @@
                 width: 100% !important;
                 min-height: auto !important;
             }
-            .invoice-card {
+            .op-card {
                 page-break-inside: avoid;
             }
         }
@@ -167,7 +181,7 @@
                 <thead class="report-repeat-header">
                     <tr>
                         <td class="report-repeat-cell">
-                            <x-print.header :title="$title" :subtitle="$subtitle" :referenceCode="'STMT-INV-' . str_pad($party->id, 4, '0', STR_PAD_LEFT) . '-' . date('Ymd')" />
+                            <x-print.header :title="$title" :subtitle="$subtitle" :referenceCode="'STMT-OPS-' . str_pad($party->id, 4, '0', STR_PAD_LEFT) . '-' . date('Ymd')" />
                         </td>
                     </tr>
                 </thead>
@@ -190,115 +204,189 @@
                             </div>
 
                             @php
-                                $totalInvoicesCount = $invoices->count();
-                                $grandTotal = $invoices->sum('total_amount');
-                                $grandPaid = $invoices->sum('paid_amount');
-                                $grandRemaining = $invoices->sum('remaining_amount');
+                                $totalOpsCount = $transactions->count();
+                                $invoicesSum = $transactions->whereIn('type', ['sale', 'purchase'])->sum('total_amount');
+                                $paymentsSum = $transactions->whereIn('type', ['payment_received', 'payment_made'])->sum(fn($t) => $t->paid_amount ?: $t->total_amount);
+                                $withdrawalsSum = $transactions->where('type', 'cash_withdrawal')->sum(fn($t) => $t->paid_amount ?: $t->total_amount);
+                                $returnsSum = $transactions->whereIn('type', ['return_sale', 'return_purchase'])->sum('total_amount');
                             @endphp
 
                             <!-- Top Stats Summary -->
                             <div class="stats-grid">
                                 <div class="stat-card">
-                                    <div class="stat-label">عدد الفواتير المختارة</div>
-                                    <div class="stat-value primary">{{ $totalInvoicesCount }} فاتورة</div>
+                                    <div class="stat-label">عدد العمليات المختارة</div>
+                                    <div class="stat-value primary">{{ $totalOpsCount }} عملية</div>
                                 </div>
                                 <div class="stat-card">
-                                    <div class="stat-label">إجمالي مبالغ الفواتير</div>
-                                    <div class="stat-value">{{ format_amount($grandTotal) }} ج.م</div>
+                                    <div class="stat-label">إجمالي الفواتير</div>
+                                    <div class="stat-value">{{ format_amount($invoicesSum) }} ج.م</div>
                                 </div>
                                 <div class="stat-card">
-                                    <div class="stat-label">إجمالي المسدد</div>
-                                    <div class="stat-value success">{{ format_amount($grandPaid) }} ج.م</div>
+                                    <div class="stat-label">إجمالي النقدية (سداد / تحصيل)</div>
+                                    <div class="stat-value success">{{ format_amount($paymentsSum) }} ج.م</div>
                                 </div>
                                 <div class="stat-card">
-                                    <div class="stat-label">إجمالي المتبقي</div>
-                                    <div class="stat-value {{ $grandRemaining > 0 ? 'danger' : 'success' }}">{{ format_amount($grandRemaining) }} ج.م</div>
+                                    <div class="stat-label">إجمالي المرتجعات</div>
+                                    <div class="stat-value amber">{{ format_amount($returnsSum) }} ج.م</div>
                                 </div>
                             </div>
 
-                            <!-- Invoices Loop -->
-                            @forelse($invoices as $index => $invoice)
-                                <div class="invoice-card">
-                                    <!-- Invoice Header Strip -->
-                                    <div class="invoice-card-header">
-                                        <div class="flex items-center gap-2">
-                                            <span class="inv-title">فاتورة رقم #{{ $invoice->invoice_number ?? $invoice->id }}</span>
-                                            <span class="inv-date">({{ ($invoice->invoice_date ?? $invoice->created_at)->format('Y-m-d') }})</span>
+                            <!-- Operations Loop -->
+                            @forelse($transactions as $index => $t)
+                                @php
+                                    $isInvoice = in_array($t->type, ['sale', 'purchase']);
+                                    $isReturn = in_array($t->type, ['return_sale', 'return_purchase']);
+                                    $isPayment = in_array($t->type, ['payment_received', 'payment_made']);
+                                    $isWithdrawal = $t->type === 'cash_withdrawal';
+                                    
+                                    $cardHeaderClass = $isInvoice ? 'invoice' : ($isPayment ? 'payment' : ($isWithdrawal ? 'withdrawal' : ($isReturn ? 'return' : '')));
+                                    
+                                    $typeLabel = match($t->type) {
+                                        'sale' => 'فاتورة مبيعات',
+                                        'purchase' => 'فاتورة مشتريات',
+                                        'return_sale' => 'مرتجع مبيعات',
+                                        'return_purchase' => 'مرتجع مشتريات',
+                                        'payment_received' => 'استلام نقدية / تحصيل',
+                                        'payment_made' => 'سداد نقدية',
+                                        'cash_withdrawal' => 'سحب / رد نقدية',
+                                        'opening_balance' => 'رصيد افتتاحي',
+                                        default => transaction_type_label($t->type)
+                                    };
+                                @endphp
+
+                                <div class="op-card">
+                                    <!-- Card Header -->
+                                    <div class="op-card-header {{ $cardHeaderClass }}">
+                                        <div class="op-title">
+                                            <span class="op-pill badge-type">{{ $typeLabel }}</span>
+                                            @if($isInvoice)
+                                                <span>رقم #{{ $t->source?->invoice_number ?? $t->invoice_id ?? $t->id }}</span>
+                                            @endif
+                                            <span class="op-date">({{ $t->transaction_date->format('Y-m-d') }})</span>
                                         </div>
-                                        <div class="inv-pills">
-                                            <span class="inv-pill total">الإجمالي: {{ format_amount($invoice->total_amount) }} ج.م</span>
-                                            <span class="inv-pill paid">المدفوع: {{ format_amount($invoice->paid_amount) }} ج.م</span>
-                                            @if($invoice->remaining_amount > 0)
-                                                <span class="inv-pill remaining">المتبقي: {{ format_amount($invoice->remaining_amount) }} ج.م</span>
+                                        <div class="op-pills">
+                                            @if($isInvoice)
+                                                <span class="op-pill total">الإجمالي: {{ format_amount($t->total_amount) }} ج.م</span>
+                                                <span class="op-pill paid">المدفوع: {{ format_amount($t->paid_amount) }} ج.م</span>
+                                                @php $rem = max(0, $t->total_amount - $t->paid_amount); @endphp
+                                                @if($rem > 0)
+                                                    <span class="op-pill remaining">المتبقي: {{ format_amount($rem) }} ج.م</span>
+                                                @else
+                                                    <span class="op-pill paid">خالصة بالكامل</span>
+                                                @endif
+                                            @elseif($isPayment || $isWithdrawal)
+                                                <span class="op-pill paid">المبلغ: {{ format_amount($t->paid_amount ?: $t->total_amount) }} ج.م</span>
+                                            @elseif($isReturn)
+                                                <span class="op-pill total" style="background:#fef3c7; color:#92400e;">قيمة المرتجع: {{ format_amount($t->total_amount) }} ج.م</span>
                                             @else
-                                                <span class="inv-pill paid">خالصة بالكامل</span>
+                                                <span class="op-pill total">المبلغ: {{ format_amount($t->total_amount) }} ج.م</span>
                                             @endif
                                         </div>
                                     </div>
 
-                                    <!-- Items Table -->
-                                    <table class="print-data-table">
-                                        <thead>
-                                            <tr>
-                                                <th style="width: 5%;">#</th>
-                                                <th style="width: 45%; text-align: right; padding-right: 10px;">الصنف / المنتج</th>
-                                                <th style="width: 15%;">الكمية</th>
-                                                <th style="width: 15%;">سعر الوحدة</th>
-                                                <th style="width: 20%;">الإجمالي</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @forelse($invoice->items as $itemIdx => $item)
-                                            <tr>
-                                                <td>{{ $itemIdx + 1 }}</td>
-                                                <td style="text-align: right; padding-right: 10px; font-weight: 700;">
-                                                    {{ $item->product->name ?? 'منتج غير محدد' }}
-                                                </td>
-                                                <td style="direction: ltr;">
-                                                    {{ format_quantity($item->quantity) }} {{ $item->product->unit ?? 'ك' }}
-                                                </td>
-                                                <td style="direction: ltr;">
-                                                    {{ format_amount($item->unit_price) }} ج.م
-                                                </td>
-                                                <td style="direction: ltr; font-weight: 800;">
-                                                    {{ format_amount($item->total) }} ج.م
-                                                </td>
-                                            </tr>
-                                            @empty
-                                            <tr>
-                                                <td colspan="5" style="padding: 6px; color: #94a3b8;">لا توجد أصناف مسجلة لهذه الفاتورة</td>
-                                            </tr>
-                                            @endforelse
-                                        </tbody>
-                                    </table>
+                                    <!-- Card Body -->
+                                    @if($isInvoice && $t->source && $t->source->items && $t->source->items->isNotEmpty())
+                                        <!-- Invoice Items Table -->
+                                        <table class="print-data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 5%;">#</th>
+                                                    <th style="width: 45%; text-align: right; padding-right: 10px;">الصنف / المنتج</th>
+                                                    <th style="width: 15%;">الكمية</th>
+                                                    <th style="width: 15%;">سعر الوحدة</th>
+                                                    <th style="width: 20%;">الإجمالي</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($t->source->items as $itemIdx => $item)
+                                                <tr>
+                                                    <td>{{ $itemIdx + 1 }}</td>
+                                                    <td style="text-align: right; padding-right: 10px; font-weight: 700;">
+                                                        {{ $item->product->name ?? 'صنف غير محدد' }}
+                                                    </td>
+                                                    <td style="direction: ltr;">
+                                                        {{ format_quantity($item->quantity) }} {{ $item->product->unit ?? 'ك' }}
+                                                    </td>
+                                                    <td style="direction: ltr;">
+                                                        {{ format_amount($item->unit_price) }} ج.م
+                                                    </td>
+                                                    <td style="direction: ltr; font-weight: 800;">
+                                                        {{ format_amount($item->total) }} ج.م
+                                                    </td>
+                                                </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
+                                    @elseif($isReturn && $t->product)
+                                        <!-- Return Product Table -->
+                                        <table class="print-data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 5%;">#</th>
+                                                    <th style="width: 45%; text-align: right; padding-right: 10px;">الصنف المرتجع</th>
+                                                    <th style="width: 15%;">الكمية المرتجعة</th>
+                                                    <th style="width: 15%;">سعر الوحدة</th>
+                                                    <th style="width: 20%;">إجمالي القيمة</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>1</td>
+                                                    <td style="text-align: right; padding-right: 10px; font-weight: 700;">{{ $t->product->name }}</td>
+                                                    <td style="direction: ltr;">{{ format_quantity($t->quantity) }} {{ $t->product->unit ?? 'ك' }}</td>
+                                                    <td style="direction: ltr;">{{ format_amount($t->unit_price) }} ج.م</td>
+                                                    <td style="direction: ltr; font-weight: 800;">{{ format_amount($t->total_amount) }} ج.م</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    @elseif($isPayment || $isWithdrawal)
+                                        <!-- Cash Movement Row -->
+                                        <div class="op-payment-body">
+                                            <div>
+                                                <span style="color: #64748b; font-size: 9.5px;">البيان والملاحظات:</span>
+                                                <strong style="color: #1e293b; font-size: 10.5px; margin-right: 4px;">{{ $t->notes ?: 'حركة نقدية مسجلة' }}</strong>
+                                            </div>
+                                            <div>
+                                                <span style="color: #64748b; font-size: 9.5px;">الرصيد بعد الحركة:</span>
+                                                <strong style="direction: ltr; display: inline-block; font-size: 10.5px; color: {{ $t->balance_after > 0 ? '#b91c1c' : '#15803d' }}">
+                                                    {{ format_amount(abs($t->balance_after)) }} ج.م
+                                                </strong>
+                                            </div>
+                                        </div>
+                                    @endif
 
-                                    @if($invoice->notes)
-                                    <div class="inv-notes">
-                                        <strong>ملاحظات الفاتورة:</strong> {{ $invoice->notes }}
+                                    <!-- Notes if available on invoice / return -->
+                                    @if($t->notes && !$isPayment && !$isWithdrawal)
+                                    <div class="op-notes">
+                                        <strong>ملاحظات:</strong> {{ $t->notes }}
                                     </div>
                                     @endif
                                 </div>
                             @empty
                                 <div style="text-align: center; padding: 25px; border: 1px dashed #cbd5e1; border-radius: 6px; color: #64748b;">
-                                    لم يتم العثور على فواتير محددة.
+                                    لم يتم تحديد أي عمليات للطباعة.
                                 </div>
                             @endforelse
 
                             <!-- Grand Summary Box -->
                             <div class="grand-summary-box">
-                                <div class="grand-summary-title">ملخص إجمالي الفواتير المختارة أعلاه</div>
+                                <div class="grand-summary-title">إجماليات وملخص العمليات المختارة</div>
                                 <div class="grand-summary-grid">
                                     <div>
-                                        <span style="font-size: 9.5px; color: #64748b; display: block;">إجمالي قيمة الفواتير:</span>
-                                        <strong style="font-size: 13px; color: #0f172a; direction: ltr; display: inline-block;">{{ format_amount($grandTotal) }} ج.م</strong>
+                                        <span style="font-size: 9.5px; color: #64748b; display: block;">إجمالي الفواتير:</span>
+                                        <strong style="font-size: 12px; color: #0f172a; direction: ltr; display: inline-block;">{{ format_amount($invoicesSum) }} ج.م</strong>
                                     </div>
                                     <div>
-                                        <span style="font-size: 9.5px; color: #64748b; display: block;">إجمالي المسدد:</span>
-                                        <strong style="font-size: 13px; color: #166534; direction: ltr; display: inline-block;">{{ format_amount($grandPaid) }} ج.م</strong>
+                                        <span style="font-size: 9.5px; color: #64748b; display: block;">إجمالي النقدية:</span>
+                                        <strong style="font-size: 12px; color: #166534; direction: ltr; display: inline-block;">{{ format_amount($paymentsSum) }} ج.م</strong>
                                     </div>
                                     <div>
-                                        <span style="font-size: 9.5px; color: #64748b; display: block;">إجمالي المتبقي (آجل):</span>
-                                        <strong style="font-size: 13px; color: {{ $grandRemaining > 0 ? '#991b1b' : '#166534' }}; direction: ltr; display: inline-block;">{{ format_amount($grandRemaining) }} ج.م</strong>
+                                        <span style="font-size: 9.5px; color: #64748b; display: block;">إجمالي المرتجعات:</span>
+                                        <strong style="font-size: 12px; color: #d97706; direction: ltr; display: inline-block;">{{ format_amount($returnsSum) }} ج.م</strong>
+                                    </div>
+                                    <div>
+                                        <span style="font-size: 9.5px; color: #64748b; display: block;">عدد العمليات:</span>
+                                        <strong style="font-size: 12px; color: #0284c7; direction: ltr; display: inline-block;">{{ $totalOpsCount }} عملية</strong>
                                     </div>
                                 </div>
                             </div>

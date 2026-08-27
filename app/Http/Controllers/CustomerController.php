@@ -180,7 +180,42 @@ class CustomerController extends Controller
             ])
             ->values();
 
-        return view('customers.show', compact('customer', 'transactions', 'totalsales', 'totalPayments', 'products', 'latestSaleId', 'unpaidSales', 'invoices'));
+        $operations = $customer->transactions()
+            ->with(['product'])
+            ->orderBy('transaction_date', 'desc')
+            ->orderBy('id', 'desc')
+            ->get()
+            ->map(function (Transaction $t) {
+                $typeLabel = match($t->type) {
+                    'sale' => 'فاتورة بيع',
+                    'purchase' => 'فاتورة شراء',
+                    'return_sale' => 'مرتجع بيع',
+                    'return_purchase' => 'مرتجع شراء',
+                    'payment_received' => 'تحصيل نقدية',
+                    'payment_made' => 'سداد نقدية',
+                    'cash_withdrawal' => 'سحب / رد نقدية',
+                    'opening_balance' => 'رصيد افتتاحي',
+                    default => transaction_type_label($t->type)
+                };
+
+                $amount = in_array($t->type, ['payment_received', 'payment_made'])
+                    ? (float)($t->paid_amount ?: $t->total_amount)
+                    : (float)$t->total_amount;
+
+                return [
+                    'id' => $t->id,
+                    'type' => $t->type,
+                    'type_label' => $typeLabel,
+                    'amount' => $amount,
+                    'paid_amount' => (float)$t->paid_amount,
+                    'balance_after' => (float)$t->balance_after,
+                    'date' => $t->transaction_date->format('Y-m-d'),
+                    'notes' => $t->notes ?? '',
+                ];
+            })
+            ->values();
+
+        return view('customers.show', compact('customer', 'transactions', 'totalsales', 'totalPayments', 'products', 'latestSaleId', 'unpaidSales', 'invoices', 'operations'));
     }
 
     public function storePayment(Request $request, $id)
