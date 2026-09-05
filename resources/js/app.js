@@ -139,6 +139,7 @@ Alpine.store('toast', {
     message: '',
     type: 'success',
     progress: 100,
+    duration: 6000,
     progressTimer: null,
     hideTimer: null,
 
@@ -148,6 +149,7 @@ Alpine.store('toast', {
 
         this.message = message;
         this.type = type;
+        this.duration = type === 'error' ? 12000 : 6000;
         this.progress = 100;
         this.visible = true;
 
@@ -157,7 +159,7 @@ Alpine.store('toast', {
 
         this.hideTimer = window.setTimeout(() => {
             this.visible = false;
-        }, 4500);
+        }, this.duration);
     },
 
     hide() {

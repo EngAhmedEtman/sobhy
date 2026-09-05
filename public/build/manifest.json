@@ -12,7 +12,7 @@
     "src": "node_modules/@fontsource-variable/cairo/files/cairo-latin-wght-normal.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-D2C-ze4G.css",
+    "file": "assets/app-D4ytlYc6.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -21,7 +21,7 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-DiBudiR8.js",
+    "file": "assets/app-eZrfUoiD.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true
