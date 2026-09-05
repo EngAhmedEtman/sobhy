@@ -23,11 +23,11 @@
                 <svg class="animate-spin h-8 w-8 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             </div>
 
-            <form x-show="!loading" :action="actionUrl" method="POST" class="flex min-h-0 flex-1 flex-col" @submit.prevent="submitForm" novalidate>
+            <form x-show="!loading" :action="actionUrl" method="POST" class="flex min-h-0 flex-1 touch-pan-y flex-col overflow-y-auto overscroll-contain lg:overflow-hidden" @scroll="window.dispatchEvent(new CustomEvent('invoice-items-scroll'))" @submit.prevent="submitForm" novalidate>
                 @csrf
                 <input type="hidden" name="_method" value="PUT" :disabled="!isEdit">
                 
-                <div class="grid min-h-0 flex-1 grid-cols-1 grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden lg:grid-cols-12 lg:grid-rows-1 lg:gap-6">
+                <div class="grid flex-none grid-cols-1 gap-4 overflow-visible lg:min-h-0 lg:flex-1 lg:grid-cols-12 lg:grid-rows-1 lg:gap-6 lg:overflow-hidden">
                     
                     <!-- Right Column: Invoice Header Info -->
                     <div class="lg:col-span-4 space-y-4">
@@ -155,7 +155,7 @@
                     </div>
 
                     <!-- Left Column: Items List -->
-                    <div class="flex min-h-0 flex-col lg:col-span-8">
+                    <div class="flex min-h-[24rem] flex-col lg:min-h-0 lg:col-span-8">
                         <div class="mb-2 flex shrink-0 items-center justify-between">
                             <h4 class="text-sm font-bold text-slate-800">الأصناف المباعة</h4>
                             <button type="button" @click="addItem()" class="px-3 py-1.5 bg-primary-50 text-primary-600 rounded-lg hover:bg-primary-100 text-xs font-bold flex items-center gap-1 transition-colors">
@@ -163,7 +163,7 @@
                                 إضافة صنف
                             </button>
                         </div>
-                        <div class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                        <div class="flex min-h-0 flex-1 flex-col overflow-visible rounded-xl border border-slate-200 bg-white shadow-sm lg:overflow-hidden">
                             <!-- Desktop Header -->
                             <div class="hidden shrink-0 sm:flex items-center gap-2 bg-slate-50 border-b border-slate-200 px-3 py-2 text-[0.7rem] font-bold text-slate-500 uppercase text-center rounded-t-xl">
                                 <div class="w-[28px] shrink-0 text-center">#</div>
@@ -175,7 +175,7 @@
                             </div>
                             
                             <!-- Items Body -->
-                            <div class="min-h-0 flex-1 divide-y divide-slate-100 overflow-y-auto overscroll-contain"
+                            <div class="flex-1 touch-pan-y divide-y divide-slate-100 overflow-visible overscroll-auto lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain"
                                  @scroll="window.dispatchEvent(new CustomEvent('invoice-items-scroll'))">
                                 <template x-for="(item, index) in items" :key="item.id">
                                     <div class="p-2.5 sm:p-2 hover:bg-slate-50/50 transition-colors relative">
