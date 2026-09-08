@@ -143,7 +143,7 @@
                     @forelse($purchases as $purchase)
                     <tr class="hover:bg-slate-50/60 transition-colors group">
                         <td class="px-4 py-3 text-[0.8rem] font-bold text-slate-700 border-b border-slate-100">{{ $purchase->invoice_number }}</td>
-                        <td class="px-4 py-3 text-[0.8rem] text-slate-600 border-b border-slate-100">{{ \Carbon\Carbon::parse($purchase->date)->format('Y-m-d') }}</td>
+                        <td class="px-4 py-3 text-[0.8rem] text-slate-600 border-b border-slate-100">{{ ($purchase->invoice_date ?? $purchase->created_at)->format('Y-m-d') }}</td>
                         <td class="px-4 py-3 text-[0.85rem] font-bold text-primary-700 border-b border-slate-100">{{ $purchase->supplier->name ?? '-' }}</td>
                         <td class="px-4 py-3 text-[0.85rem] text-slate-800 font-bold border-b border-slate-100" dir="ltr">{{ number_format($purchase->total_amount, 0) }}</td>
                         <td class="px-4 py-3 text-[0.85rem] text-warning-600 font-bold border-b border-slate-100" dir="ltr">{{ number_format($purchase->paid_amount, 0) }}</td>

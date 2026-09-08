@@ -333,6 +333,27 @@ class AccountingIntegrityTest extends TestCase
             ->assertViewHas('cashProfit', 200);
     }
 
+    public function test_sales_and_purchase_reports_render_the_operation_date(): void
+    {
+        $operationDate = Carbon::today()->subDay()->toDateString();
+        $customer = Customer::create(['name' => 'Customer', 'balance' => 0, 'opening_balance' => 0]);
+        $supplier = Supplier::create(['name' => 'Supplier', 'balance' => 0, 'opening_balance' => 0]);
+        $product = Product::create(['name' => 'Steel', 'stock' => 0, 'opening_stock' => 0, 'retail_price' => 50]);
+
+        $this->postPurchase($supplier, $product, $operationDate, 2, 25, 10);
+        $this->post(route('sales.store'), [
+            'customer_id' => $customer->id,
+            'date' => $operationDate,
+            'items' => [['product_id' => $product->id, 'quantity' => 1, 'price' => 50]],
+            'paid_amount' => 10,
+        ])->assertSessionHasNoErrors();
+
+        foreach (['reports.sales', 'reports.purchases', 'print.sales-report', 'print.purchases-report'] as $routeName) {
+            $this->get(route($routeName))
+                ->assertOk()
+                ->assertSee($operationDate);
+        }
+    }
     public function test_only_each_partys_latest_invoice_is_marked_as_editable(): void
     {
         $firstCustomer = Customer::create(['name' => 'First Customer', 'balance' => 0, 'opening_balance' => 0]);
