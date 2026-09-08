@@ -172,6 +172,7 @@ class ReportController extends Controller
         $transactions = collect();
         $totalIn = 0;
         $totalOut = 0;
+        $salesSummary = null;
 
         if ($request->filled('product_id')) {
             $product = Product::findOrFail($request->product_id);
@@ -195,6 +196,11 @@ class ReportController extends Controller
             }
 
             $transactions = $query->get();
+            $transactions->loadMorph('related', [
+                Sale::class => ['customer', 'items'],
+                Purchase::class => ['supplier', 'items'],
+                Transaction::class => ['transactionable'],
+            ]);
 
             $totalIn = $product->transactions()
                 ->whereIn('type', ['purchase', 'return_sale', 'adjustment_add'])
@@ -207,9 +213,11 @@ class ReportController extends Controller
                 ->when($request->start_date, fn ($q) => $q->whereDate('transaction_date', '>=', $request->start_date))
                 ->when($request->end_date, fn ($q) => $q->whereDate('transaction_date', '<=', $request->end_date))
                 ->sum('quantity');
+
+            $salesSummary = $product->salesSummary($request->start_date, $request->end_date);
         }
 
-        return view('reports.products', compact('productsList', 'product', 'transactions', 'totalIn', 'totalOut'));
+        return view('reports.products', compact('productsList', 'product', 'transactions', 'totalIn', 'totalOut', 'salesSummary'));
     }
 
     public function profit(Request $request)

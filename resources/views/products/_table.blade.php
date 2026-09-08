@@ -5,6 +5,7 @@
                 <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">#</th>
                 <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">اسم المنتج</th>
                 <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">الرصيد المتبقي</th>
+                <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">آخر سعر بيع / كيلو</th>
                 <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">ملاحظات</th>
                 <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">الإجراءات</th>
             </tr>
@@ -18,6 +19,13 @@
                 </td>
                 <td class="px-4 py-3 text-[0.85rem] font-bold text-slate-700 border-b border-slate-100 align-middle text-center" dir="ltr">
                     {{ format_quantity($product->stock) }} <span class="text-xs text-slate-500 font-normal">كيلو</span>
+                </td>
+                <td class="px-4 py-3 text-[0.85rem] font-black text-emerald-700 border-b border-slate-100 align-middle text-center" dir="ltr">
+                    @if($product->last_sale_price !== null)
+                        {{ format_amount($product->last_sale_price) }} <span class="text-xs text-slate-400 font-normal">ج.م</span>
+                    @else
+                        <span class="text-slate-400 font-medium">لم يُبع بعد</span>
+                    @endif
                 </td>
                 <td class="px-4 py-3 text-[0.8rem] text-slate-600 border-b border-slate-100 align-middle text-center">{{ $product->notes ?? '-' }}</td>
                 <td class="px-4 py-3 border-b border-slate-100 align-middle text-center">
@@ -40,7 +48,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="5" class="px-4 py-8 text-sm text-slate-500 text-center">
+                <td colspan="6" class="px-4 py-8 text-sm text-slate-500 text-center">
                     لا يوجد منتجات مضافة حتى الآن.
                 </td>
             </tr>

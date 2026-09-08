@@ -3,15 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Purchase;
 use App\Models\PurchaseItem;
+use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::withCount(['transactions' => function ($query) {
+        $query = Product::withLastSalePrice()->withCount(['transactions' => function ($query) {
             $query->where('type', 'رصيد افتتاحي');
         }]);
 
@@ -185,9 +188,17 @@ class ProductController extends Controller
     public function show($id)
     {
         $product = Product::with(['transactions' => function ($q) {
-            $q->orderBy('id', 'desc');
+            $q->orderByDesc('transaction_date')->orderByDesc('id');
         }])->findOrFail($id);
 
-        return view('products.show', compact('product'));
+        $product->transactions->loadMorph('related', [
+            Sale::class => ['customer', 'items'],
+            Purchase::class => ['supplier', 'items'],
+            Transaction::class => ['transactionable'],
+        ]);
+
+        $salesSummary = $product->salesSummary();
+
+        return view('products.show', compact('product', 'salesSummary'));
     }
 }

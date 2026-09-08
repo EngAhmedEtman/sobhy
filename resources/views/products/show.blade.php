@@ -1,129 +1,113 @@
-<?php if (isset($component)) { $__componentOriginal5863877a5171c196453bfa0bd807e410 = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginal5863877a5171c196453bfa0bd807e410 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.layouts.app','data' => ['title' => ''.e($product->name).'']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('layouts.app'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['title' => ''.e($product->name).'']); ?>
-     <?php $__env->slot('breadcrumb', null, []); ?> المنتجات > <?php echo e($product->name); ?> <?php $__env->endSlot(); ?>
+<x-layouts.app :title="$product->name">
+    <x-slot name="breadcrumb">المنتجات / {{ $product->name }}</x-slot>
 
-    <!-- Top Bar -->
-    <div class="flex flex-col-reverse sm:flex-row items-start sm:items-center gap-3 mb-4 sm:mb-6">
+    <div class="flex flex-col-reverse sm:flex-row items-start sm:items-center gap-3 mb-5">
         <div class="flex-1 bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
             <div class="flex items-center gap-3 min-w-0">
                 <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-lg flex items-center justify-center shrink-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
                 </div>
-                <h2 class="text-lg sm:text-xl font-black text-slate-800 truncate"><?php echo e($product->name); ?></h2>
+                <div class="min-w-0">
+                    <h2 class="text-lg sm:text-xl font-black text-slate-800 truncate">{{ $product->name }}</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">سجل الأسعار والحركات الكامل للمنتج</p>
+                </div>
             </div>
-            
-            <div class="bg-slate-50 sm:bg-transparent rounded-lg p-3 sm:p-0 border border-slate-100 sm:border-none flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                <span class="text-xs sm:text-sm text-slate-500 font-bold block">الرصيد المتاح بالمخزن:</span>
-                <div class="flex items-center gap-1.5">
-                    <span class="text-lg sm:text-xl font-black {{ $product->stock < 0 ? 'text-danger-600' : 'text-primary-600' }}" dir="ltr">{{ format_quantity($product->stock) }}</span>
-                    <span class="text-xs text-slate-400 font-bold">كيلو</span>
-                </div>
+            <div class="bg-slate-50 rounded-lg p-3 border border-slate-100 flex items-center justify-between gap-3 shrink-0">
+                <span class="text-xs sm:text-sm text-slate-500 font-bold">الرصيد المتاح:</span>
+                <span class="text-lg sm:text-xl font-black {{ $product->stock < 0 ? 'text-danger-600' : 'text-primary-600' }}" dir="ltr">
+                    {{ format_quantity($product->stock) }} <span class="text-xs text-slate-400">{{ $product->unit ?? 'كيلو' }}</span>
+                </span>
             </div>
         </div>
         <a href="{{ route('products.index') }}" class="px-4 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 hover:text-primary-600 text-sm font-bold flex items-center justify-center gap-2 shrink-0 transition-all shadow-sm w-full sm:w-auto">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
             العودة للقائمة
         </a>
     </div>
 
-    <!-- Mobile Cards for Transactions -->
-    <div class="sm:hidden space-y-3">
-        <h3 class="font-bold text-slate-800 text-base">سجل الحركات</h3>
-        @forelse($product->transactions as $transaction)
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <div class="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
-            <div class="flex justify-between items-center mb-2">
-                <span class="px-2 py-0.5 rounded text-[0.7rem] font-bold {{ $transaction->quantity > 0 ? 'bg-primary-50 text-primary-700 border border-primary-200' : 'bg-danger-50 text-danger-700 border border-danger-200' }}">
-                    {{ transaction_type_label($transaction->type, 'product') }}
-                </span>
-                <span class="text-[0.7rem] text-slate-400 font-bold" dir="ltr">{{ ($transaction->transaction_date ?? $transaction->created_at)->format('Y-m-d') }}</span>
-            </div>
-            <div class="flex justify-between items-center">
-                <div>
-                    @if($transaction->quantity > 0)
-                    <span class="text-sm text-slate-500">وارد:</span>
-                    <span class="text-base font-black text-primary-600" dir="ltr">{{ format_quantity($transaction->quantity) }}</span>
-                    @else
-                    <span class="text-sm text-slate-500">منصرف:</span>
-                    <span class="text-base font-black text-danger-600" dir="ltr">{{ format_quantity(abs($transaction->quantity)) }}</span>
-                    @endif
-                </div>
-                <div class="text-left">
-                    <span class="text-xs text-slate-400">الرصيد بعدها:</span>
-                    <span class="text-sm font-black text-slate-700" dir="ltr">{{ format_quantity($transaction->balance_after) }}</span>
-                </div>
-            </div>
-            @if($transaction->notes)
-            <p class="text-xs text-slate-400 mt-2 truncate">{{ $transaction->notes }}</p>
-            @endif
+            <p class="text-[0.7rem] font-bold text-slate-500 mb-1">متوسط سعر البيع / كيلو</p>
+            <p class="text-lg font-black text-primary-700" dir="ltr">{{ $salesSummary['average_price'] !== null ? format_amount($salesSummary['average_price']) : '-' }} <span class="text-[0.65rem] text-slate-400">ج.م</span></p>
         </div>
+        <div class="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
+            <p class="text-[0.7rem] font-bold text-slate-500 mb-1">أقل سعر بيع / كيلو</p>
+            <p class="text-lg font-black text-amber-700" dir="ltr">{{ $salesSummary['lowest_price'] !== null ? format_amount($salesSummary['lowest_price']) : '-' }} <span class="text-[0.65rem] text-slate-400">ج.م</span></p>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
+            <p class="text-[0.7rem] font-bold text-slate-500 mb-1">أعلى سعر بيع / كيلو</p>
+            <p class="text-lg font-black text-emerald-700" dir="ltr">{{ $salesSummary['highest_price'] !== null ? format_amount($salesSummary['highest_price']) : '-' }} <span class="text-[0.65rem] text-slate-400">ج.م</span></p>
+        </div>
+        <div class="bg-primary-50 rounded-xl border border-primary-100 shadow-sm p-4">
+            <p class="text-[0.7rem] font-bold text-primary-600 mb-1">إجمالي مبيعات المنتج</p>
+            <p class="text-lg font-black text-primary-800" dir="ltr">{{ format_amount($salesSummary['total_sales']) }} <span class="text-[0.65rem] text-primary-500">ج.م</span></p>
+            <p class="text-[0.65rem] text-primary-500 mt-1" dir="ltr">{{ format_quantity($salesSummary['total_quantity']) }} {{ $product->unit ?? 'كيلو' }}</p>
+        </div>
+    </div>
+
+    <div class="sm:hidden space-y-3">
+        <h3 class="font-bold text-slate-800 text-base">كل حركات المنتج</h3>
+        @forelse($product->transactions as $transaction)
+            <div class="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
+                <div class="flex justify-between items-center gap-2 mb-3">
+                    <span class="px-2 py-0.5 rounded text-[0.7rem] font-bold {{ $transaction->is_incoming ? 'bg-primary-50 text-primary-700 border border-primary-200' : 'bg-danger-50 text-danger-700 border border-danger-200' }}">{{ $transaction->type_name }}</span>
+                    <span class="text-[0.7rem] text-slate-400 font-bold" dir="ltr">{{ ($transaction->transaction_date ?? $transaction->created_at)->format('Y-m-d') }}</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div><span class="text-slate-400">الفاتورة / العملية:</span><p class="font-bold text-slate-700 mt-0.5">{{ $transaction->reference_number }}</p></div>
+                    <div><span class="text-slate-400">العميل / المورد:</span><p class="font-bold text-slate-700 mt-0.5">{{ $transaction->party_name }}</p></div>
+                    <div><span class="text-slate-400">الكمية:</span><p class="font-black {{ $transaction->is_incoming ? 'text-primary-600' : 'text-danger-600' }} mt-0.5" dir="ltr">{{ format_quantity(abs($transaction->quantity)) }} {{ $product->unit }}</p></div>
+                    <div><span class="text-slate-400">سعر الوحدة:</span><p class="font-black text-emerald-700 mt-0.5" dir="ltr">{{ $transaction->unit_price !== null ? format_amount($transaction->unit_price).' ج.م' : '-' }}</p></div>
+                    <div><span class="text-slate-400">إجمالي الحركة:</span><p class="font-black text-slate-700 mt-0.5" dir="ltr">{{ $transaction->operation_total !== null ? format_amount($transaction->operation_total).' ج.م' : '-' }}</p></div>
+                    <div><span class="text-slate-400">الرصيد بعدها:</span><p class="font-black text-slate-700 mt-0.5" dir="ltr">{{ format_quantity($transaction->balance_after) }}</p></div>
+                </div>
+                @if($transaction->notes)<p class="text-xs text-slate-400 mt-3 border-t border-slate-50 pt-2">{{ $transaction->notes }}</p>@endif
+            </div>
         @empty
-        <div class="bg-white rounded-xl border border-slate-100 p-8 text-center text-sm text-slate-500">لم يتم تسجيل أي حركات بعد.</div>
+            <div class="bg-white rounded-xl border border-slate-100 p-8 text-center text-sm text-slate-500">لم يتم تسجيل أي حركات بعد.</div>
         @endforelse
     </div>
 
-    <!-- Desktop Table -->
     <div class="hidden sm:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center gap-3">
-            <div class="p-2 bg-primary-50 text-primary-600 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-            </div>
-            <div>
-                <h3 class="font-bold text-slate-800 text-lg">سجل حركات الصنف</h3>
-                <p class="text-xs text-slate-500">تتبع مفصل للكميات الواردة والمنصرفة</p>
-            </div>
+        <div class="p-5 border-b border-slate-100">
+            <h3 class="font-bold text-slate-800 text-lg">سجل حركات وأسعار الصنف</h3>
+            <p class="text-xs text-slate-500 mt-0.5">سعر الكيلو وإجمالي كل حركة طبقًا للفاتورة المسجلة وقتها</p>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-center border-collapse whitespace-nowrap">
                 <thead class="bg-slate-50">
                     <tr>
-                        <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">التاريخ</th>
-                        <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">العميل / المورد</th>
-                        <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">نوع الحركة</th>
-                        <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">الكمية الواردة</th>
-                        <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">الكمية المنصرفة</th>
-                        <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">الرصيد بعد الحركة</th>
-                        <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide align-middle text-center">البيان</th>
+                        <th class="px-3 py-3 text-xs font-bold text-slate-500 border-b">التاريخ</th>
+                        <th class="px-3 py-3 text-xs font-bold text-slate-500 border-b">رقم الفاتورة / العملية</th>
+                        <th class="px-3 py-3 text-xs font-bold text-slate-500 border-b">العميل / المورد</th>
+                        <th class="px-3 py-3 text-xs font-bold text-slate-500 border-b">نوع الحركة</th>
+                        <th class="px-3 py-3 text-xs font-bold text-slate-500 border-b">وارد</th>
+                        <th class="px-3 py-3 text-xs font-bold text-slate-500 border-b">منصرف</th>
+                        <th class="px-3 py-3 text-xs font-bold text-slate-500 border-b">سعر / كيلو</th>
+                        <th class="px-3 py-3 text-xs font-bold text-slate-500 border-b">إجمالي الحركة</th>
+                        <th class="px-3 py-3 text-xs font-bold text-slate-500 border-b">الرصيد بعد</th>
+                        <th class="px-3 py-3 text-xs font-bold text-slate-500 border-b">البيان</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($product->transactions as $transaction)
-                    <tr class="hover:bg-slate-50/60 transition-colors group">
-                        <td class="px-4 py-3 text-[0.75rem] text-slate-500 border-b border-slate-100 align-middle text-center font-bold" dir="ltr">{{ ($transaction->transaction_date ?? $transaction->created_at)->format('Y-m-d') }}</td>
-                        <td class="px-4 py-3 text-[0.8rem] font-bold text-slate-700 border-b border-slate-100 align-middle text-center">@if($transaction->related){{ $transaction->related->party_name ?? 'فاتورة' }}@else - @endif</td>
-                        <td class="px-4 py-3 text-[0.8rem] font-bold text-slate-700 border-b border-slate-100 align-middle text-center">
-                            <span class="px-2 py-1 rounded text-[0.7rem] {{ $transaction->quantity > 0 ? 'bg-primary-50 text-primary-700 border border-primary-200' : 'bg-danger-50 text-danger-700 border border-danger-200' }}">
-                                {{ transaction_type_label($transaction->type, 'product') }}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3 text-[0.85rem] font-bold text-primary-600 border-b border-slate-100 align-middle text-center" dir="ltr">{{ $transaction->quantity > 0 ? format_quantity($transaction->quantity) : '-' }}</td>
-                        <td class="px-4 py-3 text-[0.85rem] font-bold text-danger-600 border-b border-slate-100 align-middle text-center" dir="ltr">{{ $transaction->quantity < 0 ? format_quantity(abs($transaction->quantity)) : '-' }}</td>
-                        <td class="px-4 py-3 text-[0.85rem] font-bold text-slate-800 border-b border-slate-100 align-middle text-center" dir="ltr">{{ format_quantity($transaction->balance_after) }}</td>
-                        <td class="px-4 py-3 text-[0.8rem] text-slate-500 border-b border-slate-100 align-middle text-center max-w-xs truncate">{{ $transaction->notes ?? '-' }}</td>
-                    </tr>
+                        <tr class="hover:bg-slate-50/60 transition-colors">
+                            <td class="px-3 py-3 text-xs text-slate-500 border-b" dir="ltr">{{ ($transaction->transaction_date ?? $transaction->created_at)->format('Y-m-d') }}</td>
+                            <td class="px-3 py-3 text-xs font-black text-slate-700 border-b">{{ $transaction->reference_number }}</td>
+                            <td class="px-3 py-3 text-xs font-bold text-slate-700 border-b">{{ $transaction->party_name }}</td>
+                            <td class="px-3 py-3 text-xs font-bold border-b"><span class="px-2 py-1 rounded {{ $transaction->is_incoming ? 'bg-primary-50 text-primary-700' : 'bg-danger-50 text-danger-700' }}">{{ $transaction->type_name }}</span></td>
+                            <td class="px-3 py-3 text-sm font-bold text-primary-600 border-b" dir="ltr">{{ $transaction->is_incoming ? format_quantity(abs($transaction->quantity)) : '-' }}</td>
+                            <td class="px-3 py-3 text-sm font-bold text-danger-600 border-b" dir="ltr">{{ !$transaction->is_incoming ? format_quantity(abs($transaction->quantity)) : '-' }}</td>
+                            <td class="px-3 py-3 text-sm font-black text-emerald-700 border-b" dir="ltr">{{ $transaction->unit_price !== null ? format_amount($transaction->unit_price).' ج.م' : '-' }}</td>
+                            <td class="px-3 py-3 text-sm font-bold text-slate-700 border-b" dir="ltr">{{ $transaction->operation_total !== null ? format_amount($transaction->operation_total).' ج.م' : '-' }}</td>
+                            <td class="px-3 py-3 text-sm font-bold text-slate-800 border-b" dir="ltr">{{ format_quantity($transaction->balance_after) }}</td>
+                            <td class="px-3 py-3 text-xs text-slate-500 border-b max-w-xs truncate">{{ $transaction->notes ?? '-' }}</td>
+                        </tr>
                     @empty
-                    <tr><td colspan="7" class="px-4 py-8 text-sm text-slate-500 text-center">لم يتم تسجيل أي حركات لهذا المنتج بعد.</td></tr>
+                        <tr><td colspan="10" class="px-4 py-10 text-sm text-slate-500">لم يتم تسجيل أي حركات لهذا المنتج بعد.</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
     </div>
- <?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginal5863877a5171c196453bfa0bd807e410)): ?>
-<?php $attributes = $__attributesOriginal5863877a5171c196453bfa0bd807e410; ?>
-<?php unset($__attributesOriginal5863877a5171c196453bfa0bd807e410); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginal5863877a5171c196453bfa0bd807e410)): ?>
-<?php $component = $__componentOriginal5863877a5171c196453bfa0bd807e410; ?>
-<?php unset($__componentOriginal5863877a5171c196453bfa0bd807e410); ?>
-<?php endif; ?>
+</x-layouts.app>

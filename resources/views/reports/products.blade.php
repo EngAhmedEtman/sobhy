@@ -84,6 +84,27 @@
                 </p>
             </div>
 
+            <!-- Sales price analytics for the selected period -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4 print:hidden">
+                <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+                    <p class="text-[0.7rem] font-bold text-slate-500 mb-1">متوسط سعر البيع / كيلو</p>
+                    <p class="text-lg font-black text-primary-700" dir="ltr">{{ $salesSummary['average_price'] !== null ? format_amount($salesSummary['average_price']) : '-' }} <span class="text-[0.65rem] text-slate-400">ج.م</span></p>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+                    <p class="text-[0.7rem] font-bold text-slate-500 mb-1">أقل سعر بيع / كيلو</p>
+                    <p class="text-lg font-black text-amber-700" dir="ltr">{{ $salesSummary['lowest_price'] !== null ? format_amount($salesSummary['lowest_price']) : '-' }} <span class="text-[0.65rem] text-slate-400">ج.م</span></p>
+                </div>
+                <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+                    <p class="text-[0.7rem] font-bold text-slate-500 mb-1">أعلى سعر بيع / كيلو</p>
+                    <p class="text-lg font-black text-emerald-700" dir="ltr">{{ $salesSummary['highest_price'] !== null ? format_amount($salesSummary['highest_price']) : '-' }} <span class="text-[0.65rem] text-slate-400">ج.م</span></p>
+                </div>
+                <div class="bg-primary-50 rounded-xl border border-primary-100 p-4 text-center">
+                    <p class="text-[0.7rem] font-bold text-primary-600 mb-1">إجمالي مبيعات المنتج</p>
+                    <p class="text-lg font-black text-primary-800" dir="ltr">{{ format_amount($salesSummary['total_sales']) }} <span class="text-[0.65rem] text-primary-500">ج.م</span></p>
+                    <p class="text-[0.65rem] text-primary-500 mt-1" dir="ltr">{{ format_quantity($salesSummary['total_quantity']) }} {{ $product->unit }}</p>
+                </div>
+            </div>
+
             <!-- Compact Web Metrics Panel -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 mb-6 print:hidden">
                 <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-slate-100">
@@ -133,6 +154,24 @@
                         </tr>
                     </tbody>
                 </table>
+                <table class="w-full text-center border-collapse mt-4">
+                    <thead>
+                        <tr>
+                            <th>متوسط سعر البيع / كيلو</th>
+                            <th>أقل سعر بيع / كيلو</th>
+                            <th>أعلى سعر بيع / كيلو</th>
+                            <th>إجمالي المبيعات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td dir="ltr">{{ $salesSummary['average_price'] !== null ? format_amount($salesSummary['average_price']).' ج.م' : '-' }}</td>
+                            <td dir="ltr">{{ $salesSummary['lowest_price'] !== null ? format_amount($salesSummary['lowest_price']).' ج.م' : '-' }}</td>
+                            <td dir="ltr">{{ $salesSummary['highest_price'] !== null ? format_amount($salesSummary['highest_price']).' ج.م' : '-' }}</td>
+                            <td dir="ltr">{{ format_amount($salesSummary['total_sales']) }} ج.م</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
 
             <!-- Data Table -->
@@ -142,8 +181,12 @@
                         <thead class="bg-slate-50">
                             <tr>
                                 <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide">التاريخ</th>
+                                <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide">الفاتورة / العملية</th>
+                                <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide">العميل / المورد</th>
                                 <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide">نوع الحركة</th>
                                 <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide">الكمية</th>
+                                <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide">سعر / كيلو</th>
+                                <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide">إجمالي الحركة</th>
                                 <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide">الرصيد بعد</th>
                                 <th class="px-4 py-3 text-[0.75rem] font-bold text-slate-500 border-b border-slate-100 uppercase tracking-wide print:hidden">البيان</th>
                             </tr>
@@ -154,21 +197,19 @@
                                     <td class="px-4 py-2.5 text-[0.8rem] text-slate-700 border-b border-slate-50 align-middle">
                                         <div class="font-semibold" dir="ltr">{{ ($transaction->transaction_date ?? $transaction->created_at)->format('Y-m-d') }}</div>
                                     </td>
+                                    <td class="px-4 py-2.5 text-[0.8rem] font-black text-slate-700 border-b border-slate-50 align-middle">{{ $transaction->reference_number }}</td>
+                                    <td class="px-4 py-2.5 text-[0.8rem] font-bold text-slate-700 border-b border-slate-50 align-middle">{{ $transaction->party_name }}</td>
                                     <td class="px-4 py-2.5 text-[0.8rem] text-slate-700 border-b border-slate-50 align-middle">
-                                        @if($transaction->type == 'sale')
-                                            <span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[0.7rem] font-bold bg-danger-50 text-danger-600">مبيعات (سحب)</span>
-                                        @elseif($transaction->type == 'purchase')
-                                            <span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[0.7rem] font-bold bg-success-50 text-success-600">مشتريات (دخول)</span>
-                                        @elseif($transaction->type == 'adjustment_add')
-                                            <span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[0.7rem] font-bold bg-primary-50 text-primary-600">تسوية بالزيادة</span>
-                                        @elseif($transaction->type == 'adjustment_sub')
-                                            <span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[0.7rem] font-bold bg-warning-50 text-warning-600">تسوية بالنقص</span>
-                                        @else
-                                            <span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[0.7rem] font-bold bg-slate-50 text-slate-600">{{ transaction_type_label($transaction->type, 'product') }}</span>
-                                        @endif
+                                        <span class="inline-flex items-center justify-center px-2 py-0.5 rounded text-[0.7rem] font-bold {{ $transaction->is_incoming ? 'bg-primary-50 text-primary-700' : 'bg-danger-50 text-danger-700' }}">{{ $transaction->type_name }}</span>
                                     </td>
                                     <td class="px-4 py-2.5 text-[0.8rem] font-bold text-slate-800 border-b border-slate-50 align-middle" dir="ltr">
-                                        {{ format_quantity($transaction->quantity) }}
+                                        {{ $transaction->is_incoming ? '+' : '-' }}{{ format_quantity(abs($transaction->quantity)) }}
+                                    </td>
+                                    <td class="px-4 py-2.5 text-[0.8rem] font-black text-emerald-700 border-b border-slate-50 align-middle" dir="ltr">
+                                        {{ $transaction->unit_price !== null ? format_amount($transaction->unit_price).' ج.م' : '-' }}
+                                    </td>
+                                    <td class="px-4 py-2.5 text-[0.8rem] font-bold text-slate-700 border-b border-slate-50 align-middle" dir="ltr">
+                                        {{ $transaction->operation_total !== null ? format_amount($transaction->operation_total).' ج.م' : '-' }}
                                     </td>
                                     <td class="px-4 py-2.5 text-[0.8rem] font-bold text-slate-800 border-b border-slate-50 align-middle" dir="ltr">
                                         {{ format_quantity($transaction->balance_after) }}
