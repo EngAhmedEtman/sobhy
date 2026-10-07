@@ -13,9 +13,13 @@ use Illuminate\Support\Facades\DB;
 
 class PrintController extends Controller
 {
-    public function sale(Sale $sale)
+    public function sale(Request $request, Sale $sale)
     {
-        $sale->load(['customer', 'items.product']);
+        $sale->load(['customer', 'items.product', 'ledgerTransaction']);
+
+        if ($request->query('format') === 'thermal' || $request->has('thermal')) {
+            return $this->saleThermal($sale);
+        }
 
         return view('print.invoice', [
             'type' => 'sale',
@@ -24,14 +28,40 @@ class PrintController extends Controller
         ]);
     }
 
-    public function purchase(Purchase $purchase)
+    public function saleThermal(Sale $sale)
     {
-        $purchase->load(['supplier', 'items.product']);
+        $sale->load(['customer', 'items.product', 'ledgerTransaction']);
+
+        return view('print.invoice-thermal', [
+            'type' => 'sale',
+            'invoice' => $sale,
+            'title' => 'فاتورة مبيعات رقم #'.$sale->id.' (حراري 80mm)',
+        ]);
+    }
+
+    public function purchase(Request $request, Purchase $purchase)
+    {
+        $purchase->load(['supplier', 'items.product', 'ledgerTransaction']);
+
+        if ($request->query('format') === 'thermal' || $request->has('thermal')) {
+            return $this->purchaseThermal($purchase);
+        }
 
         return view('print.invoice', [
             'type' => 'purchase',
             'invoice' => $purchase,
             'title' => 'فاتورة مشتريات رقم #'.$purchase->id,
+        ]);
+    }
+
+    public function purchaseThermal(Purchase $purchase)
+    {
+        $purchase->load(['supplier', 'items.product', 'ledgerTransaction']);
+
+        return view('print.invoice-thermal', [
+            'type' => 'purchase',
+            'invoice' => $purchase,
+            'title' => 'فاتورة مشتريات رقم #'.$purchase->id.' (حراري 80mm)',
         ]);
     }
 

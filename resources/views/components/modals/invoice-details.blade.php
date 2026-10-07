@@ -9,10 +9,16 @@
                 <div class="flex items-center gap-2">
                     <template x-if="details && details.id">
                         <div class="flex items-center gap-2">
-                            <!-- Print Button -->
-                            <button @click="openPrintPreviewModal('printPreviewModal', `/{{ $type === 'purchase' ? 'purchases' : 'sales' }}/${details.id}/print`)" class="px-3 py-1.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors" title="طباعة الفاتورة">
+                            <!-- A4 Print Button -->
+                            <button type="button" @click="openPrintPreviewModal('printPreviewModal', `/{{ $type === 'purchase' ? 'purchases' : 'sales' }}/${details.id}/print`, 'معاينة طباعة الفاتورة (A4)')" class="px-2.5 sm:px-3 py-1.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors" title="طباعة الفاتورة عادية (A4)">
                                 <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                                <span>طباعة</span>
+                                <span>طباعة A4</span>
+                            </button>
+
+                            <!-- Thermal 80mm Print Button -->
+                            <button type="button" @click="openPrintPreviewModal('printPreviewModal', `/{{ $type === 'purchase' ? 'purchases' : 'sales' }}/${details.id}/print?thermal=1`, 'معاينة طباعة حرارية (80mm)')" class="px-2.5 sm:px-3 py-1.5 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg hover:bg-amber-100 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm" title="طباعة إيصال حراري (80mm)">
+                                <svg class="w-4 h-4 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                <span>طباعة حراري (80mm)</span>
                             </button>
                             <!-- Edit Button -->
                             <button x-show="details.can_edit" @click="$dispatch('edit-{{ $type }}', details.id); showDetailsModal = false" class="px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 hover:text-blue-800 text-xs font-bold flex items-center gap-1.5 transition-colors" title="تعديل الفاتورة">

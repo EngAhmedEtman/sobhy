@@ -22,13 +22,25 @@
                     <a
                         x-show="invoiceDetails && invoicePrintUrl"
                         :href="invoicePrintUrl"
+                        @click.prevent="openPrintPreviewModal('printPreviewModal', invoicePrintUrl, 'معاينة طباعة الفاتورة (A4)')"
                         target="_blank"
                         rel="noopener"
-                        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-100 cursor-pointer"
+                        title="طباعة الفاتورة A4"
                     >
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                        <span>طباعة</span>
+                        <span>طباعة A4</span>
                     </a>
+                    <button
+                        type="button"
+                        x-show="invoiceDetails && invoicePrintUrl"
+                        @click="openPrintPreviewModal('printPreviewModal', invoicePrintUrl + (invoicePrintUrl.includes('?') ? '&' : '?') + 'thermal=1', 'معاينة طباعة حرارية (80mm)')"
+                        class="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800 transition-colors hover:bg-amber-100 cursor-pointer shadow-sm"
+                        title="طباعة إيصال حراري (80mm)"
+                    >
+                        <svg class="h-4 w-4 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                        <span>طباعة حراري (80mm)</span>
+                    </button>
                     <button type="button" @click="closeInvoiceModal()" aria-label="إغلاق تفاصيل الفاتورة" class="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>

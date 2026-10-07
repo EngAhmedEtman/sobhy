@@ -22,8 +22,8 @@ $maxWidthClass = match ($maxWidth) {
 
 <script>
     if (typeof window.openPrintPreviewModal === 'undefined') {
-        window.openPrintPreviewModal = function(modalId, customUrl) {
-            window.dispatchEvent(new CustomEvent('open-print-preview', { detail: { id: modalId, url: customUrl } }));
+        window.openPrintPreviewModal = function(modalId, customUrl, customTitle) {
+            window.dispatchEvent(new CustomEvent('open-print-preview', { detail: { id: modalId, url: customUrl, title: customTitle } }));
         };
     }
 </script>
@@ -32,6 +32,7 @@ $maxWidthClass = match ($maxWidth) {
         open: false, 
         loaded: false, 
         currentUrl: '{{ $printUrl }}',
+        currentTitle: '{{ $title }}',
 
         printDocument() {
             const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
@@ -55,7 +56,7 @@ $maxWidthClass = match ($maxWidth) {
             }
         }
      }" 
-     @open-print-preview.window="if ($event.detail.id === '{{ $id }}') { open = true; loaded = true; if ($event.detail.url) { currentUrl = $event.detail.url; } }">
+     @open-print-preview.window="if ($event.detail.id === '{{ $id }}') { open = true; loaded = true; if ($event.detail.url) { currentUrl = $event.detail.url; } currentTitle = $event.detail.title || '{{ $title }}'; }">
     <template x-teleport="body">
         <div x-show="open" 
              x-cloak
@@ -92,7 +93,7 @@ $maxWidthClass = match ($maxWidth) {
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                         </div>
                         <div class="min-w-0">
-                            <h3 class="text-xs sm:text-sm font-bold text-slate-800 leading-tight truncate" id="modal-title">{{ $title }}</h3>
+                            <h3 class="text-xs sm:text-sm font-bold text-slate-800 leading-tight truncate" id="modal-title" x-text="currentTitle">{{ $title }}</h3>
                             <p class="text-[0.65rem] text-slate-400 font-medium hidden sm:block">معاينة تفاصيل الطباعة</p>
                         </div>
                     </div>
