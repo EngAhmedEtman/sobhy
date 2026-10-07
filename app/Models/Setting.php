@@ -15,26 +15,27 @@ class Setting extends Model
     public static function get($key, $default = null)
     {
         try {
-            return Cache::rememberForever('setting_' . $key, function () use ($key, $default) {
+            return Cache::rememberForever('setting_'.$key, function () use ($key, $default) {
                 if ($key === 'phone' || $key === 'company_phone') {
-                    $setting = self::whereIn('key', ['company_phone', 'phone'])
+                    $settings = self::whereIn('key', ['company_phone', 'phone'])
                         ->whereNotNull('value')
                         ->where('value', '!=', '')
-                        ->orderByRaw("CASE WHEN key = 'company_phone' THEN 1 ELSE 2 END")
-                        ->first();
-                    return $setting ? $setting->value : $default;
+                        ->pluck('value', 'key');
+
+                    return $settings->get('company_phone') ?: $settings->get('phone', $default);
                 }
 
                 if ($key === 'address' || $key === 'company_address') {
-                    $setting = self::whereIn('key', ['company_address', 'address'])
+                    $settings = self::whereIn('key', ['company_address', 'address'])
                         ->whereNotNull('value')
                         ->where('value', '!=', '')
-                        ->orderByRaw("CASE WHEN key = 'company_address' THEN 1 ELSE 2 END")
-                        ->first();
-                    return $setting ? $setting->value : $default;
+                        ->pluck('value', 'key');
+
+                    return $settings->get('company_address') ?: $settings->get('address', $default);
                 }
 
                 $setting = self::where('key', $key)->first();
+
                 return $setting ? $setting->value : $default;
             });
         } catch (\Throwable $e) {
@@ -50,7 +51,7 @@ class Setting extends Model
                 ['value' => $value, 'type' => $type, 'group' => $group]
             );
 
-            Cache::forget('setting_' . $key);
+            Cache::forget('setting_'.$key);
 
             if ($key === 'phone' || $key === 'company_phone') {
                 Cache::forget('setting_phone');
