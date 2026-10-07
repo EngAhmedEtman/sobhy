@@ -294,8 +294,8 @@
             <div class="company-name">{{ \App\Models\Setting::get('company_name', 'مؤسسة صبحي رضا') }}</div>
 
             @php
-                $phone = \App\Models\Setting::get('phone');
-                $address = \App\Models\Setting::get('address');
+                $phone = \App\Models\Setting::get('company_phone') ?: \App\Models\Setting::get('phone');
+                $address = \App\Models\Setting::get('company_address') ?: \App\Models\Setting::get('address');
             @endphp
 
             <div class="company-meta">

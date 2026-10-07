@@ -30,6 +30,9 @@ class ThermalInvoicePrintTest extends TestCase
 
         $this->user = User::factory()->create(['email' => 'admin@gmail.com']);
 
+        \App\Models\Setting::set('company_phone', '01018152900');
+        \App\Models\Setting::set('phone', '01018152900');
+
         $this->customer = Customer::create([
             'name' => 'العميل التجريبي',
             'phone' => '01012345678',
@@ -206,5 +209,70 @@ class ThermalInvoicePrintTest extends TestCase
         $this->assertStringContainsString('طباعة حرارية (80mm)', $customerHtml);
         $this->assertStringContainsString("generatePrint('thermal')", $customerHtml);
         $this->assertStringContainsString("generatePrint('standard')", $customerHtml);
+    }
+
+    public function test_transaction_thermal_print_renders_payment_receipt(): void
+    {
+        $transaction = \App\Models\Transaction::create([
+            'transactionable_type' => Customer::class,
+            'transactionable_id' => $this->customer->id,
+            'type' => 'payment_received',
+            'paid_amount' => 350,
+            'total_amount' => 0,
+            'balance_after' => 1150,
+            'transaction_date' => now()->toDateString(),
+            'notes' => 'تحصيل دفعة نقدية تجريبية',
+        ]);
+
+        $response = $this->actingAs($this->user)->get(route('transactions.print.thermal', $transaction));
+
+        $response->assertOk();
+        $response->assertSee('80mm', false);
+        $response->assertSee('إيصال استلام نقدية (تحصيل)');
+        $response->assertSee('REC-' . str_pad($transaction->id, 5, '0', STR_PAD_LEFT));
+        $response->assertSee($this->customer->name);
+        $response->assertSee('350');
+        $response->assertSee('01018152900');
+    }
+
+    public function test_transaction_thermal_print_renders_return_sale_with_item_details(): void
+    {
+        $transaction = \App\Models\Transaction::create([
+            'transactionable_type' => Customer::class,
+            'transactionable_id' => $this->customer->id,
+            'type' => 'return_sale',
+            'product_id' => $this->product->id,
+            'quantity' => 2,
+            'unit_price' => 100,
+            'paid_amount' => 0,
+            'total_amount' => 200,
+            'balance_after' => 1300,
+            'transaction_date' => now()->toDateString(),
+            'notes' => 'مرتجع صنف تجريبي',
+        ]);
+
+        $response = $this->actingAs($this->user)->get(route('transactions.print.thermal', $transaction));
+
+        $response->assertOk();
+        $response->assertSee('80mm', false);
+        $response->assertSee('إيصال مرتجع مبيعات');
+        $response->assertSee('RET-S-' . str_pad($transaction->id, 5, '0', STR_PAD_LEFT));
+        $response->assertSee($this->product->name);
+        $response->assertSee('200');
+    }
+
+    public function test_invoice_and_statements_display_phone_from_settings_and_not_developer_phone(): void
+    {
+        \App\Models\Setting::set('company_phone', '01018152900');
+
+        $response = $this->actingAs($this->user)->get(route('print.sale.thermal', $this->sale));
+        $response->assertOk();
+        $response->assertSee('01018152900');
+        $this->assertFalse(str_contains($response->getContent(), '01070191977'));
+
+        $responseStmt = $this->actingAs($this->user)->get(route('print.customer.thermal', $this->customer));
+        $responseStmt->assertOk();
+        $responseStmt->assertSee('01018152900');
+        $this->assertFalse(str_contains($responseStmt->getContent(), '01070191977'));
     }
 }

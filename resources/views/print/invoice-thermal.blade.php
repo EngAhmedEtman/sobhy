@@ -386,8 +386,8 @@
             @php
                 $commercialRegister = \App\Models\Setting::get('commercial_register');
                 $taxNumber = \App\Models\Setting::get('tax_number');
-                $phone = \App\Models\Setting::get('phone');
-                $address = \App\Models\Setting::get('address');
+                $phone = \App\Models\Setting::get('company_phone') ?: \App\Models\Setting::get('phone');
+                $address = \App\Models\Setting::get('company_address') ?: \App\Models\Setting::get('address');
                 $party = $type === 'purchase' ? $invoice->supplier : $invoice->customer;
                 $invoiceNum = $invoice->invoice_number ?? $invoice->id;
                 $barcodeVal = ($type === 'purchase' ? 'PUR-' : 'INV-') . str_pad($invoice->id, 5, '0', STR_PAD_LEFT);

@@ -220,6 +220,10 @@ class CustomerController extends Controller
 
     public function storePayment(Request $request, $id)
     {
+        if (!$request->filled('transaction_type')) {
+            $request->merge(['transaction_type' => 'payment_received']);
+        }
+
         $rules = [
             'transaction_type' => 'required|in:payment_received,cash_withdrawal',
             'amount' => 'required|numeric|min:0.01',

@@ -44,13 +44,23 @@ class TransactionController extends Controller
         ]);
     }
 
-    public function print(Transaction $transaction)
+    public function print(Request $request, Transaction $transaction)
     {
         $this->authorizeRead($transaction);
         $transaction->load(['product', 'transactionable']);
         $transactionable = $transaction->transactionable;
 
+        if ($request->query('format') === 'thermal' || $request->has('thermal')) {
+            return view('print.transaction-thermal', compact('transaction', 'transactionable'));
+        }
+
         return view('print.transaction', compact('transaction', 'transactionable'));
+    }
+
+    public function printThermal(Request $request, Transaction $transaction)
+    {
+        $request->merge(['format' => 'thermal']);
+        return $this->print($request, $transaction);
     }
 
     public function update(Request $request, Transaction $transaction)

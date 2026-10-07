@@ -33,11 +33,11 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">رقم الهاتف للتواصل</label>
-                        <input type="text" name="company_phone" value="<?php echo e($settings['company_phone']->value ?? ''); ?>" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-left text-base" dir="ltr">
+                        <input type="text" name="company_phone" value="<?php echo e($settings['company_phone']->value ?? $settings['phone']->value ?? ''); ?>" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-left text-base" dir="ltr">
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-700 mb-1">عنوان الشركة</label>
-                        <input type="text" name="company_address" value="<?php echo e($settings['company_address']->value ?? ''); ?>" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-base">
+                        <input type="text" name="company_address" value="<?php echo e($settings['company_address']->value ?? $settings['address']->value ?? ''); ?>" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 bg-slate-50 text-base">
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-slate-700 mb-1">ملاحظات في أسفل الفاتورة</label>

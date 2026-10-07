@@ -16,7 +16,7 @@
                 @php
                     $commercialRegister = \App\Models\Setting::get('commercial_register');
                     $taxNumber = \App\Models\Setting::get('tax_number');
-                    $phone = \App\Models\Setting::get('phone');
+                    $phone = \App\Models\Setting::get('company_phone') ?: \App\Models\Setting::get('phone');
                 @endphp
 
                 @if($commercialRegister && $commercialRegister !== '---' && trim($commercialRegister) !== '')

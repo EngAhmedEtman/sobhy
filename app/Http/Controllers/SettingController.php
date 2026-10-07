@@ -21,6 +21,16 @@ class SettingController extends Controller
             Setting::set($key, $value);
         }
 
+        if (array_key_exists('company_phone', $data)) {
+            Setting::set('phone', $data['company_phone']);
+        }
+
+        if (array_key_exists('company_address', $data)) {
+            Setting::set('address', $data['company_address']);
+        }
+
+        \Illuminate\Support\Facades\Cache::flush();
+
         return back()->with('success', 'تم حفظ الإعدادات بنجاح');
     }
 }

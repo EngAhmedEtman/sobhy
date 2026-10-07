@@ -18,7 +18,7 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_can_be_rendered_for_authenticated_user(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['email' => 'admin@gmail.com']);
 
         $customer = Customer::create([
             'name' => 'عميل تجريبي',

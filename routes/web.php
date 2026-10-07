@@ -70,6 +70,7 @@ Route::middleware('auth')->group(function () {
     // ─── Transactions ───────────────────────────────────────────────────────────
     Route::resource('transactions', TransactionController::class)->only(['show', 'update', 'destroy']);
     Route::get('/transactions/{transaction}/print', [TransactionController::class, 'print'])->name('transactions.print');
+    Route::get('/transactions/{transaction}/print-thermal', [TransactionController::class, 'printThermal'])->name('transactions.print.thermal');
 
     // ─── Purchases ──────────────────────────────────────────────────────────────
     Route::get('/purchases', [PurchaseController::class, 'index'])->name('purchases.index')->middleware('permission:purchases.view');

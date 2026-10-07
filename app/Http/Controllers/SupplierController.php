@@ -220,6 +220,10 @@ class SupplierController extends Controller
 
     public function storePayment(Request $request, $id)
     {
+        if (!$request->filled('transaction_type')) {
+            $request->merge(['transaction_type' => 'payment_made']);
+        }
+
         $rules = [
             'transaction_type' => 'required|in:payment_made,cash_withdrawal',
             'amount' => 'required|numeric|min:0.01',
