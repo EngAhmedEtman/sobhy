@@ -84,8 +84,8 @@
         .receipt-header { text-align: center; padding-bottom: 6px; }
 
         .company-name {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 20px;
+            font-weight: 800;
             color: #000;
             line-height: 1.25;
             margin-bottom: 3px;
@@ -93,23 +93,23 @@
         }
 
         .company-meta {
-            font-size: 11px;
+            font-size: 12.5px;
             color: #000;
             line-height: 1.4;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         /* Dividers */
-        .dashed-line { border-top: 1px dashed #000; margin: 5px 0; width: 100%; }
-        .double-dashed-line { border-top: 2px dashed #000; margin: 6px 0; width: 100%; }
+        .dashed-line { border-top: 1px dashed #000; margin: 6px 0; width: 100%; }
+        .double-dashed-line { border-top: 2px dashed #000; margin: 7px 0; width: 100%; }
 
         /* Title Badge */
         .receipt-title-badge {
             text-align: center;
-            font-size: 12px;
-            font-weight: 700;
-            padding: 3px 8px;
-            margin: 4px auto;
+            font-size: 14px;
+            font-weight: 800;
+            padding: 4px 10px;
+            margin: 5px auto;
             border: 2px solid #000;
             border-radius: 4px;
             display: inline-block;
@@ -118,66 +118,69 @@
         }
 
         /* Meta */
-        .meta-list { width: 100%; margin: 4px 0; font-size: 11.5px; }
-        .meta-row { display: flex; justify-content: space-between; align-items: center; padding: 2px 0; }
-        .meta-label { color: #000; font-weight: 600; }
-        .meta-value { font-weight: 700; color: #000; direction: ltr; text-align: left; }
-        .meta-value-rtl { font-weight: 700; color: #000; direction: rtl; text-align: left; }
+        .meta-list { width: 100%; margin: 5px 0; font-size: 13px; }
+        .meta-row { display: flex; justify-content: space-between; align-items: center; padding: 2.5px 0; }
+        .meta-label { color: #000; font-weight: 700; font-size: 13px; }
+        .meta-value { font-weight: 800; color: #000; direction: ltr; text-align: left; font-size: 13px; }
+        .meta-value-rtl { font-weight: 800; color: #000; direction: rtl; text-align: left; font-size: 13px; }
 
         /* Stats Row */
-        .stats-row { display: flex; justify-content: space-between; gap: 4px; margin: 5px 0; }
-        .stat-box { flex: 1; text-align: center; padding: 4px 2px; border: 1px solid #000; border-radius: 3px; }
-        .stat-box-label { font-size: 9px; font-weight: 600; color: #000; margin-bottom: 1px; }
-        .stat-box-value { font-size: 10.5px; font-weight: 700; color: #000; direction: ltr; }
+        .stats-row { display: flex; justify-content: space-between; gap: 4px; margin: 6px 0; }
+        .stat-box { flex: 1; text-align: center; padding: 5px 2px; border: 1.5px solid #000; border-radius: 4px; background: #fff; }
+        .stat-box-label { font-size: 11px; font-weight: 700; color: #000; margin-bottom: 2px; }
+        .stat-box-value { font-size: 13px; font-weight: 800; color: #000; direction: ltr; }
 
         /* Operation Card */
         .op-card {
-            border: 1px solid #000;
-            border-radius: 3px;
-            margin: 6px 0;
+            border: 1.5px solid #000;
+            border-radius: 4px;
+            margin: 7px 0;
             overflow: hidden;
+            background: #fff;
         }
 
         .op-card-header {
-            padding: 4px 5px;
+            padding: 5px 6px;
             border-bottom: 1px dashed #000;
-            font-size: 11px;
-            font-weight: 700;
+            font-size: 12.5px;
+            font-weight: 800;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: #f8fafc;
         }
 
         .op-type-badge {
-            font-size: 10px;
-            font-weight: 700;
-            padding: 1px 5px;
+            font-size: 11.5px;
+            font-weight: 800;
+            padding: 2px 6px;
             border: 1px solid #000;
             border-radius: 3px;
         }
 
-        .op-card-body { padding: 3px 4px; }
+        .op-card-body { padding: 4px 5px; }
 
         /* Items mini table */
         .items-mini-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10px;
+            font-size: 12px;
         }
 
         .items-mini-table th {
-            border-bottom: 1px dashed #000;
-            padding: 2px 1px;
-            font-weight: 700;
-            font-size: 9px;
+            border-bottom: 1.5px dashed #000;
+            padding: 3px 2px;
+            font-weight: 800;
+            font-size: 11.5px;
             text-align: center;
         }
 
         .items-mini-table td {
-            padding: 2px 1px;
-            border-bottom: 1px dotted #ccc;
+            padding: 3px 2px;
+            border-bottom: 1px dotted #888;
             text-align: center;
-            font-size: 10px;
+            font-size: 12px;
+            font-weight: 600;
         }
 
         .items-mini-table tr:last-child td { border-bottom: none; }
@@ -185,58 +188,59 @@
         .op-summary-row {
             display: flex;
             justify-content: space-between;
-            padding: 3px 5px;
-            font-size: 10.5px;
+            padding: 4px 6px;
+            font-size: 12.5px;
             border-top: 1px dashed #000;
         }
 
-        .op-summary-label { font-weight: 600; }
-        .op-summary-val { font-weight: 700; direction: ltr; }
+        .op-summary-label { font-weight: 700; }
+        .op-summary-val { font-weight: 800; direction: ltr; }
 
         .op-payment-info {
-            padding: 4px 5px;
-            font-size: 11px;
+            padding: 5px 6px;
+            font-size: 12.5px;
         }
 
         .op-notes {
-            padding: 3px 5px;
-            font-size: 9.5px;
-            border-top: 1px dotted #999;
-            font-weight: 500;
+            padding: 4px 6px;
+            font-size: 11.5px;
+            border-top: 1px dotted #888;
+            font-weight: 600;
         }
 
         /* Grand Totals */
         .grand-box {
             border: 2px solid #000;
-            border-radius: 3px;
-            margin: 6px 0;
-            padding: 5px;
+            border-radius: 4px;
+            margin: 7px 0;
+            padding: 6px;
+            background: #fff;
         }
 
         .grand-title {
-            font-size: 11px;
-            font-weight: 700;
+            font-size: 13.5px;
+            font-weight: 800;
             text-align: center;
             margin-bottom: 4px;
-            border-bottom: 1px dashed #000;
+            border-bottom: 1.5px dashed #000;
             padding-bottom: 3px;
         }
 
         .grand-row {
             display: flex;
             justify-content: space-between;
-            padding: 2px 0;
-            font-size: 11px;
+            padding: 3px 0;
+            font-size: 13px;
         }
 
-        .grand-label { font-weight: 600; }
-        .grand-val { font-weight: 700; direction: ltr; }
+        .grand-label { font-weight: 700; }
+        .grand-val { font-weight: 800; direction: ltr; }
 
         /* Footer */
-        .receipt-footer { text-align: center; margin-top: 6px; padding-top: 4px; }
-        .thank-you-text { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
-        .footer-sub { font-size: 10.5px; color: #000; font-weight: 500; }
-        .cut-indicator { margin-top: 12px; border-top: 1px dotted #999; text-align: center; font-size: 9px; color: #777; padding-top: 2px; }
+        .receipt-footer { text-align: center; margin-top: 8px; padding-top: 5px; }
+        .thank-you-text { font-size: 13.5px; font-weight: 800; margin-bottom: 3px; }
+        .footer-sub { font-size: 12px; color: #000; font-weight: 600; }
+        .cut-indicator { margin-top: 12px; border-top: 1px dotted #999; text-align: center; font-size: 10px; color: #777; padding-top: 2px; }
 
         .empty-msg { text-align: center; padding: 8px; font-size: 11px; color: #000; }
 

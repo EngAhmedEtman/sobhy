@@ -243,7 +243,7 @@ class CustomerController extends Controller
 
         $request->validate($rules, $messages);
 
-        DB::transaction(function () use ($id, $request) {
+        $transaction = DB::transaction(function () use ($id, $request) {
             $customer = Customer::query()->lockForUpdate()->findOrFail($id);
             $saleId = $request->sale_id;
             $sale = null;
@@ -284,7 +284,7 @@ class CustomerController extends Controller
             }
 
             // Create the payment transaction (always deducts from customer balance)
-            $customer->transactions()->create([
+            $created = $customer->transactions()->create([
                 'type' => $type,
                 'paid_amount' => $request->amount,
                 'total_amount' => 0,
@@ -308,6 +308,8 @@ class CustomerController extends Controller
             }
 
             app(AccountingService::class)->recalculateParty($customer);
+
+            return $created;
         });
 
         $successMsg = 'تم تسجيل العملية بنجاح';
@@ -315,7 +317,9 @@ class CustomerController extends Controller
             $successMsg = 'تم تسجيل التحصيل على الفاتورة بنجاح';
         }
 
-        return back()->with('success', $successMsg);
+        return back()->with('success', $successMsg)
+            ->with('printed_transaction_id', $transaction?->id)
+            ->with('auto_print_thermal', $request->boolean('print_thermal'));
     }
 
     public function storeReturn(Request $request, $id)
@@ -339,11 +343,11 @@ class CustomerController extends Controller
             'notes.regex' => 'الملاحظات يجب ألا تتكون من أرقام فقط',
         ]);
 
-        DB::transaction(function () use ($id, $request) {
+        $transaction = DB::transaction(function () use ($id, $request) {
             $customer = Customer::query()->lockForUpdate()->findOrFail($id);
             $product = Product::query()->lockForUpdate()->findOrFail($request->product_id);
 
-            $transaction = $customer->transactions()->create([
+            $created = $customer->transactions()->create([
                 'type' => 'return_sale',
                 'product_id' => $request->product_id,
                 'quantity' => $request->quantity,
@@ -361,14 +365,18 @@ class CustomerController extends Controller
                 'quantity' => $request->quantity,
                 'balance_after' => $product->stock,
                 'related_type' => Transaction::class,
-                'related_id' => $transaction->id,
-                'notes' => $transaction->notes,
+                'related_id' => $created->id,
+                'notes' => $created->notes,
             ]);
 
             app(AccountingService::class)->recalculateParty($customer);
             app(InventoryService::class)->recalculateProduct($product);
+
+            return $created;
         });
 
-        return back()->with('success', 'تم تسجيل المرتجع بنجاح');
+        return back()->with('success', 'تم تسجيل المرتجع بنجاح')
+            ->with('printed_transaction_id', $transaction?->id)
+            ->with('auto_print_thermal', $request->boolean('print_thermal'));
     }
 }

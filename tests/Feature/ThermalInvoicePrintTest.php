@@ -275,4 +275,65 @@ class ThermalInvoicePrintTest extends TestCase
         $responseStmt->assertSee('01018152900');
         $this->assertFalse(str_contains($responseStmt->getContent(), '01070191977'));
     }
+
+    public function test_customer_payment_with_print_thermal_flashes_session_keys(): void
+    {
+        $response = $this->actingAs($this->user)->post(route('customers.payment', $this->customer), [
+            'transaction_type' => 'payment_received',
+            'amount' => 450,
+            'date' => now()->toDateString(),
+            'notes' => 'دفعة نقدية مع طباعة حراري',
+            'print_thermal' => '1',
+        ]);
+
+        $response->assertSessionHas('printed_transaction_id');
+        $response->assertSessionHas('auto_print_thermal', true);
+
+        $transactionId = session('printed_transaction_id');
+        $transaction = \App\Models\Transaction::findOrFail($transactionId);
+        $this->assertEquals(450, $transaction->paid_amount);
+
+        // Verify customer show view renders thermal print modal trigger
+        $showResponse = $this->actingAs($this->user)
+            ->withSession([
+                'printed_transaction_id' => $transactionId,
+                'auto_print_thermal' => true,
+            ])
+            ->get(route('customers.show', $this->customer));
+
+        $showResponse->assertOk();
+        $showResponse->assertSee('طباعة إيصال حراري (80mm)');
+        $showResponse->assertSee('حفظ وطباعة إيصال حراري');
+    }
+
+    public function test_supplier_payment_with_print_thermal_flashes_session_keys(): void
+    {
+        $response = $this->actingAs($this->user)->post(route('suppliers.payment', $this->supplier), [
+            'transaction_type' => 'payment_made',
+            'amount' => 600,
+            'date' => now()->toDateString(),
+            'notes' => 'سداد دفعة مع طباعة حراري',
+            'print_thermal' => '1',
+        ]);
+
+        $response->assertSessionHas('printed_transaction_id');
+        $response->assertSessionHas('auto_print_thermal', true);
+
+        $transactionId = session('printed_transaction_id');
+        $transaction = \App\Models\Transaction::findOrFail($transactionId);
+        $this->assertEquals(600, $transaction->paid_amount);
+
+        // Verify supplier show view renders thermal print modal trigger
+        $showResponse = $this->actingAs($this->user)
+            ->withSession([
+                'printed_transaction_id' => $transactionId,
+                'auto_print_thermal' => true,
+            ])
+            ->get(route('suppliers.show', $this->supplier));
+
+        $showResponse->assertOk();
+        $showResponse->assertSee('طباعة إيصال حراري (80mm)');
+        $showResponse->assertSee('حفظ وطباعة إيصال حراري');
+    }
 }
+

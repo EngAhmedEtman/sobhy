@@ -18,6 +18,11 @@
             if (!this.invoicePaymentId) return null;
             return this.unpaidSales.find(s => s.id == this.invoicePaymentId) || null;
         },
+        openInvoicePayment(id) {
+            this.invoicePaymentId = id;
+            this.invoicePaymentAmount = '';
+            this.showInvoicePaymentModal = true;
+        },
         showReturnModal: false, 
         showDetailsModal: false,
         showPrintModal: false,
@@ -61,7 +66,36 @@
             this.showPrintModal = false;
         }
     }"
-    @edit-transaction.window="editFromDetails($event.detail)">
+    @edit-transaction.window="editFromDetails($event.detail)"
+    x-init="
+        @if(session('auto_print_thermal') && session('printed_transaction_id'))
+            openPrintPreviewModal('printPreviewModal', '{{ route('transactions.print.thermal', session('printed_transaction_id')) }}', 'إيصال استلام نقدية حراري');
+        @endif
+    ">
+
+        @if(session('printed_transaction_id'))
+        <div class="mb-5 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-400 text-slate-900 flex items-center justify-center font-bold shadow-sm shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-slate-900">{{ session('success', 'تم تسجيل العملية بنجاح') }}</h4>
+                    <p class="text-xs text-amber-900 mt-0.5 font-medium">يمكنك طباعة إيصال استلام النقدية الآن فوراً (حراري 80mm أو عادي A4).</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" @click="openPrintPreviewModal('printPreviewModal', '{{ route('transactions.print.thermal', session('printed_transaction_id')) }}', 'إيصال استلام نقدية حراري')" class="px-4 py-2 bg-slate-900 hover:bg-black text-amber-300 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all">
+                    <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    <span>طباعة إيصال حراري (80mm)</span>
+                </button>
+                <button type="button" @click="openPrintPreviewModal('printPreviewModal', '{{ route('transactions.print', session('printed_transaction_id')) }}', 'إيصال نقدية A4')" class="px-3.5 py-2 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 text-xs font-bold transition-all shadow-sm">
+                    <span>طباعة A4</span>
+                </button>
+            </div>
+        </div>
+        @endif
+
         <!-- Header Card -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-5 mb-5">
             <!-- Top Section: Customer Profile & Action Buttons -->
@@ -241,11 +275,11 @@
                                 </button>
                             @endif
                         @else
-                            <button type="button" @click="$dispatch('view-transaction', {{ $transaction->id }})" class="p-1.5 rounded border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض التفاصيل / الإيصال">
+                            <button type="button" @click="$dispatch('view-transaction', {{ $transaction->id }})" class="p-1.5 rounded-lg border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض التفاصيل / الإيصال">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                             </button>
-                            <button type="button" @click="openPrintPreviewModal('printPreviewModal', '{{ route('transactions.print', $transaction->id) }}?format=thermal')" class="p-1.5 rounded border border-slate-200 bg-white text-slate-700 hover:text-black hover:border-slate-400 hover:bg-slate-50 shadow-sm transition-all inline-flex items-center justify-center" title="طباعة إيصال حراري (80mm)">
-                                <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                            <button type="button" @click="openPrintPreviewModal('printPreviewModal', '{{ route('transactions.print.thermal', $transaction->id) }}', 'إيصال {{ $transaction->type_name }} حراري')" class="p-1.5 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 hover:text-amber-950 shadow-sm transition-all inline-flex items-center justify-center" title="طباعة إيصال استلام/صرف حراري (80mm)">
+                                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                             </button>
                             @if(auth()->user()?->hasPermission('customers.update'))
                             <button type="button" @click="editTransactionModal = true; editType = '{{ $transaction->type }}'; editId = '{{ $transaction->id }}'; editDate = '{{ $transaction->transaction_date->format('Y-m-d') }}'; editAmount = '{{ in_array($transaction->type, ['payment_received', 'payment_made']) ? $transaction->paid_amount : $transaction->total_amount }}'; editQuantity = '{{ $transaction->quantity ?? '' }}'; editNotes = '{{ addslashes($transaction->notes ?? '') }}'" class="p-1.5 rounded border border-slate-200 bg-white text-blue-600 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
@@ -342,6 +376,11 @@
                                             <button type="button" @click="viewSale({{ $transaction->invoice_id }})" class="p-1 rounded border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض الفاتورة">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                             </button>
+                                            @if($uncovered > 0 && auth()->user()?->hasPermission('customers.update'))
+                                                <button type="button" @click="openInvoicePayment({{ $transaction->invoice_id }})" class="p-1 rounded border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="تحصيل مبلغ للفاتورة">
+                                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                                </button>
+                                            @endif
                                             @if((int) $transaction->invoice_id === (int) $latestSaleId && auth()->user()?->hasPermission('sales.update'))
                                                 <button type="button" @click="editSale({{ $transaction->invoice_id }})" class="p-1 rounded border border-slate-200 bg-white text-blue-600 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -351,8 +390,8 @@
                                             <button type="button" @click="$dispatch('view-transaction', {{ $transaction->id }})" class="p-1 rounded border border-slate-200 bg-white text-emerald-600 hover:text-emerald-700 hover:border-emerald-300 hover:bg-emerald-50 shadow-sm transition-all inline-flex items-center justify-center" title="عرض التفاصيل">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                             </button>
-                                            <button type="button" @click="openPrintPreviewModal('printPreviewModal', '{{ route('transactions.print', $transaction->id) }}?format=thermal')" class="p-1 rounded border border-slate-200 bg-white text-slate-700 hover:text-black hover:border-slate-400 hover:bg-slate-50 shadow-sm transition-all inline-flex items-center justify-center" title="طباعة إيصال حراري (80mm)">
-                                                <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                            <button type="button" @click="openPrintPreviewModal('printPreviewModal', '{{ route('transactions.print.thermal', $transaction->id) }}', 'إيصال {{ $transaction->type_name }} حراري')" class="p-1 rounded border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 hover:text-amber-950 shadow-sm transition-all inline-flex items-center justify-center" title="طباعة إيصال استلام/صرف حراري (80mm)">
+                                                <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                                             </button>
                                             @if(auth()->user()?->hasPermission('customers.update'))
                                             <button type="button" @click="editTransactionModal = true; editType = '{{ $transaction->type }}'; editId = '{{ $transaction->id }}'; editDate = '{{ $transaction->transaction_date->format('Y-m-d') }}'; editAmount = '{{ in_array($transaction->type, ['payment_received', 'payment_made']) ? $transaction->paid_amount : $transaction->total_amount }}'; editQuantity = '{{ $transaction->quantity ?? '' }}'; editNotes = '{{ addslashes($transaction->notes ?? '') }}'" class="p-1 rounded border border-slate-200 bg-white text-blue-600 hover:text-blue-700 hover:border-blue-300 hover:bg-blue-50 shadow-sm transition-all inline-flex items-center justify-center" title="تعديل">
@@ -497,9 +536,13 @@
                             </div>
                         </div>
 
-                        <div class="flex gap-3 pt-3 border-t border-slate-100">
-                            <button type="submit" class="w-full sm:w-auto px-6 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-sm transition-all">حفظ العملية</button>
-                            <button type="button" @click="showPaymentModal = false" class="w-full sm:w-auto px-6 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">إلغاء</button>
+                        <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
+                            <button type="submit" name="print_thermal" value="1" class="w-full sm:w-auto px-5 py-2.5 text-sm font-bold text-slate-900 bg-amber-400 hover:bg-amber-500 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                <span>حفظ وطباعة إيصال حراري</span>
+                            </button>
+                            <button type="submit" class="w-full sm:w-auto px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-sm transition-all">حفظ فقط</button>
+                            <button type="button" @click="showPaymentModal = false" class="w-full sm:w-auto px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">إلغاء</button>
                         </div>
                     </form>
                 </div>
@@ -583,9 +626,13 @@
                             </div>
                         </div>
 
-                        <div class="flex gap-3 pt-3 border-t border-slate-100">
-                            <button type="submit" :disabled="!invoicePaymentId || (parseFloat(invoicePaymentAmount) || 0) > (selectedInvoiceToPay?.remaining_amount || 0)" class="w-full sm:w-auto px-6 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-sm shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed">حفظ التحصيل</button>
-                            <button type="button" @click="showInvoicePaymentModal = false" class="w-full sm:w-auto px-6 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">إلغاء</button>
+                        <div class="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
+                            <button type="submit" name="print_thermal" value="1" :disabled="!invoicePaymentId || (parseFloat(invoicePaymentAmount) || 0) > (selectedInvoiceToPay?.remaining_amount || 0)" class="w-full sm:w-auto px-5 py-2.5 text-sm font-bold text-slate-900 bg-amber-400 hover:bg-amber-500 rounded-xl shadow-sm shadow-amber-400/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4 text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                <span>حفظ وطباعة إيصال حراري</span>
+                            </button>
+                            <button type="submit" :disabled="!invoicePaymentId || (parseFloat(invoicePaymentAmount) || 0) > (selectedInvoiceToPay?.remaining_amount || 0)" class="w-full sm:w-auto px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-sm shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed">حفظ التحصيل</button>
+                            <button type="button" @click="showInvoicePaymentModal = false" class="w-full sm:w-auto px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50">إلغاء</button>
                         </div>
                     </form>
                 </div>
