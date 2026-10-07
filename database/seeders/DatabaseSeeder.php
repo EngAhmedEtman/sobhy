@@ -55,7 +55,7 @@ class DatabaseSeeder extends Seeder
 
         // 4. Default Settings Seeding
         Setting::set('company_name', ' صبحي رضا لتجارة الخردة', 'string', 'general');
-        Setting::set('phone', '01070191977', 'string', 'general');
+        Setting::set('phone', '01018152900', 'string', 'general');
         Setting::set('currency', 'ج.م', 'string', 'general');
     }
 }

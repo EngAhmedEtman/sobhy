@@ -67,6 +67,8 @@ class PrintController extends Controller
 
     public function customerStatement(Request $request, Customer $customer)
     {
+        $isThermal = $request->query('format') === 'thermal' || $request->has('thermal');
+
         $query = Transaction::where('transactionable_type', Customer::class)
             ->where('transactionable_id', $customer->id)
             ->orderBy('transaction_date', 'asc')
@@ -99,7 +101,9 @@ class PrintController extends Controller
                     ->get();
             }
 
-            return view('print.detailed-invoices-statement', [
+            $viewName = $isThermal ? 'print.detailed-invoices-statement-thermal' : 'print.detailed-invoices-statement';
+
+            return view($viewName, [
                 'partyType' => 'customer',
                 'party' => $customer,
                 'transactions' => $transactions,
@@ -163,7 +167,9 @@ class PrintController extends Controller
 
         $transactions = $query->get();
 
-        return view('print.statement', [
+        $viewName = $isThermal ? 'print.statement-thermal' : 'print.statement';
+
+        return view($viewName, [
             'partyType' => 'customer',
             'party' => $customer,
             'transactions' => $transactions,
@@ -172,8 +178,16 @@ class PrintController extends Controller
         ]);
     }
 
+    public function customerStatementThermal(Request $request, Customer $customer)
+    {
+        $request->merge(['format' => 'thermal']);
+        return $this->customerStatement($request, $customer);
+    }
+
     public function supplierStatement(Request $request, Supplier $supplier)
     {
+        $isThermal = $request->query('format') === 'thermal' || $request->has('thermal');
+
         $query = Transaction::where('transactionable_type', Supplier::class)
             ->where('transactionable_id', $supplier->id)
             ->orderBy('transaction_date', 'asc')
@@ -206,7 +220,9 @@ class PrintController extends Controller
                     ->get();
             }
 
-            return view('print.detailed-invoices-statement', [
+            $viewName = $isThermal ? 'print.detailed-invoices-statement-thermal' : 'print.detailed-invoices-statement';
+
+            return view($viewName, [
                 'partyType' => 'supplier',
                 'party' => $supplier,
                 'transactions' => $transactions,
@@ -270,13 +286,21 @@ class PrintController extends Controller
 
         $transactions = $query->get();
 
-        return view('print.statement', [
+        $viewName = $isThermal ? 'print.statement-thermal' : 'print.statement';
+
+        return view($viewName, [
             'partyType' => 'supplier',
             'party' => $supplier,
             'transactions' => $transactions,
             'title' => 'كشف حساب مورد',
             'subtitle' => $subtitle,
         ]);
+    }
+
+    public function supplierStatementThermal(Request $request, Supplier $supplier)
+    {
+        $request->merge(['format' => 'thermal']);
+        return $this->supplierStatement($request, $supplier);
     }
 
     public function customersReport(Request $request)

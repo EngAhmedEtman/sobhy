@@ -37,10 +37,13 @@
                 this.selectedOperationIds = [...new Set([...this.selectedOperationIds, ...currentFilteredIds])];
             }
         },
-        generatePrint() {
-            let baseUrl = '{{ $type === 'supplier' ? '/suppliers/' : '/customers/' }}' + '{{ $entityId }}' + '/print';
+        generatePrint(format = 'standard') {
+            let baseUrl = '{{ $type === 'supplier' ? '/suppliers/' : '/customers/' }}' + '{{ $entityId }}' + (format === 'thermal' ? '/print-thermal' : '/print');
             let params = new URLSearchParams();
             params.set('filter', this.filter || 'all');
+            if (format === 'thermal') {
+                params.set('format', 'thermal');
+            }
             
             if (this.filter === 'custom') {
                 if (this.startDate) params.set('start_date', this.startDate);
@@ -231,12 +234,18 @@
                 </label>
             </div>
 
-            <div class="mt-4 flex gap-2 pt-3 border-t border-slate-100">
-                <button type="button" @click="showPrintModal = false" class="w-1/3 px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">إلغاء</button>
-                <button type="button" @click="generatePrint()" class="w-2/3 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-slate-800 rounded-xl hover:bg-slate-900 shadow-sm transition-colors flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                    <span>عرض وطباعة التقرير</span>
-                </button>
+            <div class="mt-4 flex flex-col sm:flex-row gap-2 pt-3 border-t border-slate-100">
+                <button type="button" @click="showPrintModal = false" class="sm:w-1/4 px-3 py-2.5 text-xs sm:text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors order-last sm:order-first">إلغاء</button>
+                <div class="flex-1 flex gap-2">
+                    <button type="button" @click="generatePrint('standard')" class="flex-1 px-3 py-2.5 text-xs sm:text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        <span>طباعة عادية (A4)</span>
+                    </button>
+                    <button type="button" @click="generatePrint('thermal')" class="flex-1 px-3 py-2.5 text-xs sm:text-sm font-bold text-white bg-slate-900 hover:bg-black rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-sm">
+                        <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <span>طباعة حرارية (80mm)</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>

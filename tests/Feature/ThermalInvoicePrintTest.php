@@ -145,4 +145,66 @@ class ThermalInvoicePrintTest extends TestCase
         $this->assertStringContainsString('طباعة حراري (80mm)', $purchasesHtml);
         $this->assertStringContainsString('thermal=1', $purchasesHtml);
     }
+
+    public function test_customer_thermal_statement_route_renders_successfully(): void
+    {
+        $response = $this->actingAs($this->user)->get(route('print.customer.thermal', $this->customer));
+
+        $response->assertOk();
+        $response->assertSee('80mm', false);
+        $response->assertSee('كشف حساب عميل');
+        $response->assertSee($this->customer->name);
+    }
+
+    public function test_supplier_thermal_statement_route_renders_successfully(): void
+    {
+        $response = $this->actingAs($this->user)->get(route('print.supplier.thermal', $this->supplier));
+
+        $response->assertOk();
+        $response->assertSee('80mm', false);
+        $response->assertSee('كشف حساب مورد');
+        $response->assertSee($this->supplier->name);
+    }
+
+    public function test_customer_statement_with_thermal_query_param_renders_thermal_view(): void
+    {
+        $response = $this->actingAs($this->user)->get(route('print.customer', $this->customer) . '?format=thermal');
+
+        $response->assertOk();
+        $response->assertSee('80mm', false);
+        $response->assertSee($this->customer->name);
+    }
+
+    public function test_detailed_operations_thermal_statement_renders_properly(): void
+    {
+        $transaction = \App\Models\Transaction::create([
+            'transactionable_type' => Customer::class,
+            'transactionable_id' => $this->customer->id,
+            'type' => 'sale',
+            'source_type' => Sale::class,
+            'source_id' => $this->sale->id,
+            'total_amount' => 500,
+            'paid_amount' => 0,
+            'balance_after' => 500,
+            'transaction_date' => now()->toDateString(),
+        ]);
+
+        $response = $this->actingAs($this->user)->get(
+            route('print.customer.thermal', $this->customer) . '?filter=selected_operations&transaction_ids=' . $transaction->id
+        );
+
+        $response->assertOk();
+        $response->assertSee('80mm', false);
+        $response->assertSee('كشف حساب عمليات وفواتير محددة');
+        $response->assertSee($this->sale->invoice_number);
+    }
+
+    public function test_print_statement_modal_contains_both_standard_and_thermal_buttons(): void
+    {
+        $customerHtml = $this->actingAs($this->user)->get(route('customers.show', $this->customer))->getContent();
+        $this->assertStringContainsString('طباعة عادية (A4)', $customerHtml);
+        $this->assertStringContainsString('طباعة حرارية (80mm)', $customerHtml);
+        $this->assertStringContainsString("generatePrint('thermal')", $customerHtml);
+        $this->assertStringContainsString("generatePrint('standard')", $customerHtml);
+    }
 }

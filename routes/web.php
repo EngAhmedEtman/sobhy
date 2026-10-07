@@ -95,7 +95,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/purchases/{purchase}/print', [App\Http\Controllers\PrintController::class, 'purchase'])->name('print.purchase')->middleware('permission:purchases.view');
     Route::get('/purchases/{purchase}/print-thermal', [App\Http\Controllers\PrintController::class, 'purchaseThermal'])->name('print.purchase.thermal')->middleware('permission:purchases.view');
     Route::get('/customers/{customer}/print', [App\Http\Controllers\PrintController::class, 'customerStatement'])->name('print.customer')->middleware('permission:customers.view');
+    Route::get('/customers/{customer}/print-thermal', [App\Http\Controllers\PrintController::class, 'customerStatementThermal'])->name('print.customer.thermal')->middleware('permission:customers.view');
     Route::get('/suppliers/{supplier}/print', [App\Http\Controllers\PrintController::class, 'supplierStatement'])->name('print.supplier')->middleware('permission:suppliers.view');
+    Route::get('/suppliers/{supplier}/print-thermal', [App\Http\Controllers\PrintController::class, 'supplierStatementThermal'])->name('print.supplier.thermal')->middleware('permission:suppliers.view');
     Route::get('/print/customers-report', [App\Http\Controllers\PrintController::class, 'customersReport'])->name('print.customers-report')->middleware('permission:reports.view');
     Route::get('/print/suppliers-report', [App\Http\Controllers\PrintController::class, 'suppliersReport'])->name('print.suppliers-report')->middleware('permission:reports.view');
     Route::get('/print/sales-report', [App\Http\Controllers\PrintController::class, 'salesReport'])->name('print.sales-report')->middleware('permission:reports.view');
