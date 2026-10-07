@@ -28,7 +28,7 @@
         html, body {
             background-color: #f1f5f9;
             color: #000;
-            font-size: 12px;
+            font-size: 13.5px;
             line-height: 1.4;
             margin: 0;
             padding: 0;
@@ -94,8 +94,8 @@
         }
 
         .company-name {
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 21px;
+            font-weight: 800;
             color: #000;
             line-height: 1.25;
             margin-bottom: 3px;
@@ -103,10 +103,10 @@
         }
 
         .company-meta {
-            font-size: 11px;
+            font-size: 13px;
             color: #000;
             line-height: 1.4;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         /* Dashed Dividers */
@@ -125,8 +125,8 @@
         /* Title Badge */
         .receipt-title-badge {
             text-align: center;
-            font-size: 13px;
-            font-weight: 700;
+            font-size: 15px;
+            font-weight: 800;
             padding: 3px 10px;
             margin: 4px auto;
             border: 2px solid #000;
@@ -140,33 +140,36 @@
         .meta-list {
             width: 100%;
             margin: 4px 0;
-            font-size: 11.5px;
+            font-size: 13.5px;
         }
 
         .meta-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 2px 0;
+            padding: 2.5px 0;
         }
 
         .meta-label {
             color: #000;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 13.5px;
         }
 
         .meta-value {
-            font-weight: 700;
+            font-weight: 800;
             color: #000;
             direction: ltr;
             text-align: left;
+            font-size: 13.5px;
         }
 
         .meta-value-rtl {
-            font-weight: 700;
+            font-weight: 800;
             color: #000;
             direction: rtl;
             text-align: left;
+            font-size: 13.5px;
         }
 
         /* Items Table */
@@ -174,24 +177,26 @@
             width: 100%;
             border-collapse: collapse;
             margin: 4px 0;
-            font-size: 11.5px;
+            font-size: 12.5px;
         }
 
         .items-table th {
             border-top: 1.5px dashed #000;
             border-bottom: 1.5px dashed #000;
-            padding: 4px 2px;
-            font-weight: 700;
+            padding: 4px 1.5px;
+            font-weight: 800;
             color: #000;
             text-align: center;
-            font-size: 11px;
+            font-size: 12px;
         }
 
         .items-table td {
-            padding: 4px 1px;
+            padding: 4px 1.5px;
             border-bottom: 1px dotted #ccc;
             color: #000;
             vertical-align: middle;
+            font-size: 12.5px;
+            font-weight: 700;
         }
 
         .items-table tr:last-child td {
@@ -201,14 +206,14 @@
         .col-item {
             width: 44%;
             text-align: right !important;
-            font-weight: 600;
+            font-weight: 700;
             word-break: break-word;
         }
 
         .col-qty {
             width: 16%;
             text-align: center !important;
-            font-weight: 700;
+            font-weight: 800;
             direction: ltr;
         }
 
@@ -216,13 +221,13 @@
             width: 20%;
             text-align: center !important;
             direction: ltr;
-            font-weight: 500;
+            font-weight: 700;
         }
 
         .col-total {
             width: 20%;
             text-align: left !important;
-            font-weight: 700;
+            font-weight: 800;
             direction: ltr;
         }
 
@@ -230,7 +235,7 @@
         .totals-box {
             width: 100%;
             margin: 4px 0;
-            font-size: 12px;
+            font-size: 13.5px;
         }
 
         .total-row {
@@ -245,21 +250,23 @@
             border-bottom: 2px solid #000;
             padding: 5px 0;
             margin: 3px 0;
-            font-size: 14px;
-            font-weight: 700;
+            font-size: 16px;
+            font-weight: 800;
         }
 
         .total-row.grand-total .val {
-            font-size: 15px;
-            font-weight: 700;
+            font-size: 17px;
+            font-weight: 800;
         }
 
         .total-label {
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 13.5px;
         }
 
         .total-val {
-            font-weight: 700;
+            font-weight: 800;
+            font-size: 13.5px;
             direction: ltr;
         }
 
@@ -270,7 +277,7 @@
             background: #f8fafc;
             border: 1px dashed #000;
             border-radius: 4px;
-            font-size: 11px;
+            font-size: 12px;
             line-height: 1.35;
         }
 
@@ -282,15 +289,15 @@
         }
 
         .thank-you-text {
-            font-size: 12px;
-            font-weight: 700;
+            font-size: 14px;
+            font-weight: 800;
             margin-bottom: 3px;
         }
 
         .footer-sub {
-            font-size: 10.5px;
+            font-size: 12px;
             color: #000;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .barcode-container {
@@ -516,17 +523,27 @@
             @endif
 
             @if($party && isset($party->balance))
-            <div class="dashed-line" style="margin: 4px 0;"></div>
-            <div class="total-row" style="font-size: 10px;">
+            <div class="dashed-line" style="margin: 5px 0;"></div>
+            <div class="total-row" style="font-size: 13.5px; font-weight: 800;">
                 <span class="total-label">رصيد الحساب الحالي:</span>
                 <span class="total-val">
                     {{ format_amount(abs($party->balance)) }} ج.م
-                    @if($party->balance > 0)
-                        (له)
-                    @elseif($party->balance < 0)
-                        (عليه)
+                    @if($type === 'purchase')
+                        @if($party->balance > 0)
+                            (له علينا)
+                        @elseif($party->balance < 0)
+                            (لنا عنده)
+                        @else
+                            (خالص)
+                        @endif
                     @else
-                        (خالص)
+                        @if($party->balance > 0)
+                            (مطلوب منه)
+                        @elseif($party->balance < 0)
+                            (له عندنا)
+                        @else
+                            (خالص)
+                        @endif
                     @endif
                 </span>
             </div>

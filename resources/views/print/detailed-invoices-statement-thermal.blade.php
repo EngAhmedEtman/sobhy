@@ -28,7 +28,7 @@
         html, body {
             background-color: #f1f5f9;
             color: #000;
-            font-size: 12px;
+            font-size: 13.5px;
             line-height: 1.4;
             margin: 0;
             padding: 0;
@@ -84,7 +84,7 @@
         .receipt-header { text-align: center; padding-bottom: 6px; }
 
         .company-name {
-            font-size: 20px;
+            font-size: 21px;
             font-weight: 800;
             color: #000;
             line-height: 1.25;
@@ -93,7 +93,7 @@
         }
 
         .company-meta {
-            font-size: 12.5px;
+            font-size: 13.5px;
             color: #000;
             line-height: 1.4;
             font-weight: 600;
@@ -106,7 +106,7 @@
         /* Title Badge */
         .receipt-title-badge {
             text-align: center;
-            font-size: 14px;
+            font-size: 15.5px;
             font-weight: 800;
             padding: 4px 10px;
             margin: 5px auto;
@@ -118,17 +118,17 @@
         }
 
         /* Meta */
-        .meta-list { width: 100%; margin: 5px 0; font-size: 13px; }
+        .meta-list { width: 100%; margin: 5px 0; font-size: 14px; }
         .meta-row { display: flex; justify-content: space-between; align-items: center; padding: 2.5px 0; }
-        .meta-label { color: #000; font-weight: 700; font-size: 13px; }
-        .meta-value { font-weight: 800; color: #000; direction: ltr; text-align: left; font-size: 13px; }
-        .meta-value-rtl { font-weight: 800; color: #000; direction: rtl; text-align: left; font-size: 13px; }
+        .meta-label { color: #000; font-weight: 700; font-size: 14px; }
+        .meta-value { font-weight: 800; color: #000; direction: ltr; text-align: left; font-size: 14px; }
+        .meta-value-rtl { font-weight: 800; color: #000; direction: rtl; text-align: left; font-size: 14px; }
 
         /* Stats Row */
         .stats-row { display: flex; justify-content: space-between; gap: 4px; margin: 6px 0; }
         .stat-box { flex: 1; text-align: center; padding: 5px 2px; border: 1.5px solid #000; border-radius: 4px; background: #fff; }
-        .stat-box-label { font-size: 11px; font-weight: 700; color: #000; margin-bottom: 2px; }
-        .stat-box-value { font-size: 13px; font-weight: 800; color: #000; direction: ltr; }
+        .stat-box-label { font-size: 12px; font-weight: 700; color: #000; margin-bottom: 2px; }
+        .stat-box-value { font-size: 14.5px; font-weight: 800; color: #000; direction: ltr; }
 
         /* Operation Card */
         .op-card {
@@ -142,7 +142,7 @@
         .op-card-header {
             padding: 5px 6px;
             border-bottom: 1px dashed #000;
-            font-size: 12.5px;
+            font-size: 13.5px;
             font-weight: 800;
             display: flex;
             justify-content: space-between;
@@ -151,7 +151,7 @@
         }
 
         .op-type-badge {
-            font-size: 11.5px;
+            font-size: 12.5px;
             font-weight: 800;
             padding: 2px 6px;
             border: 1px solid #000;
@@ -164,14 +164,14 @@
         .items-mini-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: 13px;
         }
 
         .items-mini-table th {
             border-bottom: 1.5px dashed #000;
             padding: 3px 2px;
             font-weight: 800;
-            font-size: 11.5px;
+            font-size: 12.5px;
             text-align: center;
         }
 
@@ -179,8 +179,8 @@
             padding: 3px 2px;
             border-bottom: 1px dotted #888;
             text-align: center;
-            font-size: 12px;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 700;
         }
 
         .items-mini-table tr:last-child td { border-bottom: none; }
@@ -189,21 +189,21 @@
             display: flex;
             justify-content: space-between;
             padding: 4px 6px;
-            font-size: 12.5px;
+            font-size: 13.5px;
             border-top: 1px dashed #000;
         }
 
-        .op-summary-label { font-weight: 700; }
-        .op-summary-val { font-weight: 800; direction: ltr; }
+        .op-summary-label { font-weight: 700; font-size: 13.5px; }
+        .op-summary-val { font-weight: 800; font-size: 13.5px; direction: ltr; }
 
         .op-payment-info {
             padding: 5px 6px;
-            font-size: 12.5px;
+            font-size: 13.5px;
         }
 
         .op-notes {
             padding: 4px 6px;
-            font-size: 11.5px;
+            font-size: 12.5px;
             border-top: 1px dotted #888;
             font-weight: 600;
         }
@@ -218,7 +218,7 @@
         }
 
         .grand-title {
-            font-size: 13.5px;
+            font-size: 15px;
             font-weight: 800;
             text-align: center;
             margin-bottom: 4px;
@@ -230,11 +230,11 @@
             display: flex;
             justify-content: space-between;
             padding: 3px 0;
-            font-size: 13px;
+            font-size: 14px;
         }
 
-        .grand-label { font-weight: 700; }
-        .grand-val { font-weight: 800; direction: ltr; }
+        .grand-label { font-weight: 700; font-size: 14px; }
+        .grand-val { font-weight: 800; font-size: 14px; direction: ltr; }
 
         /* Financial Position Card */
         .financial-position-card {
@@ -256,13 +256,13 @@
         }
 
         .financial-position-card .pos-tag {
-            font-size: 11.5px;
+            font-size: 12.5px;
             font-weight: 700;
             color: #000;
         }
 
         .financial-position-card .pos-badge {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 800;
             padding: 2px 8px;
             border: 1.5px solid #000;
@@ -272,7 +272,7 @@
         }
 
         .financial-position-card .pos-title {
-            font-size: 14.5px;
+            font-size: 16px;
             font-weight: 800;
             color: #000;
             margin-bottom: 3px;
@@ -280,7 +280,7 @@
         }
 
         .financial-position-card .pos-detail {
-            font-size: 12.5px;
+            font-size: 13.5px;
             font-weight: 700;
             color: #000;
             direction: rtl;
@@ -289,8 +289,8 @@
 
         /* Footer */
         .receipt-footer { text-align: center; margin-top: 8px; padding-top: 5px; }
-        .thank-you-text { font-size: 13.5px; font-weight: 800; margin-bottom: 3px; }
-        .footer-sub { font-size: 12px; color: #000; font-weight: 600; }
+        .thank-you-text { font-size: 14.5px; font-weight: 800; margin-bottom: 3px; }
+        .footer-sub { font-size: 13px; color: #000; font-weight: 600; }
         .cut-indicator { margin-top: 12px; border-top: 1px dotted #999; text-align: center; font-size: 10px; color: #777; padding-top: 2px; }
 
         .empty-msg { text-align: center; padding: 8px; font-size: 11px; color: #000; }

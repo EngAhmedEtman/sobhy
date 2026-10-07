@@ -28,7 +28,7 @@
         html, body {
             background-color: #f1f5f9;
             color: #000;
-            font-size: 12px;
+            font-size: 13.5px;
             line-height: 1.4;
             margin: 0;
             padding: 0;
@@ -87,7 +87,7 @@
         }
 
         .company-name {
-            font-size: 20px;
+            font-size: 21px;
             font-weight: 800;
             color: #000;
             line-height: 1.25;
@@ -96,7 +96,7 @@
         }
 
         .company-meta {
-            font-size: 12.5px;
+            font-size: 13.5px;
             color: #000;
             line-height: 1.4;
             font-weight: 600;
@@ -118,7 +118,7 @@
         /* Title Badge */
         .receipt-title-badge {
             text-align: center;
-            font-size: 14.5px;
+            font-size: 15.5px;
             font-weight: 800;
             padding: 4px 12px;
             margin: 5px auto;
@@ -133,7 +133,7 @@
         .meta-list {
             width: 100%;
             margin: 5px 0;
-            font-size: 13px;
+            font-size: 14px;
         }
 
         .meta-row {
@@ -146,7 +146,7 @@
         .meta-label {
             color: #000;
             font-weight: 700;
-            font-size: 13px;
+            font-size: 14px;
         }
 
         .meta-value {
@@ -154,7 +154,7 @@
             color: #000;
             direction: ltr;
             text-align: left;
-            font-size: 13px;
+            font-size: 14px;
         }
 
         .meta-value-rtl {
@@ -162,7 +162,7 @@
             color: #000;
             direction: rtl;
             text-align: left;
-            font-size: 13px;
+            font-size: 14px;
         }
 
         /* Stats Row */
@@ -183,14 +183,14 @@
         }
 
         .stat-box-label {
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 700;
             color: #000;
             margin-bottom: 2px;
         }
 
         .stat-box-value {
-            font-size: 13.5px;
+            font-size: 14.5px;
             font-weight: 800;
             color: #000;
             direction: ltr;
@@ -201,7 +201,7 @@
             width: 100%;
             border-collapse: collapse;
             margin: 6px 0;
-            font-size: 12px;
+            font-size: 13px;
         }
 
         .txn-table th {
@@ -211,7 +211,7 @@
             font-weight: 800;
             color: #000;
             text-align: center;
-            font-size: 11.5px;
+            font-size: 12.5px;
         }
 
         .txn-table td {
@@ -220,23 +220,24 @@
             color: #000;
             vertical-align: middle;
             text-align: center;
-            font-size: 12px;
+            font-size: 13px;
+            font-weight: 700;
         }
 
         .txn-table tr:last-child td {
             border-bottom: none;
         }
 
-        .col-date { width: 20%; font-weight: 600; direction: ltr; }
-        .col-type { width: 25%; font-weight: 700; text-align: right !important; }
-        .col-amount { width: 25%; font-weight: 700; direction: ltr; }
-        .col-balance { width: 30%; font-weight: 800; direction: ltr; }
+        .col-date { width: 21%; font-weight: 700; direction: ltr; }
+        .col-type { width: 25%; font-weight: 800; text-align: right !important; }
+        .col-amount { width: 26%; font-weight: 800; direction: ltr; }
+        .col-balance { width: 28%; font-weight: 800; direction: ltr; }
 
         /* Totals */
         .totals-box {
             width: 100%;
             margin: 5px 0;
-            font-size: 13.5px;
+            font-size: 14.5px;
         }
 
         .total-row {
@@ -251,12 +252,12 @@
             border-bottom: 2px solid #000;
             padding: 6px 0;
             margin: 4px 0;
-            font-size: 15px;
+            font-size: 16.5px;
             font-weight: 800;
         }
 
-        .total-label { font-weight: 700; font-size: 13.5px; }
-        .total-val { font-weight: 800; font-size: 13.5px; direction: ltr; }
+        .total-label { font-weight: 700; font-size: 14.5px; }
+        .total-val { font-weight: 800; font-size: 14.5px; direction: ltr; }
 
         /* Financial Position Card */
         .financial-position-card {
@@ -278,13 +279,13 @@
         }
 
         .financial-position-card .pos-tag {
-            font-size: 11.5px;
+            font-size: 12.5px;
             font-weight: 700;
             color: #000;
         }
 
         .financial-position-card .pos-badge {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 800;
             padding: 2px 8px;
             border: 1.5px solid #000;
@@ -294,7 +295,7 @@
         }
 
         .financial-position-card .pos-title {
-            font-size: 14.5px;
+            font-size: 16px;
             font-weight: 800;
             color: #000;
             margin-bottom: 3px;
@@ -302,7 +303,7 @@
         }
 
         .financial-position-card .pos-detail {
-            font-size: 12.5px;
+            font-size: 13.5px;
             font-weight: 700;
             color: #000;
             direction: rtl;
@@ -317,13 +318,13 @@
         }
 
         .thank-you-text {
-            font-size: 13.5px;
+            font-size: 14.5px;
             font-weight: 800;
             margin-bottom: 3px;
         }
 
         .footer-sub {
-            font-size: 12px;
+            font-size: 13px;
             color: #000;
             font-weight: 600;
         }

@@ -64,7 +64,7 @@
         html, body {
             background-color: #f1f5f9;
             color: #000;
-            font-size: 12px;
+            font-size: 13.5px;
             line-height: 1.4;
             margin: 0;
             padding: 0;
@@ -134,8 +134,8 @@
         }
 
         .company-name {
-            font-size: 17px;
-            font-weight: 700;
+            font-size: 21px;
+            font-weight: 800;
             color: #000;
             line-height: 1.25;
             margin-bottom: 3px;
@@ -143,10 +143,10 @@
         }
 
         .company-meta {
-            font-size: 11px;
+            font-size: 13px;
             color: #000;
             line-height: 1.4;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .dashed-line {
@@ -163,8 +163,8 @@
 
         .receipt-title-badge {
             text-align: center;
-            font-size: 13px;
-            font-weight: 700;
+            font-size: 15px;
+            font-weight: 800;
             padding: 3px 10px;
             margin: 4px auto;
             border: 2px solid #000;
@@ -177,33 +177,36 @@
         .meta-list {
             width: 100%;
             margin: 4px 0;
-            font-size: 11.5px;
+            font-size: 13.5px;
         }
 
         .meta-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 2px 0;
+            padding: 2.5px 0;
         }
 
         .meta-label {
             color: #000;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 13.5px;
         }
 
         .meta-value {
-            font-weight: 700;
+            font-weight: 800;
             color: #000;
             direction: ltr;
             text-align: left;
+            font-size: 13.5px;
         }
 
         .meta-value-rtl {
-            font-weight: 700;
+            font-weight: 800;
             color: #000;
             direction: rtl;
             text-align: left;
+            font-size: 13.5px;
         }
 
         /* Highlight Amount Box */
@@ -217,15 +220,15 @@
         }
 
         .highlight-label {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 700;
             color: #000;
             margin-bottom: 2px;
         }
 
         .highlight-value {
-            font-size: 20px;
-            font-weight: 700;
+            font-size: 22px;
+            font-weight: 800;
             color: #000;
             direction: ltr;
             line-height: 1.2;
@@ -236,17 +239,17 @@
             width: 100%;
             border-collapse: collapse;
             margin: 5px 0;
-            font-size: 11.5px;
+            font-size: 12.5px;
         }
 
         .items-table th {
             border-top: 1.5px dashed #000;
             border-bottom: 1.5px dashed #000;
             padding: 4px 2px;
-            font-weight: 700;
+            font-weight: 800;
             color: #000;
             text-align: center;
-            font-size: 11px;
+            font-size: 12px;
         }
 
         .items-table td {
@@ -254,12 +257,14 @@
             border-bottom: 1px dashed #cbd5e1;
             color: #000;
             vertical-align: middle;
+            font-size: 12.5px;
+            font-weight: 700;
         }
 
         .totals-box {
             width: 100%;
             margin: 5px 0;
-            font-size: 12px;
+            font-size: 13.5px;
         }
 
         .total-row {
@@ -270,11 +275,13 @@
         }
 
         .total-label {
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 13.5px;
         }
 
         .total-val {
-            font-weight: 700;
+            font-weight: 800;
+            font-size: 13.5px;
             direction: ltr;
         }
 
@@ -287,8 +294,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 12px;
-            font-weight: 700;
+            font-size: 13.5px;
+            font-weight: 800;
         }
 
         .notes-box {
@@ -297,8 +304,9 @@
             background: #f8fafc;
             border: 1px dashed #000;
             border-radius: 4px;
-            font-size: 11px;
+            font-size: 12px;
             line-height: 1.35;
+            font-weight: 600;
         }
 
         .receipt-footer {
@@ -308,15 +316,15 @@
         }
 
         .thank-you-text {
-            font-size: 12px;
-            font-weight: 700;
+            font-size: 14px;
+            font-weight: 800;
             margin-bottom: 3px;
         }
 
         .footer-sub {
-            font-size: 10.5px;
+            font-size: 12px;
             color: #000;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .barcode-container {
