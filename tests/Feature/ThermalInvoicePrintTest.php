@@ -151,35 +151,44 @@ class ThermalInvoicePrintTest extends TestCase
 
     public function test_customer_thermal_statement_route_renders_successfully(): void
     {
+        $this->customer->update(['balance' => 1500]);
         $response = $this->actingAs($this->user)->get(route('print.customer.thermal', $this->customer));
 
         $response->assertOk();
         $response->assertSee('80mm', false);
         $response->assertSee('كشف حساب عميل');
         $response->assertSee($this->customer->name);
+        $response->assertSee('لنا فلوس عند العميل');
+        $response->assertSee('مطلوب منه');
     }
 
     public function test_supplier_thermal_statement_route_renders_successfully(): void
     {
+        $this->supplier->update(['balance' => 2000]);
         $response = $this->actingAs($this->user)->get(route('print.supplier.thermal', $this->supplier));
 
         $response->assertOk();
         $response->assertSee('80mm', false);
         $response->assertSee('كشف حساب مورد');
         $response->assertSee($this->supplier->name);
+        $response->assertSee('علينا فلوس للمورد');
+        $response->assertSee('مستحق له');
     }
 
     public function test_customer_statement_with_thermal_query_param_renders_thermal_view(): void
     {
+        $this->customer->update(['balance' => 1200]);
         $response = $this->actingAs($this->user)->get(route('print.customer', $this->customer) . '?format=thermal');
 
         $response->assertOk();
         $response->assertSee('80mm', false);
         $response->assertSee($this->customer->name);
+        $response->assertSee('لنا فلوس عند العميل');
     }
 
     public function test_detailed_operations_thermal_statement_renders_properly(): void
     {
+        $this->customer->update(['balance' => 500]);
         $transaction = \App\Models\Transaction::create([
             'transactionable_type' => Customer::class,
             'transactionable_id' => $this->customer->id,
@@ -200,6 +209,7 @@ class ThermalInvoicePrintTest extends TestCase
         $response->assertSee('80mm', false);
         $response->assertSee('كشف حساب عمليات وفواتير محددة');
         $response->assertSee($this->sale->invoice_number);
+        $response->assertSee('لنا فلوس عند العميل');
     }
 
     public function test_print_statement_modal_contains_both_standard_and_thermal_buttons(): void

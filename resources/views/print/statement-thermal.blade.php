@@ -258,6 +258,57 @@
         .total-label { font-weight: 700; font-size: 13.5px; }
         .total-val { font-weight: 800; font-size: 13.5px; direction: ltr; }
 
+        /* Financial Position Card */
+        .financial-position-card {
+            border: 2px solid #000;
+            border-radius: 4px;
+            margin: 8px 0;
+            padding: 6px 8px;
+            background: #fff;
+            text-align: center;
+        }
+
+        .financial-position-card .pos-card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1.5px dashed #000;
+            padding-bottom: 4px;
+            margin-bottom: 5px;
+        }
+
+        .financial-position-card .pos-tag {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #000;
+        }
+
+        .financial-position-card .pos-badge {
+            font-size: 12px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border: 1.5px solid #000;
+            border-radius: 4px;
+            background: #000;
+            color: #fff;
+        }
+
+        .financial-position-card .pos-title {
+            font-size: 14.5px;
+            font-weight: 800;
+            color: #000;
+            margin-bottom: 3px;
+            line-height: 1.3;
+        }
+
+        .financial-position-card .pos-detail {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #000;
+            direction: rtl;
+            line-height: 1.35;
+        }
+
         /* Footer */
         .receipt-footer {
             text-align: center;
@@ -486,18 +537,82 @@
 
         <div class="double-dashed-line"></div>
 
+        @php
+            $balanceVal = (float) $party->balance;
+            $absBalance = abs($balanceVal);
+            $formattedAbsBalance = format_amount($absBalance);
+
+            if ($partyType === 'supplier') {
+                if ($balanceVal > 0) {
+                    $positionBadge = 'علينا فلوس للمورد';
+                    $positionTitle = 'علينا فلوس للمورد (مستحق له)';
+                    $positionDesc = 'مبلغ مستحق السداد للمورد: ' . $formattedAbsBalance . ' ج.م';
+                    $balanceStatusText = 'علينا فلوس للمورد';
+                    $balanceLabel = 'له علينا';
+                } elseif ($balanceVal < 0) {
+                    $positionBadge = 'لنا فلوس عند المورد';
+                    $positionTitle = 'لنا فلوس عند المورد (مطلوب منه)';
+                    $positionDesc = 'مبلغ رصيد لنا عند المورد: ' . $formattedAbsBalance . ' ج.م';
+                    $balanceStatusText = 'لنا فلوس عند المورد';
+                    $balanceLabel = 'لنا عنده';
+                } else {
+                    $positionBadge = 'خالص بالكامل';
+                    $positionTitle = 'الحساب خالص بالكامل (متزن)';
+                    $positionDesc = 'لا توجد أي مبالغ متبقية (0.00 ج.م)';
+                    $balanceStatusText = 'الحساب خالص (لا له ولا عليه)';
+                    $balanceLabel = 'خالص';
+                }
+            } else {
+                if ($balanceVal > 0) {
+                    $positionBadge = 'لنا فلوس عند العميل';
+                    $positionTitle = 'لنا فلوس عند العميل (مطلوب منه)';
+                    $positionDesc = 'مبلغ مطلوب تحصيله من العميل: ' . $formattedAbsBalance . ' ج.م';
+                    $balanceStatusText = 'لنا فلوس عند العميل';
+                    $balanceLabel = 'مطلوب منه';
+                } elseif ($balanceVal < 0) {
+                    $positionBadge = 'علينا فلوس للعميل';
+                    $positionTitle = 'علينا فلوس للعميل (مستحق له)';
+                    $positionDesc = 'رصيد دائن للعميل عندنا: ' . $formattedAbsBalance . ' ج.م';
+                    $balanceStatusText = 'علينا فلوس للعميل';
+                    $balanceLabel = 'له عندنا';
+                } else {
+                    $positionBadge = 'خالص بالكامل';
+                    $positionTitle = 'الحساب خالص بالكامل (متزن)';
+                    $positionDesc = 'لا توجد أي مبالغ متبقية (0.00 ج.م)';
+                    $balanceStatusText = 'الحساب خالص (لا له ولا عليه)';
+                    $balanceLabel = 'خالص';
+                }
+            }
+        @endphp
+
         <!-- Balance Summary -->
         <div class="totals-box">
             <div class="total-row">
-                <span class="total-label">عدد العمليات:</span>
+                <span class="total-label">عدد العمليات المسجلة:</span>
                 <span class="total-val">{{ $transactions->count() }} عملية</span>
+            </div>
+            <div class="total-row">
+                <span class="total-label">موقف المعاملة:</span>
+                <span class="total-val" style="font-weight: 800; font-size: 13.5px;">{{ $balanceStatusText }}</span>
             </div>
             <div class="total-row grand-total">
                 <span class="total-label">الرصيد الحالي:</span>
                 <span class="total-val">
-                    {{ format_amount(abs($party->balance)) }} ج.م
+                    {{ $formattedAbsBalance }} ج.م
                     ({{ $balanceLabel }})
                 </span>
+            </div>
+        </div>
+
+        <!-- Distinct Clear Financial Position Box -->
+        <div class="financial-position-card">
+            <div class="pos-card-head">
+                <span class="pos-tag">موقف الحساب المالي</span>
+                <span class="pos-badge">{{ $positionBadge }}</span>
+            </div>
+            <div class="pos-card-body">
+                <div class="pos-title">{{ $positionTitle }}</div>
+                <div class="pos-detail">{{ $positionDesc }}</div>
             </div>
         </div>
 
