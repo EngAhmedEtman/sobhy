@@ -133,7 +133,7 @@ class SaleController extends Controller
             'notes.regex' => 'الملاحظات يجب ألا تتكون من أرقام فقط',
         ]);
 
-        DB::transaction(function () use ($request) {
+        [$sale, $customer] = DB::transaction(function () use ($request) {
             $customer = Customer::query()->lockForUpdate()->findOrFail($request->customer_id);
             $totalAmount = 0;
 
@@ -213,9 +213,33 @@ class SaleController extends Controller
             Product::whereIn('id', collect($request->items)->pluck('product_id')->unique())
                 ->get()
                 ->each(fn (Product $product) => app(InventoryService::class)->recalculateProduct($product));
+
+            return [$sale, $customer];
         });
 
-        return back()->with('success', 'تم تسجيل فاتورة المبيعات بنجاح');
+        $invoiceData = [
+            'type' => 'sale',
+            'type_name' => 'فاتورة مبيعات',
+            'id' => $sale->id,
+            'invoice_number' => $sale->invoice_number,
+            'total_amount' => (float) $sale->total_amount,
+            'party_name' => $customer->name,
+            'party_label' => 'العميل',
+            'print_url' => route('print.sale', $sale),
+            'print_thermal_url' => route('print.sale.thermal', $sale),
+        ];
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تسجيل فاتورة المبيعات بنجاح',
+                'invoice' => $invoiceData,
+            ]);
+        }
+
+        return back()
+            ->with('success', 'تم تسجيل فاتورة المبيعات بنجاح')
+            ->with('invoice_saved', $invoiceData);
     }
 
     /**

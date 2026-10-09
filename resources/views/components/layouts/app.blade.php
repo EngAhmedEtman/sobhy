@@ -51,5 +51,8 @@
     <!-- Global Print Preview Modal -->
     <x-print.preview-modal />
 
+    <!-- Post Save Invoice Print Modal -->
+    <x-modals.invoice-print-prompt />
+
 </body>
 </html>

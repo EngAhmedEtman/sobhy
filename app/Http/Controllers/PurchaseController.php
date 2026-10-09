@@ -134,7 +134,7 @@ class PurchaseController extends Controller
             'notes.regex' => 'الملاحظات يجب ألا تتكون من أرقام فقط',
         ]);
 
-        DB::transaction(function () use ($request) {
+        [$purchase, $supplier] = DB::transaction(function () use ($request) {
             $supplier = Supplier::query()->lockForUpdate()->findOrFail($request->supplier_id);
             $totalAmount = 0;
 
@@ -228,9 +228,33 @@ class PurchaseController extends Controller
             Product::whereIn('id', collect($request->items)->pluck('product_id')->unique())
                 ->get()
                 ->each(fn (Product $product) => app(InventoryService::class)->recalculateProduct($product));
+
+            return [$purchase, $supplier];
         });
 
-        return back()->with('success', 'تم تسجيل فاتورة المشتريات بنجاح');
+        $invoiceData = [
+            'type' => 'purchase',
+            'type_name' => 'فاتورة مشتريات',
+            'id' => $purchase->id,
+            'invoice_number' => $purchase->invoice_number,
+            'total_amount' => (float) $purchase->total_amount,
+            'party_name' => $supplier->name,
+            'party_label' => 'المورد',
+            'print_url' => route('print.purchase', $purchase),
+            'print_thermal_url' => route('print.purchase.thermal', $purchase),
+        ];
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تسجيل فاتورة المشتريات بنجاح',
+                'invoice' => $invoiceData,
+            ]);
+        }
+
+        return back()
+            ->with('success', 'تم تسجيل فاتورة المشتريات بنجاح')
+            ->with('invoice_saved', $invoiceData);
     }
 
     /**
