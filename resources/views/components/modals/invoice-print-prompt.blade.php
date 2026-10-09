@@ -3,33 +3,40 @@
 @endphp
 
 <div x-data="{
-        open: {{ $savedInvoice ? 'true' : 'false' }},
+        open: false,
         invoice: {{ Js::from($savedInvoice, JSON_UNESCAPED_UNICODE) }},
+        init() {
+            @if($savedInvoice)
+                this.$nextTick(() => {
+                    this.open = true;
+                });
+            @endif
+        },
         printThermal() {
             if (!this.invoice || !this.invoice.print_thermal_url) return;
             const url = this.invoice.print_thermal_url;
             const title = (this.invoice.type_name || 'الفاتورة') + ' (حراري 80mm)';
             this.closeModal();
-            this.$nextTick(() => {
+            setTimeout(() => {
                 if (typeof window.openPrintPreviewModal === 'function') {
                     window.openPrintPreviewModal('printPreviewModal', url, title);
                 } else {
                     window.open(url, '_blank');
                 }
-            });
+            }, 100);
         },
         printRegular() {
             if (!this.invoice || !this.invoice.print_url) return;
             const url = this.invoice.print_url;
             const title = (this.invoice.type_name || 'الفاتورة') + ' (عادية A4)';
             this.closeModal();
-            this.$nextTick(() => {
+            setTimeout(() => {
                 if (typeof window.openPrintPreviewModal === 'function') {
                     window.openPrintPreviewModal('printPreviewModal', url, title);
                 } else {
                     window.open(url, '_blank');
                 }
-            });
+            }, 100);
         },
         closeModal() {
             this.open = false;
@@ -41,8 +48,8 @@
 
     <template x-teleport="body">
         <div x-show="open"
-             class="fixed inset-0 z-[80] overflow-y-auto"
-             style="display: none;"
+             x-cloak
+             class="fixed inset-0 z-[999990] overflow-y-auto"
              aria-labelledby="invoice-print-modal-title"
              role="dialog"
              aria-modal="true">
