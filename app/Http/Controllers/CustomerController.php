@@ -143,6 +143,9 @@ class CustomerController extends Controller
             ->orderBy('transaction_date', 'desc')
             ->orderBy('id', 'desc')
             ->paginate(20, ['*'], 'page');
+        $transactions->getCollection()
+            ->load('product')
+            ->loadMorph('source', [Sale::class => ['items.product']]);
 
         $totalsales = $customer->transactions()->where('type', 'sale')->sum('total_amount');
         $totalPayments = $customer->transactions()->where('type', 'payment_received')->sum('paid_amount');

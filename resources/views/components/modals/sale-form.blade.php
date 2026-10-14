@@ -499,13 +499,16 @@
                 if (customerId) {
                     url += `&entity_id=${customerId}`;
                 }
+                // Ignore late responses for a product the user already changed away from.
+                item.priceInfoUrl = url;
                 fetch(url)
                     .then(res => res.json())
                     .then(data => {
+                        if (item.priceInfoUrl !== url) return;
                         item.priceInfo = data;
                         item.priceInfoLoading = false;
                     }).catch(() => {
-                        item.priceInfoLoading = false;
+                        if (item.priceInfoUrl === url) item.priceInfoLoading = false;
                     });
             },
             

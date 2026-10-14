@@ -35,8 +35,17 @@
         editId: '', 
         editDate: '', 
         editAmount: '', 
-        editQuantity: '', 
+        editQuantity: '',
+        editPrice: '',
         editNotes: '',
+        syncEditPrice() {
+            const q = parseFloat(this.editQuantity), a = parseFloat(this.editAmount);
+            this.editPrice = q > 0 && !isNaN(a) ? Number((a / q).toFixed(2)) : '';
+        },
+        syncEditAmount() {
+            const q = parseFloat(this.editQuantity), p = parseFloat(this.editPrice);
+            if (q > 0 && !isNaN(p)) this.editAmount = Number((q * p).toFixed(2));
+        },
         editSale(id) {
             this.$dispatch('edit-sale', id);
         },
@@ -68,6 +77,8 @@
     }"
     @edit-transaction.window="editFromDetails($event.detail)"
     x-init="
+        $watch('editTransactionModal', open => { if (open) syncEditPrice(); });
+
         @if(session('auto_print_thermal') && session('printed_transaction_id'))
             openPrintPreviewModal('printPreviewModal', '{{ route('transactions.print.thermal', session('printed_transaction_id')) }}', 'إيصال استلام نقدية حراري');
         @endif
@@ -227,7 +238,10 @@
                     @endif
                     <span class="text-[0.65rem] text-slate-400 font-bold">{{ $transaction->transaction_date->format('d/m/Y') }}</span>
                 </div>
-                @if($transaction->notes)<p class="text-xs text-slate-500 mb-2 truncate">{{ $transaction->notes }}</p>@endif
+                @if($transaction->statement_description !== '-')<p class="text-xs text-slate-500 mb-2 truncate">{{ $transaction->statement_description }}</p>@endif
+                @foreach($transaction->invoice_items as $invoiceItem)
+                    <p class="text-[0.7rem] text-slate-500 mb-1">{{ $invoiceItem->product?->name ?? '-' }}: <span dir="ltr">{{ format_quantity($invoiceItem->quantity) }} ك × {{ format_amount($invoiceItem->unit_price) }}</span></p>
+                @endforeach
                 <div class="flex justify-between items-center text-xs border-t border-slate-50 pt-2 mb-2">
                     <div>
                         <span class="text-slate-400">الكمية:</span>
@@ -236,7 +250,9 @@
                     <div>
                         <span class="text-slate-400">سعر الكيلو:</span>
                         <span class="font-bold text-slate-700" dir="ltr">
-                            @if($transaction->quantity > 0)
+                            @if($transaction->invoice_items->count() > 1)
+                                متعدد
+                            @elseif($transaction->quantity > 0)
                                 {{ format_amount($transaction->total_amount / $transaction->quantity) }}
                             @else
                                 -
@@ -343,10 +359,17 @@
                                         <span class="px-2 py-1 rounded text-[0.7rem] font-bold bg-slate-100 text-slate-600">{{ transaction_type_label($transaction->type) }}</span>
                                     @endif
                                 </td>
-                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100">{{ $transaction->notes ?? '-' }}</td>
+                                <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100">
+                                    {{ $transaction->statement_description }}
+                                    @foreach($transaction->invoice_items as $invoiceItem)
+                                        <div class="text-[0.7rem] text-slate-500 mt-0.5">{{ $invoiceItem->product?->name ?? '-' }}: <span dir="ltr">{{ format_quantity($invoiceItem->quantity) }} ك × {{ format_amount($invoiceItem->unit_price) }}</span></div>
+                                    @endforeach
+                                </td>
                                 <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">{{ $transaction->quantity ? format_quantity($transaction->quantity) . ' ك' : '-' }}</td>
                                 <td class="px-2.5 py-3 text-[0.8rem] text-slate-700 border-b border-slate-100" dir="ltr">
-                                    @if($transaction->quantity > 0)
+                                    @if($transaction->invoice_items->count() > 1)
+                                        <span class="text-[0.7rem] text-slate-500">أصناف متعددة</span>
+                                    @elseif($transaction->quantity > 0)
                                         {{ format_amount($transaction->total_amount / $transaction->quantity) }} <span class="text-[0.65rem] text-slate-400">ج.م</span>
                                     @else
                                         -
@@ -668,6 +691,7 @@
                          },
 
                          selectProduct(p) {
+                             if (this.selectedId != p.id) this.unitPrice = '';
                              this.selectedId = p.id;
                              this.selectedProduct = p;
                              this.openProduct = false;
@@ -681,6 +705,7 @@
                              fetch(`/api/products/${productId}/price-info?type=sale&entity_id={{ $customer->id }}`)
                                  .then(res => res.json())
                                  .then(data => {
+                                     if (this.selectedId != productId) return;
                                      this.priceInfo = data;
                                      this.priceInfoLoading = false;
                                      if (data.entity && data.entity !== 'لا يوجد' && !this.unitPrice) {
@@ -936,13 +961,19 @@
                         @csrf
                         @method('PUT')
                         <div class="space-y-4">
-                            <div x-show="editType === 'return_sale' || editType === 'sale'">
-                                <label class="block text-sm font-medium text-slate-700 mb-1">الكمية</label>
-                                <input type="number" step="0.01" name="quantity" x-model="editQuantity" min="0.01" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr">
+                            <div x-show="editType === 'return_sale' || editType === 'sale'" class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">الكمية (ك)</label>
+                                    <input type="number" step="0.01" name="quantity" x-model="editQuantity" @input="syncEditAmount()" min="0.01" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-1">سعر الكيلو (ج.م)</label>
+                                    <input type="number" step="0.01" x-model="editPrice" @input="syncEditAmount()" min="0" class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr">
+                                </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">المبلغ (ج.م)</label>
-                                <input type="number" step="0.01" name="amount" x-model="editAmount" min="0" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr">
+                                <label class="block text-sm font-medium text-slate-700 mb-1" x-text="(editType === 'return_sale' || editType === 'sale') ? 'إجمالي العملية (ج.م) = الكمية × سعر الكيلو' : 'المبلغ (ج.م)'"></label>
+                                <input type="number" step="0.01" name="amount" x-model="editAmount" @input="syncEditPrice()" min="0" required class="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 text-left bg-slate-50 text-base" dir="ltr">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1">تاريخ العملية</label>

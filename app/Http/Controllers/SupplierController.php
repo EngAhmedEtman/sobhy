@@ -143,6 +143,9 @@ class SupplierController extends Controller
             ->orderBy('transaction_date', 'desc')
             ->orderBy('id', 'desc')
             ->paginate(20, ['*'], 'page');
+        $transactions->getCollection()
+            ->load('product')
+            ->loadMorph('source', [Purchase::class => ['items.product']]);
 
         $totalPurchases = $supplier->transactions()->where('type', 'purchase')->sum('total_amount');
         $totalPayments = $supplier->transactions()->where('type', 'payment_made')->sum('paid_amount');

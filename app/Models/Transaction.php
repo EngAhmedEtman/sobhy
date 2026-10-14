@@ -65,6 +65,40 @@ class Transaction extends Model
         return null;
     }
 
+    /**
+     * Line items of the invoice behind this ledger row (purchase/sale), empty otherwise.
+     */
+    public function getInvoiceItemsAttribute()
+    {
+        $source = in_array($this->type, ['purchase', 'sale'], true) && $this->relationLoaded('source')
+            ? $this->source
+            : null;
+
+        return ($source instanceof Purchase || $source instanceof Sale) && $source->relationLoaded('items')
+            ? $source->items
+            : collect();
+    }
+
+    /**
+     * Statement description: the product name for returns, plus any user notes.
+     */
+    public function getStatementDescriptionAttribute(): string
+    {
+        $productName = in_array($this->type, ['return_purchase', 'return_sale'], true)
+            ? $this->product?->name
+            : null;
+
+        if (! $productName) {
+            return $this->notes ?? '-';
+        }
+
+        if (! $this->notes || str_contains($this->notes, $productName)) {
+            return $this->notes ?: $productName;
+        }
+
+        return $productName.' - '.$this->notes;
+    }
+
     public function getTypeNameAttribute(): string
     {
         return transaction_type_label($this->type, 'financial');
