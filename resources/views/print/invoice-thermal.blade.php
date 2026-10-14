@@ -487,14 +487,22 @@
         <!-- Financial Summary -->
         @php
             $transaction = $invoice->transaction;
-            $paidCash = $transaction ? (float) $transaction->paid_amount : 0;
             $totalAmount = (float) $invoice->total_amount;
-            $paidFromBalance = 0;
-            if ($transaction && $transaction->paid_amount > $totalAmount) {
-                $paidCash = $totalAmount;
-                $paidFromBalance = $transaction->paid_amount - $totalAmount;
+            $paidTotal = $transaction ? (float) $transaction->paid_amount : 0;
+            
+            $previousBalance = 0;
+            if ($transaction && $transaction->balance_after !== null) {
+                $previousBalance = round((float)$transaction->balance_after - (float)$transaction->total_amount + (float)$transaction->paid_amount, 2);
+            } elseif ($party && isset($party->balance)) {
+                $previousBalance = (float) $party->balance;
             }
-            $remaining = max(0, round($totalAmount - $paidCash, 2));
+
+            $paidTowardPrevious = max(0, round($paidTotal - $totalAmount, 2));
+            $remainingInvoice = max(0, round($totalAmount - $paidTotal, 2));
+            $totalDue = max(0, round($totalAmount + max(0, $previousBalance), 2));
+            $balanceAfter = $transaction && $transaction->balance_after !== null
+                ? (float) $transaction->balance_after
+                : round($previousBalance + ($totalAmount - $paidTotal), 2);
         @endphp
 
         <div class="totals-box">
@@ -502,52 +510,62 @@
                 <span class="total-label">إجمالي الفاتورة:</span>
                 <span class="total-val val">{{ format_amount($totalAmount) }} ج.م</span>
             </div>
+
+            @if($previousBalance > 0)
+            <div class="total-row">
+                <span class="total-label">رصيد سابق (مديونية):</span>
+                <span class="total-val">+ {{ format_amount($previousBalance) }} ج.م</span>
+            </div>
+
+            <div class="total-row" style="font-weight: 800; background: #f8fafc; padding: 2px 4px; border-radius: 4px;">
+                <span class="total-label">الإجمالي المستحق:</span>
+                <span class="total-val">{{ format_amount($totalDue) }} ج.م</span>
+            </div>
+            @endif
             
             <div class="total-row">
                 <span class="total-label">المدفوع نقداً:</span>
-                <span class="total-val">{{ format_amount($paidCash) }} ج.م</span>
+                <span class="total-val">{{ format_amount($paidTotal) }} ج.م</span>
             </div>
 
-            @if($paidFromBalance > 0)
-            <div class="total-row">
-                <span class="total-label">مسدد من الرصيد:</span>
-                <span class="total-val">{{ format_amount($paidFromBalance) }} ج.م</span>
-            </div>
-            @endif
-
-            @if($remaining > 0)
-            <div class="total-row" style="font-weight: 800;">
-                <span class="total-label">المتبقي (آجل):</span>
-                <span class="total-val">{{ format_amount($remaining) }} ج.م</span>
+            @if($paidTowardPrevious > 0)
+            <div class="total-row" style="font-size: 11px; color: #475569;">
+                <span class="total-label" style="padding-right: 8px;">↳ منها سداد رصيد سابق:</span>
+                <span class="total-val">{{ format_amount($paidTowardPrevious) }} ج.م</span>
             </div>
             @endif
 
-            @if($party && isset($party->balance))
+            @if($remainingInvoice > 0)
+            <div class="total-row" style="font-weight: 800; color: #b91c1c;">
+                <span class="total-label">المتبقي من الفاتورة:</span>
+                <span class="total-val">{{ format_amount($remainingInvoice) }} ج.م</span>
+            </div>
+            @endif
+
             <div class="dashed-line" style="margin: 5px 0;"></div>
             <div class="total-row" style="font-size: 13.5px; font-weight: 800;">
-                <span class="total-label">رصيد الحساب الحالي:</span>
+                <span class="total-label">الرصيد بعد العملية:</span>
                 <span class="total-val">
-                    {{ format_amount(abs($party->balance)) }} ج.م
-                    @if($type === 'purchase')
-                        @if($party->balance > 0)
-                            (له علينا)
-                        @elseif($party->balance < 0)
-                            (لنا عنده)
-                        @else
-                            (خالص)
-                        @endif
+                    @if(round($balanceAfter, 2) == 0)
+                        خالص (0 ج.م)
                     @else
-                        @if($party->balance > 0)
-                            (مطلوب منه)
-                        @elseif($party->balance < 0)
-                            (له عندنا)
+                        {{ format_amount(abs($balanceAfter)) }} ج.م
+                        @if($type === 'purchase')
+                            @if($balanceAfter > 0)
+                                (له علينا)
+                            @else
+                                (لنا عنده)
+                            @endif
                         @else
-                            (خالص)
+                            @if($balanceAfter > 0)
+                                (مطلوب منه)
+                            @else
+                                (له عندنا)
+                            @endif
                         @endif
                     @endif
                 </span>
             </div>
-            @endif
         </div>
 
         @if(!empty($invoice->notes))

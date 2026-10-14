@@ -117,19 +117,71 @@
                 </div>
                 
                 @php
-                    $paidCash = $invoice->transaction ? $invoice->transaction->paid_amount : 0;
-                    $remaining = $invoice->total_amount - $paidCash;
+                    $transaction = $invoice->transaction;
+                    $totalAmount = (float) $invoice->total_amount;
+                    $paidTotal = $transaction ? (float) $transaction->paid_amount : 0;
+                    
+                    $party = $type === 'purchase' ? $invoice->supplier : $invoice->customer;
+                    $previousBalance = 0;
+                    if ($transaction && $transaction->balance_after !== null) {
+                        $previousBalance = round((float)$transaction->balance_after - (float)$transaction->total_amount + (float)$transaction->paid_amount, 2);
+                    } elseif ($party && isset($party->balance)) {
+                        $previousBalance = (float) $party->balance;
+                    }
+
+                    $paidTowardPrevious = max(0, round($paidTotal - $totalAmount, 2));
+                    $remainingInvoice = max(0, round($totalAmount - $paidTotal, 2));
+                    $totalDue = max(0, round($totalAmount + max(0, $previousBalance), 2));
+                    $balanceAfter = $transaction && $transaction->balance_after !== null
+                        ? (float) $transaction->balance_after
+                        : round($previousBalance + ($totalAmount - $paidTotal), 2);
                 @endphp
-                <div class="totals-row" style="color: #15803d;">
-                    <span class="totals-label">المدفوع نقداً:</span>
-                    <span class="totals-value">{{ format_amount($paidCash) }} ج.م</span>
+
+                @if($previousBalance > 0)
+                <div class="totals-row" style="color: #b45309;">
+                    <span class="totals-label">رصيد سابق (مديونية):</span>
+                    <span class="totals-value">+ {{ format_amount($previousBalance) }} ج.م</span>
                 </div>
-                @if($remaining > 0)
-                <div class="totals-row" style="color: #b91c1c;">
-                    <span class="totals-label">المتبقي (آجل):</span>
-                    <span class="totals-value">{{ format_amount($remaining) }} ج.م</span>
+                <div class="totals-row" style="font-weight: 800; background: #f1f5f9; padding: 4px 6px; border-radius: 4px;">
+                    <span class="totals-label">الإجمالي المستحق:</span>
+                    <span class="totals-value">{{ format_amount($totalDue) }} ج.م</span>
                 </div>
                 @endif
+
+                <div class="totals-row" style="color: #15803d;">
+                    <span class="totals-label">المدفوع نقداً:</span>
+                    <span class="totals-value">{{ format_amount($paidTotal) }} ج.م</span>
+                </div>
+
+                @if($paidTowardPrevious > 0)
+                <div class="totals-row" style="color: #475569; font-size: 11px;">
+                    <span class="totals-label" style="padding-right: 12px;">↳ منها سداد رصيد سابق:</span>
+                    <span class="totals-value">{{ format_amount($paidTowardPrevious) }} ج.م</span>
+                </div>
+                @endif
+
+                @if($remainingInvoice > 0)
+                <div class="totals-row" style="color: #b91c1c;">
+                    <span class="totals-label">المتبقي من الفاتورة:</span>
+                    <span class="totals-value">{{ format_amount($remainingInvoice) }} ج.م</span>
+                </div>
+                @endif
+
+                <div class="totals-row" style="border-top: 1px dashed #cbd5e1; margin-top: 4px; padding-top: 4px; font-weight: 800;">
+                    <span class="totals-label">الرصيد بعد العملية:</span>
+                    <span class="totals-value">
+                        @if(round($balanceAfter, 2) == 0)
+                            خالص (0 ج.م)
+                        @else
+                            {{ format_amount(abs($balanceAfter)) }} ج.م
+                            @if($type === 'purchase')
+                                @if($balanceAfter > 0) (له علينا) @else (لنا عنده) @endif
+                            @else
+                                @if($balanceAfter > 0) (مطلوب منه) @else (له عندنا) @endif
+                            @endif
+                        @endif
+                    </span>
+                </div>
             </div>
 
             <div style="flex-grow: 1;"></div>

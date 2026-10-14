@@ -69,22 +69,60 @@
                                     <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     الملخص المالي للفاتورة
                                 </h4>
-                                <div class="space-y-3">
+                                <div class="space-y-2.5 text-xs sm:text-sm">
                                     <div class="flex justify-between items-center pb-2 border-b border-blue-100">
-                                        <span class="text-xs font-bold text-slate-500">إجمالي الفاتورة</span>
-                                        <span class="text-sm font-bold text-slate-700" dir="ltr" x-text="Number(details.total_amount).toLocaleString() + ' ج.م'"></span>
+                                        <span class="font-bold text-slate-600">إجمالي الفاتورة</span>
+                                        <span class="font-bold text-slate-800" dir="ltr" x-text="Number(details.total_amount).toLocaleString() + ' ج.م'"></span>
                                     </div>
+
+                                    <!-- Previous balance if positive (debt) -->
+                                    <div x-show="Number(details.transaction?.previous_balance || 0) > 0" class="flex justify-between items-center pb-2 border-b border-blue-100 text-amber-700">
+                                        <span class="font-bold">رصيد سابق (مديونية)</span>
+                                        <span class="font-bold" dir="ltr" x-text="'+ ' + Number(details.transaction?.previous_balance || 0).toLocaleString() + ' ج.م'"></span>
+                                    </div>
+
+                                    <!-- Total Due -->
+                                    <div x-show="Number(details.transaction?.previous_balance || 0) > 0" class="flex justify-between items-center pb-2 border-b border-blue-200 bg-blue-100/40 -mx-2 px-2 py-1 rounded">
+                                        <span class="font-black text-blue-900">الإجمالي المستحق</span>
+                                        <span class="font-black text-blue-900" dir="ltr" x-text="Number(details.transaction?.total_due || 0).toLocaleString() + ' ج.م'"></span>
+                                    </div>
+
+                                    <!-- Paid Cash -->
                                     <div class="flex justify-between items-center pb-2 border-b border-blue-100">
-                                        <span class="text-xs font-bold text-slate-500">المدفوع نقداً</span>
-                                        <span class="text-sm font-bold text-emerald-600" dir="ltr" x-text="Number(details.transaction?.paid_cash || 0).toLocaleString() + ' ج.م'"></span>
+                                        <span class="font-bold text-slate-600">المدفوع نقداً</span>
+                                        <span class="font-bold text-emerald-600" dir="ltr" x-text="Number(details.transaction?.paid_amount || details.transaction?.paid_cash || 0).toLocaleString() + ' ج.م'"></span>
                                     </div>
-                                    <div class="flex justify-between items-center pb-2 border-b border-blue-100">
-                                        <span class="text-xs font-bold text-slate-500">مسدد من الرصيد</span>
-                                        <span class="text-sm font-bold text-blue-600" dir="ltr" x-text="Number(details.transaction?.paid_from_balance || 0).toLocaleString() + ' ج.م'"></span>
+
+                                    <!-- Portion paid towards previous balance -->
+                                    <div x-show="Number(details.transaction?.paid_toward_previous || 0) > 0" class="flex justify-between items-center pb-2 border-b border-blue-100 text-primary-700 text-xs">
+                                        <span class="font-medium pr-1">↳ منها سداد رصيد سابق</span>
+                                        <span class="font-bold" dir="ltr" x-text="Number(details.transaction?.paid_toward_previous || 0).toLocaleString() + ' ج.م'"></span>
                                     </div>
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-xs font-bold text-slate-500">المتبقي (آجل)</span>
-                                        <span class="text-sm font-bold text-danger-500" dir="ltr" x-text="Number(details.transaction?.remaining_from_this || 0).toLocaleString() + ' ج.م'"></span>
+
+                                    <!-- Remaining of invoice if unpaid -->
+                                    <div x-show="Number(details.transaction?.remaining_from_this || 0) > 0" class="flex justify-between items-center pb-2 border-b border-blue-100">
+                                        <span class="font-bold text-slate-600">المتبقي من الفاتورة</span>
+                                        <span class="font-bold text-danger-500" dir="ltr" x-text="Number(details.transaction?.remaining_from_this || 0).toLocaleString() + ' ج.م'"></span>
+                                    </div>
+
+                                    <!-- Final balance status after transaction -->
+                                    <div class="flex justify-between items-center pt-1">
+                                        <span class="font-bold text-slate-600">الرصيد بعد العملية</span>
+                                        <span class="font-black" :class="{
+                                            'text-emerald-600': Number(details.transaction?.balance_after || 0) === 0,
+                                            'text-danger-600': Number(details.transaction?.balance_after || 0) > 0,
+                                            'text-blue-600': Number(details.transaction?.balance_after || 0) < 0
+                                        }" dir="ltr">
+                                            <template x-if="Number(details.transaction?.balance_after || 0) === 0">
+                                                <span>خالص (0 ج.م)</span>
+                                            </template>
+                                            <template x-if="Number(details.transaction?.balance_after || 0) > 0">
+                                                <span x-text="Number(details.transaction?.balance_after || 0).toLocaleString() + ' ج.م (متبقي)'"></span>
+                                            </template>
+                                            <template x-if="Number(details.transaction?.balance_after || 0) < 0">
+                                                <span x-text="Number(Math.abs(details.transaction?.balance_after || 0)).toLocaleString() + ' ج.م (دائن)'"></span>
+                                            </template>
+                                        </span>
                                     </div>
                                 </div>
                             </div>

@@ -270,23 +270,37 @@ class PurchaseController extends Controller
                 ->where('notes', 'like', '%رقم '.$purchase->invoice_number.'%')
                 ->first();
 
-            $paid_cash = $transaction ? $transaction->paid_amount : 0;
-            $total_amount = $purchase->total_amount;
-            $paid_from_balance = 0;
-            if ($transaction && $transaction->paid_amount > $total_amount) {
-                $paid_cash = $total_amount;
-                $paid_from_balance = $transaction->paid_amount - $total_amount;
+            $total_amount = (float) $purchase->total_amount;
+            $paid_amount = $transaction ? (float) $transaction->paid_amount : 0;
+
+            // Calculate previous balance right before this invoice was recorded
+            $previous_balance = 0;
+            if ($transaction && $transaction->balance_after !== null) {
+                $previous_balance = round((float) $transaction->balance_after - (float) $transaction->total_amount + (float) $transaction->paid_amount, 2);
+            } elseif ($purchase->supplier) {
+                $previous_balance = (float) $purchase->supplier->balance;
             }
 
-            $remaining_from_this = $total_amount - $paid_cash;
+            $paid_for_invoice = min($total_amount, $paid_amount);
+            $paid_toward_previous = max(0, round($paid_amount - $total_amount, 2));
+            $remaining_from_this = max(0, round($total_amount - $paid_amount, 2));
+            $total_due = max(0, round($total_amount + max(0, $previous_balance), 2));
+            $balance_after = $transaction && $transaction->balance_after !== null
+                ? (float) $transaction->balance_after
+                : round($previous_balance + ($total_amount - $paid_amount), 2);
 
             $transactionData = null;
             if ($transaction) {
                 $transactionData = [
-                    'paid_amount' => (float) $transaction->paid_amount,
-                    'paid_cash' => $paid_cash,
-                    'paid_from_balance' => $paid_from_balance,
-                    'remaining_from_this' => max(0, $remaining_from_this),
+                    'paid_amount' => $paid_amount,
+                    'paid_cash' => $paid_amount,
+                    'paid_for_invoice' => $paid_for_invoice,
+                    'paid_toward_previous' => $paid_toward_previous,
+                    'previous_balance' => $previous_balance,
+                    'total_due' => $total_due,
+                    'balance_after' => $balance_after,
+                    'remaining_from_this' => $remaining_from_this,
+                    'paid_from_balance' => $paid_toward_previous,
                 ];
             }
 

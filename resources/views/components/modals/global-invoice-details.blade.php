@@ -80,23 +80,58 @@
                             </div>
                         </div>
 
-                        <div class="space-y-3 rounded-xl border border-blue-100 bg-blue-50/60 p-4">
+                        <div class="space-y-2.5 rounded-xl border border-blue-100 bg-blue-50/60 p-4 text-xs sm:text-sm">
                             <h4 class="text-sm font-black text-blue-800">الملخص المالي</h4>
                             <div class="flex items-center justify-between border-b border-blue-100 pb-2">
-                                <span class="text-xs font-bold text-slate-500">إجمالي الفاتورة</span>
-                                <span class="text-sm font-black text-slate-800" dir="ltr" x-text="`${Number(invoiceDetails.total_amount || 0).toLocaleString()} ج.م`"></span>
+                                <span class="font-bold text-slate-600">إجمالي الفاتورة</span>
+                                <span class="font-bold text-slate-800" dir="ltr" x-text="`${Number(invoiceDetails.total_amount || 0).toLocaleString()} ج.م`"></span>
                             </div>
+
+                            <!-- Previous balance if positive (debt) -->
+                            <div x-show="Number(invoiceDetails.transaction?.previous_balance || 0) > 0" class="flex items-center justify-between border-b border-blue-100 pb-2 text-amber-700">
+                                <span class="font-bold">رصيد سابق (مديونية)</span>
+                                <span class="font-bold" dir="ltr" x-text="`+ ${Number(invoiceDetails.transaction?.previous_balance || 0).toLocaleString()} ج.م`"></span>
+                            </div>
+
+                            <!-- Total due -->
+                            <div x-show="Number(invoiceDetails.transaction?.previous_balance || 0) > 0" class="flex items-center justify-between border-b border-blue-200 bg-blue-100/40 -mx-2 px-2 py-1 rounded">
+                                <span class="font-black text-blue-900">الإجمالي المستحق</span>
+                                <span class="font-black text-blue-900" dir="ltr" x-text="`${Number(invoiceDetails.transaction?.total_due || 0).toLocaleString()} ج.م`"></span>
+                            </div>
+
                             <div class="flex items-center justify-between border-b border-blue-100 pb-2">
-                                <span class="text-xs font-bold text-slate-500">المدفوع نقداً</span>
-                                <span class="text-sm font-black text-emerald-600" dir="ltr" x-text="`${Number(invoiceDetails.transaction?.paid_cash || 0).toLocaleString()} ج.م`"></span>
+                                <span class="font-bold text-slate-600">المدفوع نقداً</span>
+                                <span class="font-bold text-emerald-600" dir="ltr" x-text="`${Number(invoiceDetails.transaction?.paid_amount || invoiceDetails.transaction?.paid_cash || 0).toLocaleString()} ج.م`"></span>
                             </div>
-                            <div class="flex items-center justify-between border-b border-blue-100 pb-2">
-                                <span class="text-xs font-bold text-slate-500">المسدد من الرصيد</span>
-                                <span class="text-sm font-black text-blue-600" dir="ltr" x-text="`${Number(invoiceDetails.transaction?.paid_from_balance || 0).toLocaleString()} ج.م`"></span>
+
+                            <!-- Portion paid towards previous balance -->
+                            <div x-show="Number(invoiceDetails.transaction?.paid_toward_previous || 0) > 0" class="flex items-center justify-between border-b border-blue-100 pb-2 text-primary-700 text-xs">
+                                <span class="font-medium pr-1">↳ منها سداد رصيد سابق</span>
+                                <span class="font-bold" dir="ltr" x-text="`${Number(invoiceDetails.transaction?.paid_toward_previous || 0).toLocaleString()} ج.م`"></span>
                             </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-bold text-slate-500">المتبقي</span>
-                                <span class="text-sm font-black text-red-600" dir="ltr" x-text="`${Number(invoiceDetails.transaction?.remaining_from_this ?? invoiceDetails.total_amount ?? 0).toLocaleString()} ج.م`"></span>
+
+                            <div x-show="Number(invoiceDetails.transaction?.remaining_from_this || 0) > 0" class="flex items-center justify-between border-b border-blue-100 pb-2">
+                                <span class="font-bold text-slate-600">المتبقي من الفاتورة</span>
+                                <span class="font-bold text-danger-500" dir="ltr" x-text="`${Number(invoiceDetails.transaction?.remaining_from_this || 0).toLocaleString()} ج.م`"></span>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-1">
+                                <span class="font-bold text-slate-600">الرصيد بعد العملية</span>
+                                <span class="font-black" :class="{
+                                    'text-emerald-600': Number(invoiceDetails.transaction?.balance_after || 0) === 0,
+                                    'text-danger-600': Number(invoiceDetails.transaction?.balance_after || 0) > 0,
+                                    'text-blue-600': Number(invoiceDetails.transaction?.balance_after || 0) < 0
+                                }" dir="ltr">
+                                    <template x-if="Number(invoiceDetails.transaction?.balance_after || 0) === 0">
+                                        <span>خالص (0 ج.م)</span>
+                                    </template>
+                                    <template x-if="Number(invoiceDetails.transaction?.balance_after || 0) > 0">
+                                        <span x-text="`${Number(invoiceDetails.transaction?.balance_after || 0).toLocaleString()} ج.م (متبقي)`"></span>
+                                    </template>
+                                    <template x-if="Number(invoiceDetails.transaction?.balance_after || 0) < 0">
+                                        <span x-text="`${Number(Math.abs(invoiceDetails.transaction?.balance_after || 0)).toLocaleString()} ج.م (دائن)`"></span>
+                                    </template>
+                                </span>
                             </div>
                         </div>
                     </aside>
