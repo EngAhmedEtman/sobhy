@@ -195,7 +195,7 @@
                                                      class="relative w-full text-right">
                                                     <input type="hidden" :name="'items['+index+'][product_id]'" x-model="item.product_id" required>
                                                     
-                                                    <button type="button" x-ref="trigger" @click="toggle()" :data-validation-key="'items.'+index+'.product_id'" class="w-full flex items-center justify-between px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 transition-all text-right"
+                                                    <button type="button" x-ref="trigger" @click="if (!open) search = ''; toggle()" :data-validation-key="'items.'+index+'.product_id'" class="w-full flex items-center justify-between px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 focus:ring-1 transition-all text-right"
                                                             :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['items.'+index+'.product_id']}">
                                                         <span class="text-xs font-medium truncate" :class="item.product_id ? 'text-slate-800' : 'text-slate-400'" x-text="getProduct(item.product_id) ? getProduct(item.product_id).name + ' (متوفر: ' + getProduct(item.product_id).stock + ')' : 'اختر المنتج...'"></span>
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0" :class="open ? 'rotate-180 text-primary-600' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -212,7 +212,7 @@
                                                             <template x-for="p in filterProducts(search)" :key="p.id">
                                                                 <button type="button" 
                                                                         :disabled="items.some(i => i.product_id == p.id && i.id !== item.id)"
-                                                                        @click="onSelectProduct(item, p); open = false; search = ''" 
+                                                                        @click="if (!open) return; onSelectProduct(item, p); open = false" 
                                                                         class="w-full px-3 py-2 text-right flex items-center justify-between transition-colors group" 
                                                                         :class="[
                                                                             item.product_id == p.id ? 'bg-primary-50 font-bold' : '',
@@ -269,7 +269,7 @@
                                                      class="relative flex-1 text-right">
                                                     <input type="hidden" :name="'items['+index+'][product_id]'" x-model="item.product_id" required>
                                                     
-                                                    <button type="button" x-ref="trigger" @click="toggle()" :data-validation-key="'items.'+index+'.product_id'" class="w-full flex items-center justify-between px-2.5 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 text-right"
+                                                    <button type="button" x-ref="trigger" @click="if (!open) search = ''; toggle()" :data-validation-key="'items.'+index+'.product_id'" class="w-full flex items-center justify-between px-2.5 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-primary-500 text-right"
                                                             :class="{'!border-rose-500 !bg-rose-50 !ring-1 !ring-rose-500': errors['items.'+index+'.product_id']}">
                                                         <span class="text-xs font-bold truncate" :class="item.product_id ? 'text-slate-800' : 'text-slate-400'" x-text="getProduct(item.product_id) ? getProduct(item.product_id).name + ' (متوفر: ' + getProduct(item.product_id).stock + ')' : 'اختر المنتج...'"></span>
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
@@ -284,7 +284,7 @@
                                                             <template x-for="p in filterProducts(search)" :key="p.id">
                                                                 <button type="button" 
                                                                         :disabled="items.some(i => i.product_id == p.id && i.id !== item.id)"
-                                                                        @click="onSelectProduct(item, p); open = false; search = ''" 
+                                                                        @click="if (!open) return; onSelectProduct(item, p); open = false" 
                                                                         class="w-full px-3 py-2 text-right flex items-center justify-between transition-colors" 
                                                                         :class="item.product_id == p.id ? 'bg-primary-50 font-bold' : ''">
                                                                     <span class="text-xs font-medium" :class="items.some(i => i.product_id == p.id && i.id !== item.id) ? 'text-slate-400' : 'text-slate-800'" x-text="items.some(i => i.product_id == p.id && i.id !== item.id) ? p.name + ' (مضاف مسبقاً)' : p.name"></span>
