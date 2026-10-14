@@ -86,6 +86,10 @@ class TransactionController extends Controller
             $party = $transaction->transactionable()->lockForUpdate()->firstOrFail();
             $isPayment = in_array($transaction->type, ['payment_received', 'payment_made', 'payment_sent'], true);
 
+            if ($isPayment) {
+                $this->adjustLinkedInvoicePaid($transaction, (float) $validated['amount'] - (float) $transaction->paid_amount);
+            }
+
             $transaction->forceFill([
                 'paid_amount' => $isPayment ? $validated['amount'] : $transaction->paid_amount,
                 'total_amount' => $isPayment ? $transaction->total_amount : $validated['amount'],
@@ -136,6 +140,7 @@ class TransactionController extends Controller
                 ->where('related_type', Transaction::class)
                 ->where('related_id', $transaction->id)
                 ->delete();
+            $this->adjustLinkedInvoicePaid($transaction, -(float) $transaction->paid_amount);
             $transaction->delete();
 
             app(AccountingService::class)->recalculateParty($party);
@@ -145,6 +150,28 @@ class TransactionController extends Controller
         });
 
         return back()->with('success', 'تم حذف العملية وإعادة احتساب الحساب والمخزون بنجاح');
+    }
+
+    /**
+     * Invoice-level payments are mirrored in the invoice ledger row's paid_amount,
+     * so editing or deleting one must move that figure by the same difference.
+     */
+    private function adjustLinkedInvoicePaid(Transaction $payment, float $difference): void
+    {
+        if ($difference == 0.0 || ! app(AccountingService::class)->isInvoiceLinkedPayment($payment)) {
+            return;
+        }
+
+        $ledger = Transaction::query()
+            ->where('source_type', $payment->source_type)
+            ->where('source_id', $payment->source_id)
+            ->whereIn('type', ['purchase', 'sale'])
+            ->lockForUpdate()
+            ->first();
+
+        if ($ledger) {
+            $ledger->forceFill(['paid_amount' => max(0, round((float) $ledger->paid_amount + $difference, 2))])->save();
+        }
     }
 
     private function ensureEditable(Transaction $transaction): void
