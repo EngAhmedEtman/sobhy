@@ -130,11 +130,11 @@
                     }
 
                     $paidTowardPrevious = max(0, round($paidTotal - $totalAmount, 2));
-                    $remainingInvoice = max(0, round($totalAmount - $paidTotal, 2));
                     $totalDue = max(0, round($totalAmount + $previousBalance, 2));
                     $balanceAfter = $transaction && $transaction->balance_after !== null
                         ? (float) $transaction->balance_after
                         : round($previousBalance + ($totalAmount - $paidTotal), 2);
+                    $remainingInvoice = max(0, round($balanceAfter, 2));
                 @endphp
 
                 @if($previousBalance > 0)
@@ -174,7 +174,7 @@
 
                 @if($remainingInvoice > 0)
                 <div class="totals-row" style="color: #b91c1c;">
-                    <span class="totals-label">المتبقي من الفاتورة:</span>
+                    <span class="totals-label">المتبقي المستحق:</span>
                     <span class="totals-value">{{ format_amount($remainingInvoice) }} ج.م</span>
                 </div>
                 @endif

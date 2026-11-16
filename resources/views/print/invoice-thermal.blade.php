@@ -363,6 +363,21 @@
             .items-table td {
                 border-bottom: 1px dotted #888 !important;
             }
+
+            .totals-box,
+            .totals-box * {
+                color: #000 !important;
+                -webkit-text-stroke: 0.01px #000;
+            }
+
+            .totals-box .total-row {
+                font-weight: 700 !important;
+            }
+
+            .totals-box .total-label,
+            .totals-box .total-val {
+                font-weight: 800 !important;
+            }
         }
     </style>
 </head>
@@ -498,11 +513,11 @@
             }
 
             $paidTowardPrevious = max(0, round($paidTotal - $totalAmount, 2));
-            $remainingInvoice = max(0, round($totalAmount - $paidTotal, 2));
             $totalDue = max(0, round($totalAmount + $previousBalance, 2));
             $balanceAfter = $transaction && $transaction->balance_after !== null
                 ? (float) $transaction->balance_after
                 : round($previousBalance + ($totalAmount - $paidTotal), 2);
+            $remainingInvoice = max(0, round($balanceAfter, 2));
         @endphp
 
         <div class="totals-box">
@@ -548,7 +563,7 @@
 
             @if($remainingInvoice > 0)
             <div class="total-row" style="font-weight: 800; color: #b91c1c;">
-                <span class="total-label">المتبقي من الفاتورة:</span>
+                <span class="total-label">المتبقي المستحق:</span>
                 <span class="total-val">{{ format_amount($remainingInvoice) }} ج.م</span>
             </div>
             @endif

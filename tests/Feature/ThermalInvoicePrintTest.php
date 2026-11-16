@@ -138,7 +138,19 @@ class ThermalInvoicePrintTest extends TestCase
             $response->assertSee('2,052');
             $response->assertSee('صافي المستحق:');
             $response->assertSee('13,658');
+            $response->assertSee('المتبقي المستحق:');
+            $response->assertDontSee('المتبقي من الفاتورة:');
         }
+    }
+
+    public function test_thermal_totals_force_black_text_for_reliable_thermal_printing(): void
+    {
+        $response = $this->actingAs($this->user)->get(route('print.purchase.thermal', $this->purchase));
+
+        $response->assertOk();
+        $response->assertSee('.totals-box * {', false);
+        $response->assertSee('color: #000 !important;', false);
+        $response->assertSee('-webkit-text-stroke: 0.01px #000;', false);
     }
 
     public function test_standard_print_route_with_thermal_query_param_renders_thermal_view(): void
