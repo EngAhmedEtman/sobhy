@@ -367,15 +367,17 @@
             .totals-box,
             .totals-box * {
                 color: #000 !important;
-                -webkit-text-stroke: 0.01px #000;
             }
 
-            .totals-box .total-row {
+            .totals-box .total-row:not(.grand-total),
+            .totals-box .total-row:not(.grand-total) .total-label,
+            .totals-box .total-row:not(.grand-total) .total-val {
                 font-weight: 700 !important;
             }
 
-            .totals-box .total-label,
-            .totals-box .total-val {
+            .totals-box .total-row.grand-total,
+            .totals-box .total-row.grand-total .total-label,
+            .totals-box .total-row.grand-total .total-val {
                 font-weight: 800 !important;
             }
         }

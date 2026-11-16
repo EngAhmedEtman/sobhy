@@ -150,7 +150,8 @@ class ThermalInvoicePrintTest extends TestCase
         $response->assertOk();
         $response->assertSee('.totals-box * {', false);
         $response->assertSee('color: #000 !important;', false);
-        $response->assertSee('-webkit-text-stroke: 0.01px #000;', false);
+        $response->assertSee('.totals-box .total-row:not(.grand-total)', false);
+        $response->assertDontSee('-webkit-text-stroke:', false);
     }
 
     public function test_standard_print_route_with_thermal_query_param_renders_thermal_view(): void
