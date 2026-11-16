@@ -499,7 +499,7 @@
 
             $paidTowardPrevious = max(0, round($paidTotal - $totalAmount, 2));
             $remainingInvoice = max(0, round($totalAmount - $paidTotal, 2));
-            $totalDue = max(0, round($totalAmount + max(0, $previousBalance), 2));
+            $totalDue = max(0, round($totalAmount + $previousBalance, 2));
             $balanceAfter = $transaction && $transaction->balance_after !== null
                 ? (float) $transaction->balance_after
                 : round($previousBalance + ($totalAmount - $paidTotal), 2);
@@ -517,8 +517,19 @@
                 <span class="total-val">+ {{ format_amount($previousBalance) }} ج.م</span>
             </div>
 
+            @elseif($previousBalance < 0)
+            <div class="total-row" style="color: #15803d;">
+                <span class="total-label">
+                    {{ $type === 'purchase' ? 'رصيد سابق لنا عند المورد:' : 'رصيد سابق للعميل عندنا:' }}
+                </span>
+                <span class="total-val">- {{ format_amount(abs($previousBalance)) }} ج.م</span>
+            </div>
+
+            @endif
+
+            @if($previousBalance != 0)
             <div class="total-row" style="font-weight: 800; background: #f8fafc; padding: 2px 4px; border-radius: 4px;">
-                <span class="total-label">الإجمالي المستحق:</span>
+                <span class="total-label">صافي المستحق:</span>
                 <span class="total-val">{{ format_amount($totalDue) }} ج.م</span>
             </div>
             @endif

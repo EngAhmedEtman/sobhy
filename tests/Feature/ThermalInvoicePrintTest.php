@@ -113,6 +113,34 @@ class ThermalInvoicePrintTest extends TestCase
         $response->assertSee('800');
     }
 
+    public function test_purchase_print_explains_previous_credit_deducted_from_net_balance(): void
+    {
+        $this->purchase->update(['total_amount' => 15710]);
+        $this->supplier->update(['balance' => 13658]);
+
+        \App\Models\Transaction::create([
+            'transactionable_type' => Supplier::class,
+            'transactionable_id' => $this->supplier->id,
+            'type' => 'purchase',
+            'source_type' => Purchase::class,
+            'source_id' => $this->purchase->id,
+            'total_amount' => 15710,
+            'paid_amount' => 0,
+            'balance_after' => 13658,
+            'transaction_date' => now()->toDateString(),
+        ]);
+
+        foreach ([route('print.purchase.thermal', $this->purchase), route('print.purchase', $this->purchase)] as $url) {
+            $response = $this->actingAs($this->user)->get($url);
+
+            $response->assertOk();
+            $response->assertSee('رصيد سابق لنا عند المورد:');
+            $response->assertSee('2,052');
+            $response->assertSee('صافي المستحق:');
+            $response->assertSee('13,658');
+        }
+    }
+
     public function test_standard_print_route_with_thermal_query_param_renders_thermal_view(): void
     {
         $response = $this->actingAs($this->user)->get(route('print.sale', $this->sale) . '?thermal=1');
